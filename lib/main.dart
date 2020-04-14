@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
-import 'package:painter2/painter2.dart';
 import 'package:drawing_animation/drawing_animation.dart';
+import 'package:tuple/tuple.dart';
 
 void main() {
   runApp(MyApp());
@@ -12,74 +12,65 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'Drawing Game',
+      home: MyHomePage(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
   GlobalKey _canvasKey = GlobalKey();
-  GlobalKey _animKey = GlobalKey();
 
-  bool _calculateSize = false;
+  final ui.PictureRecorder recorder = ui.PictureRecorder();
+
+  bool _needToCalculateSize = false;
   bool _hasCalculatedSize = false;
-
   double _canvasDY = 0;
+  bool _runAnimation = true;
+  bool _showAnimation = false;
+  bool _lastPointOutOfBounds = false;
+
+  List<Path> paths = [];
+  List<Paint> paints = [];
+
+  PathStorage _pathStorage = PathStorage();
+
   Paint _defaultPaint = Paint()
     ..color = Colors.black
     ..strokeWidth = 4
     ..strokeCap = StrokeCap.round
     ..style = PaintingStyle.stroke;
 
-  PainterController _controller = PainterController();
-
-  bool run = true;
-
-  bool _showAnimation = false;
-
   @override
   initState() {
     super.initState();
-
-    _controller.thickness = 5.0;
-    _controller.backgroundColor = Colors.green;
-
     SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.portraitUp,
+      //DeviceOrientation.landscapeLeft,
     ]);
   }
 
-  List<Path> paths = [];
-  List<Paint> paints = [];
-
-  double animHeight = 0;
-  double animWidth = 0;
-
   @override
   Widget build(BuildContext context) {
-    if (_calculateSize && !_hasCalculatedSize) {
+    if (_needToCalculateSize && !_hasCalculatedSize) {
       final RenderBox renderBox = _canvasKey.currentContext.findRenderObject();
-      _canvasDY = renderBox.size.height;
+      _canvasDY = renderBox.size.height - 2;
       _hasCalculatedSize = true;
     }
 
     return Scaffold(
+      backgroundColor: Color.fromRGBO(180, 180, 180, 1),
       body: SafeArea(
-        child: Row(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
-            Column(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
                 FlatButton(
@@ -90,19 +81,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       return;
                     }
 
-                    Path temp = Path();
-                    paths.forEach((element) {
-                      temp.addPath(element, Offset(0, 0));
-                    });
-
-                    double height = temp.getBounds().height;
-                    double width = temp.getBounds().width;
-
-                    animHeight = height;
-                    animWidth = width;
-
                     setState(() {
-                      this.run = true;
+                      this._runAnimation = true;
                       _showAnimation = !_showAnimation;
                     });
                   },
@@ -122,23 +102,27 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             _showAnimation
                 ? AspectRatio(
-                    key: _animKey,
                     aspectRatio: 0.5625,
                     child: Container(
                       color: Colors.green,
                       child: AnimatedDrawing.paths(
                         paths,
                         paints: paints,
-                        run: this.run,
+                        run: this._runAnimation,
                         scaleToViewport: false,
                         duration: new Duration(seconds: 3),
                         onFinish: () => setState(() {
-                          this.run = false;
+                          this._runAnimation = false;
                         }),
                       ),
                     ),
                   )
-                : _myPainter(),
+                : Column(
+                    children: <Widget>[
+                      _myPainter(),
+                      _test(),
+                    ],
+                  ),
           ],
         ),
       ),
@@ -147,37 +131,61 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _myPainter() {
     if (!_hasCalculatedSize) {
-      _calculateSize = true;
+      _needToCalculateSize = true;
     }
 
     return AspectRatio(
       key: _canvasKey,
-      aspectRatio: 16 / 9,
+      aspectRatio: 1.3, //0.5625,
       child: Container(
-        color: Colors.orange,
+        color: Color.fromRGBO(255, 250, 235, 1),
         child: GestureDetector(
           onPanStart: (details) {
             setState(() {
               paths.add(Path()..moveTo(details.localPosition.dx, details.localPosition.dy));
               paths.last.lineTo(details.localPosition.dx, details.localPosition.dy);
             });
+
+            _pathStorage.startNewPath(Tuple2<double, double>(details.localPosition.dx, details.localPosition.dy));
+
             paints.add(_defaultPaint);
-            //print("PAN START: global pos: ${details.globalPosition}, local pos: ${details.localPosition}");
+            _lastPointOutOfBounds = false;
           },
           onPanUpdate: (details) {
-            if (/*details.localPosition.dx > 500 ||*/
-                details.localPosition.dy > 800 || details.localPosition.dx < 0 || details.localPosition.dy < 0) return;
+            if (details.localPosition.dy > _canvasDY || details.localPosition.dy < 2) {
+              _lastPointOutOfBounds = true;
+              return;
+            }
+
             setState(() {
+              if (_lastPointOutOfBounds) {
+                paths.last.moveTo(details.localPosition.dx, details.localPosition.dy);
+              }
               paths.last.lineTo(details.localPosition.dx, details.localPosition.dy);
             });
+
+            _pathStorage.addPoint(Tuple2<double, double>(details.localPosition.dx, details.localPosition.dy));
+
+            _lastPointOutOfBounds = false;
+
             //print("PAN UPDATE: global pos: ${details.globalPosition}, local pos: ${details.localPosition}");
-          },
-          onPanEnd: (details) {
-            //print("PAN END");
+            //print("${paths.last. .toString()}");
           },
           child: CustomPaint(
             painter: MyPainter(paths),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _test() {
+    return AspectRatio(
+      aspectRatio: 1.3, //0.5625,
+      child: Container(
+        color: Colors.orange,
+        child: CustomPaint(
+          painter: StoragePainter(_pathStorage),
         ),
       ),
     );
@@ -210,9 +218,53 @@ class MyPainter extends CustomPainter {
   }
 }
 
-/*
-AspectRatio(
-              aspectRatio: 1.0,
-              child: Painter(controller),
-            ),
- */
+class StoragePainter extends CustomPainter {
+  PathStorage pathStorage;
+  List<Path> paths = [];
+
+  StoragePainter(PathStorage pathStorage) {
+    this.pathStorage = pathStorage;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    pathStorage.paths.forEach((fakePath) {
+      paths.add(Path()
+        ..moveTo(fakePath.first.item1, fakePath.first.item2)
+        ..lineTo(fakePath.first.item1, fakePath.first.item2));
+
+      for (int i = 1; i < fakePath.length; i++) {
+        paths.last.lineTo(fakePath[i].item1, fakePath[i].item2);
+      }
+    });
+
+    paths.forEach((path) {
+      canvas.drawPath(path, paint);
+    });
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return true;
+  }
+}
+
+class PathStorage {
+  /// This is essentially a list of paths, even though it may be hard to see. The inner list is a list of points (dx dy),
+  /// which is the same thing as a path really. The outer list is a list of those, meaning a list of paths.
+  List<List<Tuple2<double, double>>> paths = [];
+
+  void startNewPath(Tuple2<double, double> dxDy) {
+    paths.add([dxDy]);
+  }
+
+  void addPoint(Tuple2<double, double> dxDy) {
+    paths.last.add(dxDy);
+  }
+}
