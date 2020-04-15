@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:drawing_animation/drawing_animation.dart';
 import 'package:tuple/tuple.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(MyApp());
@@ -85,6 +87,39 @@ class _MyHomePageState extends State<MyHomePage> {
                       this._runAnimation = true;
                       _showAnimation = !_showAnimation;
                     });
+                  },
+                ),
+                FlatButton(
+                  color: Colors.green,
+                  child: Text("SAVE"),
+                  onPressed: () async {
+                    if (paths.isEmpty) {
+                      return;
+                    }
+
+                    Map<String, dynamic> pathInfo = _pathStorage.toJson();
+                    /*print(pathInfo.toString());
+                    print("---");
+                    print(jsonEncode(pathInfo));
+                    print("---");
+                    print(jsonDecode(jsonEncode(pathInfo)));*/
+
+                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                    await prefs.setString('drawing', jsonEncode(pathInfo));
+                    print(prefs.getString('drawing'));
+                  },
+                ),
+                FlatButton(
+                  color: Colors.yellow,
+                  child: Text("LOAD"),
+                  onPressed: () async {
+                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                    String pathInfo = prefs.getString('drawing');
+                    setState(() {
+                      _pathStorage = PathStorage.fromJson(jsonDecode(pathInfo));
+                    });
+
+                    print(pathInfo);
                   },
                 ),
                 FlatButton(
@@ -266,5 +301,60 @@ class PathStorage {
 
   void addPoint(Tuple2<double, double> dxDy) {
     paths.last.add(dxDy);
+  }
+
+  PathStorage();
+
+  PathStorage.fromJson(Map<String, dynamic> json) {
+    List<List<Tuple2<double, double>>> paths = [];
+
+    String pathsString = json['paths'];
+
+    print(json);
+    print("ooooo");
+    print(json['paths'].toString());
+
+    List<String> pathList = pathsString.split(':');
+
+    for (var path in pathList) {
+      List<Tuple2<double, double>> coordinates = [];
+      List<String> coordinatesString = path.split(',');
+
+      for (var i = 0; i < coordinatesString.length; i += 2) {
+        coordinates.add(Tuple2(double.parse(coordinatesString[i]), double.parse(coordinatesString[i + 1])));
+      }
+
+      paths.add(coordinates);
+    }
+
+    this.paths = paths;
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> json = {};
+    StringBuffer pathsString = StringBuffer();
+
+    /// For every path
+    for (var i = 0; i < paths.length; i++) {
+      /// Go through every coordinate in that path
+      for (var j = 0; j < paths[i].length; j++) {
+        /// Write down the X and Y coordinate, separated with a comma
+        pathsString.write('${paths[i][j].item1},${paths[i][j].item2}');
+
+        /// Don't write a comma after the last coordinate
+        if (j < paths[i].length - 1) {
+          pathsString.write(',');
+        }
+      }
+
+      /// Separate every path with a colon, but don't write a colon after the last path
+      if (i < paths.length - 1) {
+        pathsString.write(':');
+      }
+    }
+
+    json['paths'] = pathsString.toString();
+
+    return json;
   }
 }

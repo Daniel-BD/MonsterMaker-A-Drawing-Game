@@ -86,6 +86,13 @@
             </list>
           </value>
         </entry>
+        <entry key="flutter_web_plugins">
+          <value>
+            <list>
+              <option value="/Library/flutter/packages/flutter_web_plugins/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="image">
           <value>
             <list>
@@ -132,6 +139,34 @@
           <value>
             <list>
               <option value="/Library/flutter/.pub-cache/hosted/pub.dartlang.org/quiver-2.0.5/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="shared_preferences">
+          <value>
+            <list>
+              <option value="/Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences-0.5.6+3/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="shared_preferences_macos">
+          <value>
+            <list>
+              <option value="/Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences_macos-0.0.1+6/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="shared_preferences_platform_interface">
+          <value>
+            <list>
+              <option value="/Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences_platform_interface-1.0.3/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="shared_preferences_web">
+          <value>
+            <list>
+              <option value="/Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences_web-0.1.2+4/lib" />
             </list>
           </value>
         </entry>
@@ -232,6 +267,10 @@
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/path_parsing-0.1.4/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/petitparser-2.4.0/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/quiver-2.0.5/lib" />
+      <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences-0.5.6+3/lib" />
+      <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences_macos-0.0.1+6/lib" />
+      <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences_platform_interface-1.0.3/lib" />
+      <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences_web-0.1.2+4/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/source_span-1.5.5/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/stack_trace-1.9.3/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/stream_channel-2.0.0/lib" />
@@ -245,6 +284,7 @@
       <root url="file:///Library/flutter/bin/cache/pkg/sky_engine/lib" />
       <root url="file:///Library/flutter/packages/flutter/lib" />
       <root url="file:///Library/flutter/packages/flutter_test/lib" />
+      <root url="file:///Library/flutter/packages/flutter_web_plugins/lib" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
