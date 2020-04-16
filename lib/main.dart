@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:drawing_animation/drawing_animation.dart';
-import 'package:tuple/tuple.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'painters.dart';
-import 'path_storage.dart';
+import 'drawing_storage.dart';
+
+//print('IN CANVAS 6. ${_drawingStorage.paths.length}, ${_drawingStorage.paints.length}');
+//print("PAN UPDATE: global pos: ${details.globalPosition}, local pos: ${details.localPosition}");
+//print("${paths.last. .toString()}");
 
 void main() {
   runApp(MyApp());
@@ -32,8 +35,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   GlobalKey _canvasKey = GlobalKey();
 
-  //final ui.PictureRecorder recorder = ui.PictureRecorder();
-
   bool _needToCalculateSize = false;
   bool _hasCalculatedSize = false;
   double _canvasDY = 0;
@@ -41,13 +42,11 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _showAnimationCanvas = false;
   bool _lastPointOutOfBounds = false;
 
-  List<Path> _paths = [];
-  List<Paint> _paints = [];
-  PathStorage _pathStorage = PathStorage();
+  DrawingStorage _drawingStorage = DrawingStorage();
 
-  Paint _defaultPaint = Paint()
+  Paint _paint = Paint()
     ..color = Colors.black
-    ..strokeWidth = 4
+    ..strokeWidth = 5
     ..strokeCap = StrokeCap.round
     ..style = PaintingStyle.stroke;
 
@@ -72,6 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
       backgroundColor: Color.fromRGBO(180, 180, 180, 1),
       body: SafeArea(
         child: Stack(
+          alignment: AlignmentDirectional.bottomStart,
           children: <Widget>[
             Column(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -80,7 +80,46 @@ class _MyHomePageState extends State<MyHomePage> {
                 _showAnimationCanvas ? _animationCanvas() : _drawingCanvas(),
               ],
             ),
+            Container(
+              color: Colors.lightGreen,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    _thicknessButton(30),
+                    _thicknessButton(20),
+                    _thicknessButton(10),
+                    _thicknessButton(5),
+                  ],
+                ),
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _thicknessButton(double thickness) {
+    return GestureDetector(
+      onTap: () {
+        _paint = Paint()
+          ..color = Colors.black
+          ..strokeWidth = thickness
+          ..strokeCap = StrokeCap.round
+          ..style = PaintingStyle.stroke;
+      },
+      child: Padding(
+        padding: EdgeInsets.only(bottom: 10),
+        child: Container(
+          width: thickness,
+          height: thickness,
+          decoration: BoxDecoration(
+            color: Colors.black,
+            shape: BoxShape.circle,
+          ),
         ),
       ),
     );
@@ -92,11 +131,11 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Container(
         color: Colors.green,
         child: AnimatedDrawing.paths(
-          _paths,
-          paints: _paints,
+          _drawingStorage.paths,
+          paints: _drawingStorage.paints,
           run: this._runAnimation,
           scaleToViewport: false,
-          duration: Duration(seconds: 3),
+          duration: Duration(seconds: 1),
           onFinish: () => setState(() {
             this._runAnimation = false;
           }),
@@ -118,13 +157,9 @@ class _MyHomePageState extends State<MyHomePage> {
         child: GestureDetector(
           onPanStart: (details) {
             setState(() {
-              _paths.add(Path()..moveTo(details.localPosition.dx, details.localPosition.dy));
-              _paths.last.lineTo(details.localPosition.dx, details.localPosition.dy);
+              _drawingStorage.startNewPath(details.localPosition.dx, details.localPosition.dy, _paint);
             });
 
-            _pathStorage.startNewPath(Tuple2<double, double>(details.localPosition.dx, details.localPosition.dy));
-
-            _paints.add(_defaultPaint);
             _lastPointOutOfBounds = false;
           },
           onPanUpdate: (details) {
@@ -134,21 +169,17 @@ class _MyHomePageState extends State<MyHomePage> {
             }
 
             setState(() {
-              if (_lastPointOutOfBounds) {
-                _paths.last.moveTo(details.localPosition.dx, details.localPosition.dy);
-              }
-              _paths.last.lineTo(details.localPosition.dx, details.localPosition.dy);
+              _drawingStorage.addPoint(details.localPosition.dx, details.localPosition.dy, _lastPointOutOfBounds);
             });
 
-            _pathStorage.addPoint(Tuple2<double, double>(details.localPosition.dx, details.localPosition.dy));
-
             _lastPointOutOfBounds = false;
-
-            //print("PAN UPDATE: global pos: ${details.globalPosition}, local pos: ${details.localPosition}");
-            //print("${paths.last. .toString()}");
+          },
+          onPanEnd: (details) {
+            print("END");
+            _drawingStorage.endPath();
           },
           child: CustomPaint(
-            painter: MyPainter(_paths),
+            painter: MyPainter(_drawingStorage.paths, _drawingStorage.paints),
           ),
         ),
       ),
@@ -163,7 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
           color: Colors.blue,
           child: Text("SWITCH"),
           onPressed: () {
-            if (_paths.isEmpty) {
+            if (_drawingStorage.paths.isEmpty) {
               return;
             }
 
@@ -177,15 +208,13 @@ class _MyHomePageState extends State<MyHomePage> {
           color: Colors.green,
           child: Text("SAVE"),
           onPressed: () async {
-            if (_paths.isEmpty) {
+            if (_drawingStorage.paths.isEmpty) {
               return;
             }
 
-            Map<String, dynamic> pathInfo = _pathStorage.toJson();
-
+            Map<String, dynamic> pathInfo = _drawingStorage.toJson();
             SharedPreferences prefs = await SharedPreferences.getInstance();
             await prefs.setString('drawing', jsonEncode(pathInfo));
-            print(prefs.getString('drawing'));
           },
         ),
         FlatButton(
@@ -193,19 +222,14 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Text("LOAD"),
           onPressed: () async {
             SharedPreferences prefs = await SharedPreferences.getInstance();
-            String pathInfo = prefs.getString('drawing');
+            String drawingInfo = prefs.getString('drawing');
             setState(() {
-              _pathStorage = PathStorage.fromJson(jsonDecode(pathInfo));
-              _paths = PathStorage.fromJson(jsonDecode(pathInfo)).getListOfPaths();
-              _paints.clear();
+              _drawingStorage = DrawingStorage.fromJson(jsonDecode(drawingInfo));
 
-              /// TODO: Här skall de riktiga paint inställningarna laddas in framöver
-              for (var _ in _paths) {
-                _paints.add(_defaultPaint);
-              }
+              /// todo: flytta in i klassen helt
+              _drawingStorage.paths = _drawingStorage.getListOfPaths();
+              _drawingStorage.paints = _drawingStorage.paints;
             });
-
-            print(pathInfo);
           },
         ),
         FlatButton(
@@ -213,9 +237,9 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Text("CLEAR"),
           onPressed: () {
             setState(() {
-              _paths.clear();
-              _paints.clear();
-              _pathStorage = PathStorage();
+              _drawingStorage.paths.clear();
+              _drawingStorage.paints.clear();
+              _drawingStorage = DrawingStorage();
               _showAnimationCanvas = false;
             });
           },
