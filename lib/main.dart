@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:drawing_animation/drawing_animation.dart';
-import 'package:tuple/tuple.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'painters.dart';
-import 'path_storage.dart';
+import 'drawing_storage.dart';
 
 void main() {
   runApp(MyApp());
@@ -41,13 +40,13 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _showAnimationCanvas = false;
   bool _lastPointOutOfBounds = false;
 
-  List<Path> _paths = [];
-  List<Paint> _paints = [];
-  PathStorage _pathStorage = PathStorage();
+  //List<Path> _paths = [];
+  //List<Paint> _paints = [];
+  DrawingStorage _drawingStorage = DrawingStorage();
 
-  Paint _defaultPaint = Paint()
+  Paint _paint = Paint()
     ..color = Colors.black
-    ..strokeWidth = 4
+    ..strokeWidth = 5
     ..strokeCap = StrokeCap.round
     ..style = PaintingStyle.stroke;
 
@@ -72,6 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
       backgroundColor: Color.fromRGBO(180, 180, 180, 1),
       body: SafeArea(
         child: Stack(
+          alignment: AlignmentDirectional.bottomStart,
           children: <Widget>[
             Column(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -80,7 +80,46 @@ class _MyHomePageState extends State<MyHomePage> {
                 _showAnimationCanvas ? _animationCanvas() : _drawingCanvas(),
               ],
             ),
+            Container(
+              color: Colors.lightGreen,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    _thicknessButton(30),
+                    _thicknessButton(20),
+                    _thicknessButton(10),
+                    _thicknessButton(5),
+                  ],
+                ),
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _thicknessButton(double thickness) {
+    return GestureDetector(
+      onTap: () {
+        _paint = Paint()
+          ..color = Colors.black
+          ..strokeWidth = thickness
+          ..strokeCap = StrokeCap.round
+          ..style = PaintingStyle.stroke;
+      },
+      child: Padding(
+        padding: EdgeInsets.only(bottom: 10),
+        child: Container(
+          width: thickness,
+          height: thickness,
+          decoration: BoxDecoration(
+            color: Colors.black,
+            shape: BoxShape.circle,
+          ),
         ),
       ),
     );
@@ -96,7 +135,7 @@ class _MyHomePageState extends State<MyHomePage> {
           paints: _paints,
           run: this._runAnimation,
           scaleToViewport: false,
-          duration: Duration(seconds: 3),
+          duration: Duration(seconds: 1),
           onFinish: () => setState(() {
             this._runAnimation = false;
           }),
@@ -117,15 +156,22 @@ class _MyHomePageState extends State<MyHomePage> {
         color: Color.fromRGBO(255, 250, 235, 1),
         child: GestureDetector(
           onPanStart: (details) {
+            print('IN CANVAS 1. ${_paths.length}, ${_paints.length}');
             setState(() {
+              print('IN CANVAS 2. ${_paths.length}, ${_paints.length}');
               _paths.add(Path()..moveTo(details.localPosition.dx, details.localPosition.dy));
+              print('IN CANVAS 3. ${_paths.length}, ${_paints.length}');
               _paths.last.lineTo(details.localPosition.dx, details.localPosition.dy);
+              print('IN CANVAS 4. ${_paths.length}, ${_paints.length}');
             });
 
-            _pathStorage.startNewPath(Tuple2<double, double>(details.localPosition.dx, details.localPosition.dy));
+            _drawingStorage.startNewPath(details.localPosition.dx, details.localPosition.dy, _paint);
+            print('IN CANVAS 5. ${_paths.length}, ${_paints.length}');
 
-            _paints.add(_defaultPaint);
+            //_paints.add(_paint);
             _lastPointOutOfBounds = false;
+
+            print('IN CANVAS 6. ${_paths.length}, ${_paints.length}');
           },
           onPanUpdate: (details) {
             if (details.localPosition.dy > _canvasDY || details.localPosition.dy < 2) {
@@ -140,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
               _paths.last.lineTo(details.localPosition.dx, details.localPosition.dy);
             });
 
-            _pathStorage.addPoint(Tuple2<double, double>(details.localPosition.dx, details.localPosition.dy));
+            _drawingStorage.addPoint(details.localPosition.dx, details.localPosition.dy);
 
             _lastPointOutOfBounds = false;
 
@@ -148,7 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
             //print("${paths.last. .toString()}");
           },
           child: CustomPaint(
-            painter: MyPainter(_paths),
+            painter: MyPainter(_paths, _paints),
           ),
         ),
       ),
@@ -181,11 +227,9 @@ class _MyHomePageState extends State<MyHomePage> {
               return;
             }
 
-            Map<String, dynamic> pathInfo = _pathStorage.toJson();
-
+            Map<String, dynamic> pathInfo = _drawingStorage.toJson();
             SharedPreferences prefs = await SharedPreferences.getInstance();
             await prefs.setString('drawing', jsonEncode(pathInfo));
-            print(prefs.getString('drawing'));
           },
         ),
         FlatButton(
@@ -193,19 +237,12 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Text("LOAD"),
           onPressed: () async {
             SharedPreferences prefs = await SharedPreferences.getInstance();
-            String pathInfo = prefs.getString('drawing');
+            String drawingInfo = prefs.getString('drawing');
             setState(() {
-              _pathStorage = PathStorage.fromJson(jsonDecode(pathInfo));
-              _paths = PathStorage.fromJson(jsonDecode(pathInfo)).getListOfPaths();
-              _paints.clear();
-
-              /// TODO: Här skall de riktiga paint inställningarna laddas in framöver
-              for (var _ in _paths) {
-                _paints.add(_defaultPaint);
-              }
+              _drawingStorage = DrawingStorage.fromJson(jsonDecode(drawingInfo));
+              _paths = _drawingStorage.getListOfPaths();
+              _paints = _drawingStorage.paints;
             });
-
-            print(pathInfo);
           },
         ),
         FlatButton(
@@ -215,7 +252,7 @@ class _MyHomePageState extends State<MyHomePage> {
             setState(() {
               _paths.clear();
               _paints.clear();
-              _pathStorage = PathStorage();
+              _drawingStorage = DrawingStorage();
               _showAnimationCanvas = false;
             });
           },

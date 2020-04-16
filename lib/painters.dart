@@ -1,29 +1,25 @@
 import 'package:flutter/material.dart';
 
-import 'path_storage.dart';
+import 'drawing_storage.dart';
 
 class MyPainter extends CustomPainter {
   List<Path> paths;
+  List<Paint> paints;
 
-  MyPainter(List<Path> paths) {
-    this.paths = paths;
-  }
+  MyPainter(this.paths, this.paints);
 
-  MyPainter.fromStorage(PathStorage pathStorage) {
+  MyPainter.fromStorage(DrawingStorage pathStorage, this.paints) {
     this.paths = pathStorage.getListOfPaths();
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
+    print('IN PAINTER. ${paths.length}, ${paints.length}');
+    assert(paths.length == paints.length, 'The length of Paths and Paints are not the same 002');
 
-    paths.forEach((path) {
-      canvas.drawPath(path, paint);
-    });
+    for (var i = 0; i < paths.length; i++) {
+      canvas.drawPath(paths[i], paints[i]);
+    }
   }
 
   @override
