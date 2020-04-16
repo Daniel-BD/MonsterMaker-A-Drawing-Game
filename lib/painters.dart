@@ -14,7 +14,6 @@ class MyPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    print('IN PAINTER. ${paths.length}, ${paints.length}');
     assert(paths.length == paints.length, 'The length of Paths and Paints are not the same 002');
 
     for (var i = 0; i < paths.length; i++) {

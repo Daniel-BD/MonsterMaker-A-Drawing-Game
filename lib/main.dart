@@ -8,6 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'painters.dart';
 import 'drawing_storage.dart';
 
+//print('IN CANVAS 6. ${_drawingStorage.paths.length}, ${_drawingStorage.paints.length}');
+//print("PAN UPDATE: global pos: ${details.globalPosition}, local pos: ${details.localPosition}");
+//print("${paths.last. .toString()}");
+
 void main() {
   runApp(MyApp());
 }
@@ -31,8 +35,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   GlobalKey _canvasKey = GlobalKey();
 
-  //final ui.PictureRecorder recorder = ui.PictureRecorder();
-
   bool _needToCalculateSize = false;
   bool _hasCalculatedSize = false;
   double _canvasDY = 0;
@@ -40,8 +42,6 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _showAnimationCanvas = false;
   bool _lastPointOutOfBounds = false;
 
-  //List<Path> _paths = [];
-  //List<Paint> _paints = [];
   DrawingStorage _drawingStorage = DrawingStorage();
 
   Paint _paint = Paint()
@@ -131,8 +131,8 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Container(
         color: Colors.green,
         child: AnimatedDrawing.paths(
-          _paths,
-          paints: _paints,
+          _drawingStorage.paths,
+          paints: _drawingStorage.paints,
           run: this._runAnimation,
           scaleToViewport: false,
           duration: Duration(seconds: 1),
@@ -156,22 +156,11 @@ class _MyHomePageState extends State<MyHomePage> {
         color: Color.fromRGBO(255, 250, 235, 1),
         child: GestureDetector(
           onPanStart: (details) {
-            print('IN CANVAS 1. ${_paths.length}, ${_paints.length}');
             setState(() {
-              print('IN CANVAS 2. ${_paths.length}, ${_paints.length}');
-              _paths.add(Path()..moveTo(details.localPosition.dx, details.localPosition.dy));
-              print('IN CANVAS 3. ${_paths.length}, ${_paints.length}');
-              _paths.last.lineTo(details.localPosition.dx, details.localPosition.dy);
-              print('IN CANVAS 4. ${_paths.length}, ${_paints.length}');
+              _drawingStorage.startNewPath(details.localPosition.dx, details.localPosition.dy, _paint);
             });
 
-            _drawingStorage.startNewPath(details.localPosition.dx, details.localPosition.dy, _paint);
-            print('IN CANVAS 5. ${_paths.length}, ${_paints.length}');
-
-            //_paints.add(_paint);
             _lastPointOutOfBounds = false;
-
-            print('IN CANVAS 6. ${_paths.length}, ${_paints.length}');
           },
           onPanUpdate: (details) {
             if (details.localPosition.dy > _canvasDY || details.localPosition.dy < 2) {
@@ -180,21 +169,17 @@ class _MyHomePageState extends State<MyHomePage> {
             }
 
             setState(() {
-              if (_lastPointOutOfBounds) {
-                _paths.last.moveTo(details.localPosition.dx, details.localPosition.dy);
-              }
-              _paths.last.lineTo(details.localPosition.dx, details.localPosition.dy);
+              _drawingStorage.addPoint(details.localPosition.dx, details.localPosition.dy, _lastPointOutOfBounds);
             });
 
-            _drawingStorage.addPoint(details.localPosition.dx, details.localPosition.dy);
-
             _lastPointOutOfBounds = false;
-
-            //print("PAN UPDATE: global pos: ${details.globalPosition}, local pos: ${details.localPosition}");
-            //print("${paths.last. .toString()}");
+          },
+          onPanEnd: (details) {
+            print("END");
+            _drawingStorage.endPath();
           },
           child: CustomPaint(
-            painter: MyPainter(_paths, _paints),
+            painter: MyPainter(_drawingStorage.paths, _drawingStorage.paints),
           ),
         ),
       ),
@@ -209,7 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
           color: Colors.blue,
           child: Text("SWITCH"),
           onPressed: () {
-            if (_paths.isEmpty) {
+            if (_drawingStorage.paths.isEmpty) {
               return;
             }
 
@@ -223,7 +208,7 @@ class _MyHomePageState extends State<MyHomePage> {
           color: Colors.green,
           child: Text("SAVE"),
           onPressed: () async {
-            if (_paths.isEmpty) {
+            if (_drawingStorage.paths.isEmpty) {
               return;
             }
 
@@ -240,8 +225,10 @@ class _MyHomePageState extends State<MyHomePage> {
             String drawingInfo = prefs.getString('drawing');
             setState(() {
               _drawingStorage = DrawingStorage.fromJson(jsonDecode(drawingInfo));
-              _paths = _drawingStorage.getListOfPaths();
-              _paints = _drawingStorage.paints;
+
+              /// todo: flytta in i klassen helt
+              _drawingStorage.paths = _drawingStorage.getListOfPaths();
+              _drawingStorage.paints = _drawingStorage.paints;
             });
           },
         ),
@@ -250,8 +237,8 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Text("CLEAR"),
           onPressed: () {
             setState(() {
-              _paths.clear();
-              _paints.clear();
+              _drawingStorage.paths.clear();
+              _drawingStorage.paints.clear();
               _drawingStorage = DrawingStorage();
               _showAnimationCanvas = false;
             });

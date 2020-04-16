@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:tuple/tuple.dart';
 
 class DrawingStorage {
@@ -10,12 +9,27 @@ class DrawingStorage {
   List<Path> paths = [];
 
   void startNewPath(double dx, double dy, Paint paint) {
+    paths.add(Path()..moveTo(dx, dy));
+    paths.last.lineTo(dx, dy);
+
     _deconstructedPaths.add([Tuple2<double, double>(dx, dy)]);
     paints.add(paint);
     assert(_deconstructedPaths.length == paints.length, 'The length of Paths and Paints are not the same 001');
   }
 
-  void addPoint(double dx, double dy) {
+  void endPath() {
+    if (_deconstructedPaths.last.length < 2) {
+      addPoint(_deconstructedPaths.last.last.item1 + 0.001, _deconstructedPaths.last.last.item2 + 0.001, false);
+    }
+  }
+
+  void addPoint(double dx, double dy, bool lastPointOutOfBounds) {
+    if (lastPointOutOfBounds) {
+      this.startNewPath(dx, dy, paints.last);
+      return;
+    }
+
+    paths.last.lineTo(dx, dy);
     _deconstructedPaths.last.add(Tuple2<double, double>(dx, dy));
   }
 
