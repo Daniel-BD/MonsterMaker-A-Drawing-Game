@@ -5,15 +5,28 @@ class DrawingStorage {
   /// This is essentially a list of paths, even though it may be hard to see. The inner list is a list of points (dx dy),
   /// which is the same thing as a path really. The outer list is a list of those, meaning a list of paths.
   List<List<Tuple2<double, double>>> _deconstructedPaths = [];
-  List<Paint> paints = [];
-  List<Path> paths = [];
+  //List<Paint> paints = [];
+  //List<Path> paths = [];
 
-  void startNewPath(double dx, double dy, Paint paint) {
+  List<List<Path>> superPaths = [];
+
+  List<Path> _undonePaths = [];
+  List<Paint> _undonePaints = [];
+  List<List<Tuple2<double, double>>> _undoneDeconstructedPaths = [];
+
+  void undoLastPath() {
+    //_undoneDeconstructedPaths.add(_deconstructedPaths.removeLast());
+    //_undonePaths.add(paths.removeLast());
+    //_undonePaints.add(paints.removeLast());
+  }
+
+  void startNewPath(double dx, double dy, Paint paint, bool continuesLastPath) {
     paths.add(Path()..moveTo(dx, dy));
     paths.last.lineTo(dx, dy);
 
     _deconstructedPaths.add([Tuple2<double, double>(dx, dy)]);
     paints.add(paint);
+
     assert(_deconstructedPaths.length == paints.length, 'The length of Paths and Paints are not the same 001');
   }
 
@@ -25,79 +38,43 @@ class DrawingStorage {
     }
   }
 
+  /// Adds a new point to the current path
   void addPoint(double dx, double dy, bool lastPointOutOfBounds, bool isDot) {
+    /// If the path has gone out of bounds, we need to make a new path once it comes in bound again, otherwise there will be a bug
+    /// when loading this drawing later.
     if (lastPointOutOfBounds) {
-      this.startNewPath(dx, dy, paints.last);
+      startNewPath(dx, dy, paints.last, true);
       return;
     }
 
     var lastDx = _deconstructedPaths.last.last.item1;
     var lastDy = _deconstructedPaths.last.last.item2;
 
+    /// Ignore new points if they're closer than 0.5 from the last point.
     if (!isDot) {
       if ((dx.abs() - lastDx.abs()).abs() < 0.5 || (dy.abs() - lastDy.abs()).abs() < 0.5) {
-        //print("not today!");
         return;
       }
     }
 
+    /// This fixes the problem of jagged edges that sometimes happens when changing direction of a path
     if (_deconstructedPaths.last.length > 2) {
-      //print('DX: $dx, DY: $dy');
       var nextToLastDx = _deconstructedPaths.last[_deconstructedPaths.last.length - 2].item1;
       var nextToLastDy = _deconstructedPaths.last[_deconstructedPaths.last.length - 2].item2;
 
       bool changingXDirection = !((dx < lastDx && lastDx < nextToLastDx) || (dx > lastDx && lastDx > nextToLastDx));
       bool changingYDirection = !((dy < lastDy && lastDy < nextToLastDy) || (dy > lastDy && lastDy > nextToLastDy));
 
-      var bigChangeThreshold = 2;
-
       if (changingXDirection || changingYDirection) {
-        print("CHANGING DIRECTION");
-        print('NextTolastDX: $nextToLastDx, lastDY: $nextToLastDy');
-        print('lastDX: $lastDx, lastDY: $lastDy');
-        print('DX: $dx, DY: $dy');
+        startNewPath(lastDx, lastDy, paints.last, true);
 
-        var dxDiff = (dx.abs() - lastDx.abs()).abs();
-        var dyDiff = (dy.abs() - lastDy.abs()).abs();
-
-        startNewPath(lastDx, lastDy, paints.last);
         paths.last.lineTo(lastDx, lastDy);
         _deconstructedPaths.last.add(Tuple2<double, double>(lastDx, lastDy));
 
         paths.last.lineTo(dx, dy);
         _deconstructedPaths.last.add(Tuple2<double, double>(dx, dy));
         return;
-
-        if (changingXDirection) {
-          this.startNewPath(lastDx, lastDy, paints.last);
-          paths.last.lineTo(dx, dy);
-          _deconstructedPaths.last.add(Tuple2<double, double>(dx, dy));
-          return;
-
-          /*if (/*dxDiff > bigChangeThreshold &&*/ dxDiff > dyDiff || dxDiff > 1) {
-            print('BIG X CHANGE!');
-            this.startNewPath(dx, dy, paints.last);
-            return;
-          } else {
-            print('SMALL X CHANGE');
-          }*/
-        } else if (changingYDirection) {
-          if (/*dyDiff > bigChangeThreshold &&*/ dyDiff > dxDiff) {
-            print('BIG Y CHANGE!');
-            this.startNewPath(dx, dy, paints.last);
-            return;
-          } else {
-            print('SMALL Y CHANGE');
-          }
-        }
       }
-
-      /*if (!((dx < lastDx && dx < nextToLastDx) || (dx > lastDx && dx > nextToLastDx)) ||
-          !((dy < lastDy && dy < nextToLastDy) || (dy > lastDy && dy > nextToLastDy))) {
-        print("CHANGING DIRECTION");
-        this.startNewPath(dx, dy, paints.last);
-        return;
-      }*/
     }
 
     paths.last.lineTo(dx, dy);
@@ -153,6 +130,7 @@ class DrawingStorage {
 
     this._deconstructedPaths = paths;
     this.paints = paints;
+    this.paths = getListOfPaths();
 
     assert(paths.length == paints.length, 'The length of Paths and Paints are not the same 004');
   }
