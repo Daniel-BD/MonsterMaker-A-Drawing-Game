@@ -76,10 +76,10 @@ class _MyHomePageState extends State<MyHomePage> {
             Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
-                _buttons(),
                 _showAnimationCanvas ? _animationCanvas() : _drawingCanvas(),
               ],
             ),
+            _buttons(),
             Container(
               color: Colors.lightGreen,
               child: Padding(
@@ -131,8 +131,8 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Container(
         color: Colors.green,
         child: AnimatedDrawing.paths(
-          _drawingStorage.paths,
-          paints: _drawingStorage.paints,
+          _drawingStorage.getPaths(),
+          paints: _drawingStorage.getPaints(),
           run: this._runAnimation,
           scaleToViewport: false,
           duration: Duration(seconds: 1),
@@ -157,7 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: GestureDetector(
           onPanStart: (details) {
             setState(() {
-              _drawingStorage.startNewPath(details.localPosition.dx, details.localPosition.dy, _paint);
+              _drawingStorage.startNewPath(details.localPosition.dx, details.localPosition.dy, _paint, false);
             });
 
             _lastPointOutOfBounds = false;
@@ -178,7 +178,7 @@ class _MyHomePageState extends State<MyHomePage> {
             _drawingStorage.endPath();
           },
           child: CustomPaint(
-            painter: MyPainter(_drawingStorage.paths, _drawingStorage.paints),
+            painter: MyPainter(_drawingStorage.getPaths(), _drawingStorage.getPaints()),
           ),
         ),
       ),
@@ -186,62 +186,83 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buttons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+    return Column(
       children: <Widget>[
-        FlatButton(
-          color: Colors.blue,
-          child: Text("SWITCH"),
-          onPressed: () {
-            if (_drawingStorage.paths.isEmpty) {
-              return;
-            }
-
-            setState(() {
-              this._runAnimation = true;
-              _showAnimationCanvas = !_showAnimationCanvas;
-            });
-          },
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            FlatButton(
+              color: Colors.redAccent,
+              child: Text("CLEAR"),
+              onPressed: () {
+                setState(() {
+                  _drawingStorage.clearDrawing();
+                  _showAnimationCanvas = false;
+                });
+              },
+            ),
+            FlatButton(
+              color: Colors.deepOrange,
+              child: Text("UNDO"),
+              onPressed: () {
+                setState(() {
+                  _drawingStorage.undoLastPath();
+                });
+              },
+            ),
+            FlatButton(
+              color: Colors.greenAccent,
+              child: Text("REDO"),
+              onPressed: () {
+                setState(() {
+                  _drawingStorage.redoLastUndonePath();
+                });
+              },
+            ),
+          ],
         ),
-        FlatButton(
-          color: Colors.green,
-          child: Text("SAVE"),
-          onPressed: () async {
-            if (_drawingStorage.paths.isEmpty) {
-              return;
-            }
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            FlatButton(
+              color: Colors.blue,
+              child: Text("SWITCH"),
+              onPressed: () {
+                if (_drawingStorage.getPaths().isEmpty) {
+                  return;
+                }
 
-            Map<String, dynamic> pathInfo = _drawingStorage.toJson();
-            SharedPreferences prefs = await SharedPreferences.getInstance();
-            await prefs.setString('drawing', jsonEncode(pathInfo));
-          },
-        ),
-        FlatButton(
-          color: Colors.yellow,
-          child: Text("LOAD"),
-          onPressed: () async {
-            SharedPreferences prefs = await SharedPreferences.getInstance();
-            String drawingInfo = prefs.getString('drawing');
-            setState(() {
-              _drawingStorage = DrawingStorage.fromJson(jsonDecode(drawingInfo));
+                setState(() {
+                  this._runAnimation = true;
+                  _showAnimationCanvas = !_showAnimationCanvas;
+                });
+              },
+            ),
+            FlatButton(
+              color: Colors.green,
+              child: Text("SAVE"),
+              onPressed: () async {
+                if (_drawingStorage.getPaths().isEmpty) {
+                  return;
+                }
 
-              /// todo: flytta in i klassen helt
-              _drawingStorage.paths = _drawingStorage.getListOfPaths();
-              _drawingStorage.paints = _drawingStorage.paints;
-            });
-          },
-        ),
-        FlatButton(
-          color: Colors.redAccent,
-          child: Text("CLEAR"),
-          onPressed: () {
-            setState(() {
-              _drawingStorage.paths.clear();
-              _drawingStorage.paints.clear();
-              _drawingStorage = DrawingStorage();
-              _showAnimationCanvas = false;
-            });
-          },
+                Map<String, dynamic> pathInfo = _drawingStorage.toJson();
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                await prefs.setString('drawing', jsonEncode(pathInfo));
+              },
+            ),
+            FlatButton(
+              color: Colors.yellow,
+              child: Text("LOAD"),
+              onPressed: () async {
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                String drawingInfo = prefs.getString('drawing');
+                setState(() {
+                  _drawingStorage = DrawingStorage.fromJson(jsonDecode(drawingInfo));
+                });
+              },
+            ),
+          ],
         ),
       ],
     );
