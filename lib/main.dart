@@ -131,8 +131,8 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Container(
         color: Colors.green,
         child: AnimatedDrawing.paths(
-          _drawingStorage.paths,
-          paints: _drawingStorage.paints,
+          _drawingStorage.getPaths(),
+          paints: _drawingStorage.getPaints(),
           run: this._runAnimation,
           scaleToViewport: false,
           duration: Duration(seconds: 1),
@@ -178,7 +178,7 @@ class _MyHomePageState extends State<MyHomePage> {
             _drawingStorage.endPath();
           },
           child: CustomPaint(
-            painter: MyPainter(_drawingStorage.paths, _drawingStorage.paints),
+            painter: MyPainter(_drawingStorage.getPaths(), _drawingStorage.getPaints()),
           ),
         ),
       ),
@@ -196,9 +196,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text("CLEAR"),
               onPressed: () {
                 setState(() {
-                  _drawingStorage.paths.clear();
-                  _drawingStorage.paints.clear();
-                  _drawingStorage = DrawingStorage();
+                  _drawingStorage.clearDrawing();
                   _showAnimationCanvas = false;
                 });
               },
@@ -215,7 +213,11 @@ class _MyHomePageState extends State<MyHomePage> {
             FlatButton(
               color: Colors.greenAccent,
               child: Text("REDO"),
-              onPressed: () {},
+              onPressed: () {
+                setState(() {
+                  _drawingStorage.redoLastUndonePath();
+                });
+              },
             ),
           ],
         ),
@@ -226,7 +228,7 @@ class _MyHomePageState extends State<MyHomePage> {
               color: Colors.blue,
               child: Text("SWITCH"),
               onPressed: () {
-                if (_drawingStorage.paths.isEmpty) {
+                if (_drawingStorage.getPaths().isEmpty) {
                   return;
                 }
 
@@ -240,7 +242,7 @@ class _MyHomePageState extends State<MyHomePage> {
               color: Colors.green,
               child: Text("SAVE"),
               onPressed: () async {
-                if (_drawingStorage.paths.isEmpty) {
+                if (_drawingStorage.getPaths().isEmpty) {
                   return;
                 }
 
