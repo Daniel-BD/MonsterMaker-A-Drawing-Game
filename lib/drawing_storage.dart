@@ -17,16 +17,82 @@ class DrawingStorage {
     assert(_deconstructedPaths.length == paints.length, 'The length of Paths and Paints are not the same 001');
   }
 
+  /// This function looks if the last path was a simple dot, and if it was, then it adds a very small line to it.
+  /// This is done to prevent a bug in the animation library that makes it so paths with one coordinate (a dot) doesn't render
   void endPath() {
     if (_deconstructedPaths.last.length < 2) {
-      addPoint(_deconstructedPaths.last.last.item1 + 0.001, _deconstructedPaths.last.last.item2 + 0.001, false);
+      addPoint(_deconstructedPaths.last.last.item1 + 0.001, _deconstructedPaths.last.last.item2 + 0.001, false, true);
     }
   }
 
-  void addPoint(double dx, double dy, bool lastPointOutOfBounds) {
+  void addPoint(double dx, double dy, bool lastPointOutOfBounds, bool isDot) {
     if (lastPointOutOfBounds) {
       this.startNewPath(dx, dy, paints.last);
       return;
+    }
+
+    var lastDx = _deconstructedPaths.last.last.item1;
+    var lastDy = _deconstructedPaths.last.last.item2;
+
+    if (!isDot) {
+      if ((dx.abs() - lastDx.abs()).abs() < 0.5 || (dy.abs() - lastDy.abs()).abs() < 0.5) {
+        //print("not today!");
+        return;
+      }
+    }
+
+    if (_deconstructedPaths.last.length > 2) {
+      //print('DX: $dx, DY: $dy');
+      var nextToLastDx = _deconstructedPaths.last[_deconstructedPaths.last.length - 2].item1;
+      var nextToLastDy = _deconstructedPaths.last[_deconstructedPaths.last.length - 2].item2;
+
+      bool changingXDirection = !((dx < lastDx && lastDx < nextToLastDx) || (dx > lastDx && lastDx > nextToLastDx));
+      bool changingYDirection = !((dy < lastDy && lastDy < nextToLastDy) || (dy > lastDy && lastDy > nextToLastDy));
+
+      var bigChangeThreshold = 2;
+
+      if (changingXDirection || changingYDirection) {
+        print("CHANGING DIRECTION");
+        print('NextTolastDX: $nextToLastDx, lastDY: $nextToLastDy');
+        print('lastDX: $lastDx, lastDY: $lastDy');
+        print('DX: $dx, DY: $dy');
+
+        //paths.last.lineTo(lastDx - 0.5, lastDy - 0.5);
+        //_deconstructedPaths.last.add(Tuple2<double, double>(lastDx + 0.001, lastDy + 0.001));
+
+        //addPoint(dx, dy, false, false);
+        //return;
+
+        /*var dxDiff = (dx.abs() - lastDx.abs()).abs();
+        var dyDiff = (dy.abs() - lastDy.abs()).abs();
+
+        if (changingXDirection) {
+          if (/*dxDiff > bigChangeThreshold &&*/ dxDiff > dyDiff || dxDiff > 1) {
+            print('BIG X CHANGE!');
+            this.startNewPath(dx, dy, paints.last);
+            return;
+          } else {
+            print('SMALL X CHANGE');
+          }
+        } else if (changingYDirection) {
+          if (/*dyDiff > bigChangeThreshold &&*/ dyDiff > dxDiff) {
+            print('BIG Y CHANGE!');
+            this.startNewPath(dx, dy, paints.last);
+            return;
+          } else {
+            print('SMALL Y CHANGE');
+          }
+        }
+
+        print(' ');*/
+      }
+
+      /*if (!((dx < lastDx && dx < nextToLastDx) || (dx > lastDx && dx > nextToLastDx)) ||
+          !((dy < lastDy && dy < nextToLastDy) || (dy > lastDy && dy > nextToLastDy))) {
+        print("CHANGING DIRECTION");
+        this.startNewPath(dx, dy, paints.last);
+        return;
+      }*/
     }
 
     paths.last.lineTo(dx, dy);

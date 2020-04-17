@@ -169,13 +169,12 @@ class _MyHomePageState extends State<MyHomePage> {
             }
 
             setState(() {
-              _drawingStorage.addPoint(details.localPosition.dx, details.localPosition.dy, _lastPointOutOfBounds);
+              _drawingStorage.addPoint(details.localPosition.dx, details.localPosition.dy, _lastPointOutOfBounds, false);
             });
 
             _lastPointOutOfBounds = false;
           },
           onPanEnd: (details) {
-            print("END");
             _drawingStorage.endPath();
           },
           child: CustomPaint(
