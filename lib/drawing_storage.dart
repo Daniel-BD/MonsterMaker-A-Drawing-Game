@@ -57,23 +57,30 @@ class DrawingStorage {
         print('lastDX: $lastDx, lastDY: $lastDy');
         print('DX: $dx, DY: $dy');
 
-        //paths.last.lineTo(lastDx - 0.5, lastDy - 0.5);
-        //_deconstructedPaths.last.add(Tuple2<double, double>(lastDx + 0.001, lastDy + 0.001));
-
-        //addPoint(dx, dy, false, false);
-        //return;
-
-        /*var dxDiff = (dx.abs() - lastDx.abs()).abs();
+        var dxDiff = (dx.abs() - lastDx.abs()).abs();
         var dyDiff = (dy.abs() - lastDy.abs()).abs();
 
+        startNewPath(lastDx, lastDy, paints.last);
+        paths.last.lineTo(lastDx, lastDy);
+        _deconstructedPaths.last.add(Tuple2<double, double>(lastDx, lastDy));
+
+        paths.last.lineTo(dx, dy);
+        _deconstructedPaths.last.add(Tuple2<double, double>(dx, dy));
+        return;
+
         if (changingXDirection) {
-          if (/*dxDiff > bigChangeThreshold &&*/ dxDiff > dyDiff || dxDiff > 1) {
+          this.startNewPath(lastDx, lastDy, paints.last);
+          paths.last.lineTo(dx, dy);
+          _deconstructedPaths.last.add(Tuple2<double, double>(dx, dy));
+          return;
+
+          /*if (/*dxDiff > bigChangeThreshold &&*/ dxDiff > dyDiff || dxDiff > 1) {
             print('BIG X CHANGE!');
             this.startNewPath(dx, dy, paints.last);
             return;
           } else {
             print('SMALL X CHANGE');
-          }
+          }*/
         } else if (changingYDirection) {
           if (/*dyDiff > bigChangeThreshold &&*/ dyDiff > dxDiff) {
             print('BIG Y CHANGE!');
@@ -83,8 +90,6 @@ class DrawingStorage {
             print('SMALL Y CHANGE');
           }
         }
-
-        print(' ');*/
       }
 
       /*if (!((dx < lastDx && dx < nextToLastDx) || (dx > lastDx && dx > nextToLastDx)) ||
