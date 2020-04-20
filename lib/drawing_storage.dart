@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 class DrawingStorage {
+  double height = 0, width = 0;
+
   /// This is essentially a list of paths, even though it may be hard to see. The inner list is a list of points (dx dy),
   /// which is the same thing as a path really. The outer list is a list of those, meaning a list of paths.
 
@@ -160,7 +162,7 @@ class DrawingStorage {
   }
 
   List<Path> scaledPaths({@required double inputHeight, @required inputWidth, @required outputHeight, @required outputWidth}) {
-    List<Path> scaledPath = [];
+    List<Path> scaledPaths = [];
 
     List<List<Path>> tempPaths = [];
     for (var pathList in _superDeconstructedPaths) {
@@ -184,10 +186,10 @@ class DrawingStorage {
 
     for (var pathList in tempPaths) {
       for (var path in pathList) {
-        scaledPath.add(path);
+        scaledPaths.add(path);
       }
     }
-    return scaledPath;
+    return scaledPaths;
   }
 
   DrawingStorage();
@@ -234,6 +236,12 @@ class DrawingStorage {
 
       listOfListsOfPaints.add(tempPaintList);
     }
+
+    /// Reading size
+    height = double.parse(json['size'].toString().split(',').first);
+    width = double.parse(json['size'].toString().split(',').last);
+
+    print('size: $height, $width');
 
     _superDeconstructedPaths = listOfListsOfPaths;
     _superPaints = listOfListsOfPaints;
@@ -297,6 +305,7 @@ class DrawingStorage {
 
     json['paths'] = pathsString.toString();
     json['paints'] = paintsString.toString();
+    json['size'] = '$height, $width';
 
     return json;
   }

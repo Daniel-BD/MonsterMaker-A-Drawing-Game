@@ -38,7 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool _needToCalculateSize = false;
   bool _hasCalculatedSize = false;
-  double _canvasDY = 0;
+  double _canvasDYLimit = 0;
   bool _runAnimation = true;
   bool _showAnimationCanvas = false;
   bool _lastPointOutOfBounds = false;
@@ -64,7 +64,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     if (_needToCalculateSize && !_hasCalculatedSize) {
       RenderBox renderBox = _canvasKey.currentContext.findRenderObject();
-      _canvasDY = renderBox.size.height - 2;
+      _canvasDYLimit = renderBox.size.height - 2;
+      _drawingStorage.height = renderBox.size.height;
+      _drawingStorage.width = renderBox.size.width;
       _hasCalculatedSize = true;
 
       print('Size: ${renderBox.size.toString()}');
@@ -194,8 +196,10 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Container(
           color: Colors.orange,
           child: CustomPaint(
-            painter: MyPainter(_drawingStorage.scaledPaths(inputHeight: 345.0, inputWidth: 414.0, outputHeight: 100.0, outputWidth: 120.0),
-                _drawingStorage.scaledPaints(inputHeight: 345.0, outputHeight: 100.0)),
+            painter: MyPainter(
+                _drawingStorage.scaledPaths(
+                    inputHeight: _drawingStorage.height, inputWidth: _drawingStorage.width, outputHeight: 100.0, outputWidth: 120.0),
+                _drawingStorage.scaledPaints(inputHeight: _drawingStorage.height, outputHeight: 100.0)),
           ),
         ),
       ),
@@ -221,7 +225,7 @@ class _MyHomePageState extends State<MyHomePage> {
             _lastPointOutOfBounds = false;
           },
           onPanUpdate: (details) {
-            if (details.localPosition.dy > _canvasDY || details.localPosition.dy < 2) {
+            if (details.localPosition.dy > _canvasDYLimit || details.localPosition.dy < 2) {
               _lastPointOutOfBounds = true;
               return;
             }
@@ -307,6 +311,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Map<String, dynamic> pathInfo = _drawingStorage.toJson();
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 await prefs.setString('drawing', jsonEncode(pathInfo));
+                //print(jsonEncode(pathInfo));
               },
             ),
             FlatButton(
