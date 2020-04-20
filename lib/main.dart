@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'painters.dart';
 import 'drawing_storage.dart';
-
+import 'dart:math' as math;
 //print('IN CANVAS 6. ${_drawingStorage.paths.length}, ${_drawingStorage.paints.length}');
 //print("PAN UPDATE: global pos: ${details.globalPosition}, local pos: ${details.localPosition}");
 //print("${paths.last. .toString()}");
@@ -46,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Paint _paint = Paint()
     ..color = Colors.black
-    ..strokeWidth = 5
+    ..strokeWidth = 12
     ..strokeCap = StrokeCap.round
     ..style = PaintingStyle.stroke;
 
@@ -81,17 +81,14 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
             Container(
-              color: Colors.lightGreen,
+              color: Colors.lightGreen.withOpacity(0.5),
               child: Padding(
                 padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    _thicknessButton(30),
-                    _thicknessButton(20),
-                    _thicknessButton(10),
-                    _thicknessButton(5),
+                    _thicknessButton(),
                   ],
                 ),
               ),
@@ -102,8 +99,64 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _thicknessButton(double thickness) {
-    return GestureDetector(
+  Widget _thicknessButton() {
+    return Column(
+      children: <Widget>[
+        Container(height: 10, width: 10),
+        Transform.rotate(
+          angle: math.pi / 2,
+          child: IconButton(
+            iconSize: 40,
+            icon: Icon(Icons.add_circle_outline),
+            onPressed: () {
+              if (_paint.strokeWidth > 40) {
+                return;
+              }
+              setState(() {
+                _paint = Paint()
+                  ..color = _paint.color
+                  ..strokeWidth = _paint.strokeWidth + 4
+                  ..strokeCap = StrokeCap.round
+                  ..style = PaintingStyle.stroke;
+              });
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 10, bottom: 10),
+          child: Container(
+            width: _paint.strokeWidth,
+            height: _paint.strokeWidth,
+            decoration: BoxDecoration(
+              color: _paint.color,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+        Transform.rotate(
+          angle: math.pi / 2,
+          child: IconButton(
+            iconSize: 40,
+            icon: Icon(Icons.remove_circle_outline),
+            onPressed: () {
+              if (_paint.strokeWidth < 8) {
+                return;
+              }
+              setState(() {
+                _paint = Paint()
+                  ..color = _paint.color
+                  ..strokeWidth = _paint.strokeWidth - 4
+                  ..strokeCap = StrokeCap.round
+                  ..style = PaintingStyle.stroke;
+              });
+            },
+          ),
+        ),
+        Container(height: 10, width: 10),
+      ],
+    );
+
+    /*return GestureDetector(
       onTap: () {
         _paint = Paint()
           ..color = Colors.black
@@ -122,14 +175,14 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
-    );
+    ); */
   }
 
   Widget _animationCanvas() {
     return AspectRatio(
-      aspectRatio: 0.5625,
+      aspectRatio: 0.6,
       child: Container(
-        color: Colors.green,
+        color: Colors.grey[200],
         child: AnimatedDrawing.paths(
           _drawingStorage.paths,
           paints: _drawingStorage.paints,
@@ -151,7 +204,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return AspectRatio(
       key: _canvasKey,
-      aspectRatio: 0.5625,
+      aspectRatio: 0.6,
       child: Container(
         color: Color.fromRGBO(255, 250, 235, 1),
         child: GestureDetector(
