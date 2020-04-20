@@ -23,3 +23,4 @@ doc/api/
 .idea/workspace.xml
 .flutter-plugins-dependencies
 .idea/workspace.xml
+lib/generated_plugin_registrant.dart

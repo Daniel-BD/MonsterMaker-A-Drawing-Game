@@ -9,7 +9,6 @@ class MyPainter extends CustomPainter {
   MyPainter(this.paths, this.paints);
 
   MyPainter.fromStorage(DrawingStorage pathStorage, this.paints) {
-    ///TODO: kolla om detta funkar
     this.paths = pathStorage.getPaths();
   }
 

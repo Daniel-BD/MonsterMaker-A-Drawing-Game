@@ -48,6 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ..color = Colors.black
     ..strokeWidth = 12
     ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.round
     ..style = PaintingStyle.stroke;
 
   @override
@@ -117,6 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ..color = _paint.color
                   ..strokeWidth = _paint.strokeWidth + 4
                   ..strokeCap = StrokeCap.round
+                  ..strokeJoin = StrokeJoin.round
                   ..style = PaintingStyle.stroke;
               });
             },
@@ -147,6 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ..color = _paint.color
                   ..strokeWidth = _paint.strokeWidth - 4
                   ..strokeCap = StrokeCap.round
+                  ..strokeJoin = StrokeJoin.round
                   ..style = PaintingStyle.stroke;
               });
             },

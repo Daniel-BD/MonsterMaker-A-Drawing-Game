@@ -112,27 +112,6 @@ class DrawingStorage {
       }
     }
 
-    /// This fixes the problem of jagged edges that sometimes happens when changing direction of a path
-    if (_superDeconstructedPaths.last.last.length > 2) {
-      var nextToLastDx = _superDeconstructedPaths.last.last[_superDeconstructedPaths.last.last.length - 2].item1;
-      var nextToLastDy = _superDeconstructedPaths.last.last[_superDeconstructedPaths.last.last.length - 2].item2;
-
-      bool changingXDirection = !((dx < lastDx && lastDx < nextToLastDx) || (dx > lastDx && lastDx > nextToLastDx));
-      bool changingYDirection = !((dy < lastDy && lastDy < nextToLastDy) || (dy > lastDy && lastDy > nextToLastDy));
-
-      if (changingXDirection || changingYDirection) {
-        startNewPath(lastDx, lastDy, _superPaints.last.last, true);
-
-        _superPaths.last.last.lineTo(lastDx, lastDy);
-        _superDeconstructedPaths.last.last.add(Tuple2<double, double>(lastDx, lastDy));
-
-        _superPaths.last.last.lineTo(dx, dy);
-        _superDeconstructedPaths.last.last.add(Tuple2<double, double>(dx, dy));
-        assert(_assertLengths());
-        return;
-      }
-    }
-
     _superPaths.last.last.lineTo(dx, dy);
     _superDeconstructedPaths.last.last.add(Tuple2<double, double>(dx, dy));
   }
