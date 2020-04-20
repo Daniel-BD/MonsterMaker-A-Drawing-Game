@@ -34,6 +34,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   GlobalKey _canvasKey = GlobalKey();
+  GlobalKey _smallCanvasKey = GlobalKey();
 
   bool _needToCalculateSize = false;
   bool _hasCalculatedSize = false;
@@ -56,16 +57,20 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
-      //DeviceOrientation.landscapeLeft,
     ]);
   }
 
   @override
   Widget build(BuildContext context) {
     if (_needToCalculateSize && !_hasCalculatedSize) {
-      final RenderBox renderBox = _canvasKey.currentContext.findRenderObject();
+      RenderBox renderBox = _canvasKey.currentContext.findRenderObject();
       _canvasDY = renderBox.size.height - 2;
       _hasCalculatedSize = true;
+
+      print('Size: ${renderBox.size.toString()}');
+
+      renderBox = _smallCanvasKey.currentContext.findRenderObject();
+      print('Size: ${renderBox.size.toString()}');
     }
 
     return Scaffold(
@@ -78,6 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
                 _showAnimationCanvas ? _animationCanvas() : _drawingCanvas(),
+                _smallerCanvas(),
               ],
             ),
             _buttons(),
@@ -158,27 +164,6 @@ class _MyHomePageState extends State<MyHomePage> {
         Container(height: 10, width: 10),
       ],
     );
-
-    /*return GestureDetector(
-      onTap: () {
-        _paint = Paint()
-          ..color = Colors.black
-          ..strokeWidth = thickness
-          ..strokeCap = StrokeCap.round
-          ..style = PaintingStyle.stroke;
-      },
-      child: Padding(
-        padding: EdgeInsets.only(bottom: 10),
-        child: Container(
-          width: thickness,
-          height: thickness,
-          decoration: BoxDecoration(
-            color: Colors.black,
-            shape: BoxShape.circle,
-          ),
-        ),
-      ),
-    ); */
   }
 
   Widget _animationCanvas() {
@@ -200,6 +185,23 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Widget _smallerCanvas() {
+    return SizedBox(
+      height: 100,
+      child: AspectRatio(
+        key: _smallCanvasKey,
+        aspectRatio: 1.2,
+        child: Container(
+          color: Colors.orange,
+          child: CustomPaint(
+            painter: MyPainter(_drawingStorage.scaledPaths(inputHeight: 345.0, inputWidth: 414.0, outputHeight: 100.0, outputWidth: 120.0),
+                _drawingStorage.scaledPaints(inputHeight: 345.0, outputHeight: 100.0)),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _drawingCanvas() {
     if (!_hasCalculatedSize) {
       _needToCalculateSize = true;
@@ -207,7 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return AspectRatio(
       key: _canvasKey,
-      aspectRatio: 0.6,
+      aspectRatio: 1.2,
       child: Container(
         color: Color.fromRGBO(255, 250, 235, 1),
         child: GestureDetector(

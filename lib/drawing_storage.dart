@@ -138,6 +138,58 @@ class DrawingStorage {
     return createdList;
   }
 
+  double _scaleNumbers(double inputScale, double outputScale, double number) {
+    return number * (outputScale / inputScale);
+  }
+
+  List<Paint> scaledPaints({@required double inputHeight, @required outputHeight}) {
+    List<Paint> paints = [];
+
+    for (var paintList in _superPaints) {
+      for (var paint in paintList) {
+        paints.add(Paint()
+          ..color = paint.color
+          ..strokeJoin = paint.strokeJoin
+          ..strokeCap = paint.strokeCap
+          ..style = paint.style
+          ..strokeWidth = _scaleNumbers(inputHeight, outputHeight, paint.strokeWidth));
+      }
+    }
+    assert(_assertLengths());
+    return paints;
+  }
+
+  List<Path> scaledPaths({@required double inputHeight, @required inputWidth, @required outputHeight, @required outputWidth}) {
+    List<Path> scaledPath = [];
+
+    List<List<Path>> tempPaths = [];
+    for (var pathList in _superDeconstructedPaths) {
+      List<Path> tempList = [];
+
+      pathList.forEach((fakePath) {
+        tempList.add(Path()
+          ..moveTo(
+              _scaleNumbers(inputWidth, outputWidth, fakePath.first.item1), _scaleNumbers(inputHeight, outputHeight, fakePath.first.item2))
+          ..lineTo(_scaleNumbers(inputWidth, outputWidth, fakePath.first.item1),
+              _scaleNumbers(inputHeight, outputHeight, fakePath.first.item2)));
+
+        for (int i = 1; i < fakePath.length; i++) {
+          tempList.last.lineTo(
+              _scaleNumbers(inputWidth, outputWidth, fakePath[i].item1), _scaleNumbers(inputHeight, outputHeight, fakePath[i].item2));
+        }
+      });
+
+      tempPaths.add(tempList);
+    }
+
+    for (var pathList in tempPaths) {
+      for (var path in pathList) {
+        scaledPath.add(path);
+      }
+    }
+    return scaledPath;
+  }
+
   DrawingStorage();
 
   DrawingStorage.fromJson(Map<String, dynamic> json) {
