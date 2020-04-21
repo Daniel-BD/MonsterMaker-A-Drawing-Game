@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 //import 'dart:ui' as ui;
+import 'dart:io' show Platform;
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:drawing_animation/drawing_animation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'painters.dart';
 import 'drawing_storage.dart';
 import 'dart:math' as math;
-//print('IN CANVAS 6. ${_drawingStorage.paths.length}, ${_drawingStorage.paints.length}');
-//print("PAN UPDATE: global pos: ${details.globalPosition}, local pos: ${details.localPosition}");
-//print("${paths.last. .toString()}");
 
 void main() {
   runApp(MyApp());
@@ -68,10 +67,6 @@ class _MyHomePageState extends State<MyHomePage> {
       _drawingStorage.height = renderBox.size.height;
       _drawingStorage.width = renderBox.size.width;
       _hasCalculatedSize = true;
-
-      //print('Size: ${renderBox.size.toString()}');
-
-      //renderBox = _smallCanvasKey.currentContext.findRenderObject();
     }
 
     return Scaffold(
@@ -209,36 +204,39 @@ class _MyHomePageState extends State<MyHomePage> {
       _needToCalculateSize = true;
     }
 
-    return AspectRatio(
-      key: _canvasKey,
-      aspectRatio: 0.6,
-      child: Container(
-        color: Color.fromRGBO(255, 250, 235, 1),
-        child: GestureDetector(
-          onPanStart: (details) {
-            setState(() {
-              _drawingStorage.startNewPath(details.localPosition.dx, details.localPosition.dy, _paint, false);
-            });
+    return SizedBox(
+      height: Platform.isAndroid ? 450 : null,
+      child: AspectRatio(
+        key: _canvasKey,
+        aspectRatio: 0.6,
+        child: Container(
+          color: Color.fromRGBO(255, 250, 235, 1),
+          child: GestureDetector(
+            onPanStart: (details) {
+              setState(() {
+                _drawingStorage.startNewPath(details.localPosition.dx, details.localPosition.dy, _paint, false);
+              });
 
-            _lastPointOutOfBounds = false;
-          },
-          onPanUpdate: (details) {
-            if (details.localPosition.dy > _canvasDYLimit || details.localPosition.dy < 2) {
-              _lastPointOutOfBounds = true;
-              return;
-            }
+              _lastPointOutOfBounds = false;
+            },
+            onPanUpdate: (details) {
+              if (details.localPosition.dy > _canvasDYLimit || details.localPosition.dy < 2) {
+                _lastPointOutOfBounds = true;
+                return;
+              }
 
-            setState(() {
-              _drawingStorage.addPoint(details.localPosition.dx, details.localPosition.dy, _lastPointOutOfBounds, false);
-            });
+              setState(() {
+                _drawingStorage.addPoint(details.localPosition.dx, details.localPosition.dy, _lastPointOutOfBounds, false);
+              });
 
-            _lastPointOutOfBounds = false;
-          },
-          onPanEnd: (details) {
-            _drawingStorage.endPath();
-          },
-          child: CustomPaint(
-            painter: MyPainter(_drawingStorage.getPaths(), _drawingStorage.getPaints()),
+              _lastPointOutOfBounds = false;
+            },
+            onPanEnd: (details) {
+              _drawingStorage.endPath();
+            },
+            child: CustomPaint(
+              painter: MyPainter(_drawingStorage.getPaths(), _drawingStorage.getPaints()),
+            ),
           ),
         ),
       ),
@@ -309,6 +307,20 @@ class _MyHomePageState extends State<MyHomePage> {
                 Map<String, dynamic> pathInfo = _drawingStorage.toJson();
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 await prefs.setString('drawing', jsonEncode(pathInfo));
+
+                Firestore.instance.collection('drawings').document('1').setData({'json': jsonEncode(pathInfo)});
+              },
+            ),
+            FlatButton(
+              color: Colors.yellow,
+              child: Text("LOAD CLOUD"),
+              onPressed: () async {
+                var docs = await Firestore.instance.collection('drawings').getDocuments();
+
+                setState(() {
+                  _drawingStorage = DrawingStorage.fromJson(
+                      jsonDecode(docs.documents.first.data['json']), true, _drawingStorage.height, _drawingStorage.width);
+                });
               },
             ),
             FlatButton(
@@ -318,7 +330,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 String drawingInfo = prefs.getString('drawing');
                 setState(() {
-                  _drawingStorage = DrawingStorage.fromJson(jsonDecode(drawingInfo));
+                  _drawingStorage = DrawingStorage.fromJson(jsonDecode(drawingInfo), false, _drawingStorage.height, _drawingStorage.width);
                 });
               },
             ),

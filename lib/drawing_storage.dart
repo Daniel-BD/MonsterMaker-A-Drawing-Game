@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DrawingStorage {
-  double height = 0, width = 0;
+  double height, width;
 
   /// This is essentially a list of paths, even though it may be hard to see. The inner list is a list of points (dx dy),
   /// which is the same thing as a path really. The outer list is a list of those, meaning a list of paths.
@@ -140,7 +141,7 @@ class DrawingStorage {
     return createdList;
   }
 
-  double _scaleNumbers(double inputScale, double outputScale, double number) {
+  double _scaleNumbers({@required double inputScale, @required double outputScale, @required double number}) {
     return number * (outputScale / inputScale);
   }
 
@@ -154,7 +155,7 @@ class DrawingStorage {
           ..strokeJoin = paint.strokeJoin
           ..strokeCap = paint.strokeCap
           ..style = paint.style
-          ..strokeWidth = _scaleNumbers(inputHeight, outputHeight, paint.strokeWidth));
+          ..strokeWidth = _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: paint.strokeWidth));
       }
     }
     assert(_assertLengths());
@@ -170,14 +171,14 @@ class DrawingStorage {
 
       pathList.forEach((fakePath) {
         tempList.add(Path()
-          ..moveTo(
-              _scaleNumbers(inputWidth, outputWidth, fakePath.first.item1), _scaleNumbers(inputHeight, outputHeight, fakePath.first.item2))
-          ..lineTo(_scaleNumbers(inputWidth, outputWidth, fakePath.first.item1),
-              _scaleNumbers(inputHeight, outputHeight, fakePath.first.item2)));
+          ..moveTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath.first.item1),
+              _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath.first.item2))
+          ..lineTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath.first.item1),
+              _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath.first.item2)));
 
         for (int i = 1; i < fakePath.length; i++) {
-          tempList.last.lineTo(
-              _scaleNumbers(inputWidth, outputWidth, fakePath[i].item1), _scaleNumbers(inputHeight, outputHeight, fakePath[i].item2));
+          tempList.last.lineTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath[i].item1),
+              _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath[i].item2));
         }
       });
 
@@ -194,11 +195,17 @@ class DrawingStorage {
 
   DrawingStorage();
 
-  DrawingStorage.fromJson(Map<String, dynamic> json) {
+  DrawingStorage.fromJson(Map<String, dynamic> json, bool doScale, double height, width) {
+    this.height = height;
+    this.width = width;
+
     List<List<List<Tuple2<double, double>>>> listOfListsOfPaths = [];
     List<List<Paint>> listOfListsOfPaints = [];
     List<String> listOfPathListStrings = json['paths'].split('/');
     List<String> listOfPaintListStrings = json['paints'].split('/');
+
+    /// Reading size
+    double originalHeight = double.parse(json['size'].toString().split(',').first);
 
     /// Reading paths
     for (var pathList in listOfPathListStrings) {
@@ -209,7 +216,14 @@ class DrawingStorage {
         List<String> pathCoordinatesString = path.split(',');
 
         for (var i = 0; i < pathCoordinatesString.length; i += 2) {
-          pathCoordinates.add(Tuple2(double.parse(pathCoordinatesString[i]), double.parse(pathCoordinatesString[i + 1])));
+          double X = doScale
+              ? _scaleNumbers(inputScale: originalHeight, outputScale: height, number: double.parse(pathCoordinatesString[i]))
+              : double.parse(pathCoordinatesString[i]);
+          double Y = doScale
+              ? _scaleNumbers(inputScale: originalHeight, outputScale: height, number: double.parse(pathCoordinatesString[i + 1]))
+              : double.parse(pathCoordinatesString[i + 1]);
+
+          pathCoordinates.add(Tuple2(X, Y));
         }
 
         tempPathList.add(pathCoordinates);
@@ -229,7 +243,9 @@ class DrawingStorage {
 
         tempPaintList.add(Paint()
           ..color = Color(int.parse(values[1]))
-          ..strokeWidth = double.parse(values[0])
+          ..strokeWidth = doScale
+              ? _scaleNumbers(inputScale: originalHeight, outputScale: height, number: double.parse(values[0]))
+              : double.parse(values[0])
           ..strokeCap = StrokeCap.round
           ..strokeJoin = StrokeJoin.round
           ..style = PaintingStyle.stroke);
@@ -237,12 +253,6 @@ class DrawingStorage {
 
       listOfListsOfPaints.add(tempPaintList);
     }
-
-    /// Reading size
-    height = double.parse(json['size'].toString().split(',').first);
-    width = double.parse(json['size'].toString().split(',').last);
-
-    print('size: $height, $width');
 
     _superDeconstructedPaths = listOfListsOfPaths;
     _superPaints = listOfListsOfPaints;
