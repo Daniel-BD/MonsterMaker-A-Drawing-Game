@@ -33,14 +33,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   GlobalKey _canvasKey = GlobalKey();
-  //GlobalKey _smallCanvasKey = GlobalKey();
 
   bool _needToCalculateSize = false;
   bool _hasCalculatedSize = false;
-  double _canvasDYLimit = 0;
   bool _runAnimation = true;
   bool _showAnimationCanvas = false;
   bool _lastPointOutOfBounds = false;
+  bool _ignorePath = false;
 
   DrawingStorage _drawingStorage = DrawingStorage();
 
@@ -63,7 +62,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     if (_needToCalculateSize && !_hasCalculatedSize) {
       RenderBox renderBox = _canvasKey.currentContext.findRenderObject();
-      _canvasDYLimit = renderBox.size.height - 2;
       _drawingStorage.height = renderBox.size.height;
       _drawingStorage.width = renderBox.size.width;
       _hasCalculatedSize = true;
@@ -180,63 +178,53 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  /*Widget _smallerCanvas() {
-    return SizedBox(
-      height: 100,
-      child: AspectRatio(
-        key: _smallCanvasKey,
-        aspectRatio: 1.2,
-        child: Container(
-          color: Colors.orange,
-          child: CustomPaint(
-            painter: MyPainter(
-                _drawingStorage.scaledPaths(
-                    inputHeight: _drawingStorage.height, inputWidth: _drawingStorage.width, outputHeight: 100.0, outputWidth: 120.0),
-                _drawingStorage.scaledPaints(inputHeight: _drawingStorage.height, outputHeight: 100.0)),
-          ),
-        ),
-      ),
-    );
-  }*/
+  bool _pointOutsideCanvas(double dy) {
+    return (dy > _drawingStorage.height - (_paint.strokeWidth / 2) || dy < (_paint.strokeWidth / 2));
+  }
 
   Widget _drawingCanvas() {
     if (!_hasCalculatedSize) {
       _needToCalculateSize = true;
     }
 
-    return SizedBox(
-      height: Platform.isAndroid ? 450 : null,
-      child: AspectRatio(
-        key: _canvasKey,
-        aspectRatio: 0.6,
-        child: Container(
-          color: Color.fromRGBO(255, 250, 235, 1),
-          child: GestureDetector(
-            onPanStart: (details) {
-              setState(() {
-                _drawingStorage.startNewPath(details.localPosition.dx, details.localPosition.dy, _paint, false);
-              });
+    return AspectRatio(
+      key: _canvasKey,
+      aspectRatio: 0.6,
+      child: Container(
+        color: Color.fromRGBO(255, 250, 235, 1),
+        child: GestureDetector(
+          onPanStart: (details) {
+            if (_pointOutsideCanvas(details.localPosition.dy)) {
+              _ignorePath = true;
+              return;
+            }
 
-              _lastPointOutOfBounds = false;
-            },
-            onPanUpdate: (details) {
-              if (details.localPosition.dy > _canvasDYLimit || details.localPosition.dy < 2) {
-                _lastPointOutOfBounds = true;
-                return;
-              }
+            setState(() {
+              _drawingStorage.startNewPath(details.localPosition.dx, details.localPosition.dy, _paint, false);
+            });
 
-              setState(() {
-                _drawingStorage.addPoint(details.localPosition.dx, details.localPosition.dy, _lastPointOutOfBounds, false);
-              });
+            _lastPointOutOfBounds = false;
+          },
+          onPanUpdate: (details) {
+            if (_pointOutsideCanvas(details.localPosition.dy)) {
+              _lastPointOutOfBounds = true;
+              return;
+            }
 
-              _lastPointOutOfBounds = false;
-            },
-            onPanEnd: (details) {
-              _drawingStorage.endPath();
-            },
-            child: CustomPaint(
-              painter: MyPainter(_drawingStorage.getPaths(), _drawingStorage.getPaints()),
-            ),
+            setState(() {
+              _drawingStorage.addPoint(details.localPosition.dx, details.localPosition.dy, _lastPointOutOfBounds, false);
+            });
+
+            _lastPointOutOfBounds = false;
+          },
+          onPanEnd: (details) {
+            if (_ignorePath) {
+              return;
+            }
+            _drawingStorage.endPath();
+          },
+          child: CustomPaint(
+            painter: MyPainter(_drawingStorage.getPaths(), _drawingStorage.getPaints()),
           ),
         ),
       ),
