@@ -34,7 +34,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   GlobalKey _canvasKey = GlobalKey();
-  GlobalKey _smallCanvasKey = GlobalKey();
+  //GlobalKey _smallCanvasKey = GlobalKey();
 
   bool _needToCalculateSize = false;
   bool _hasCalculatedSize = false;
@@ -46,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
   DrawingStorage _drawingStorage = DrawingStorage();
 
   Paint _paint = Paint()
-    ..color = Colors.black
+    ..color = Colors.orange
     ..strokeWidth = 12
     ..strokeCap = StrokeCap.round
     ..strokeJoin = StrokeJoin.round
@@ -69,10 +69,9 @@ class _MyHomePageState extends State<MyHomePage> {
       _drawingStorage.width = renderBox.size.width;
       _hasCalculatedSize = true;
 
-      print('Size: ${renderBox.size.toString()}');
+      //print('Size: ${renderBox.size.toString()}');
 
-      renderBox = _smallCanvasKey.currentContext.findRenderObject();
-      print('Size: ${renderBox.size.toString()}');
+      //renderBox = _smallCanvasKey.currentContext.findRenderObject();
     }
 
     return Scaffold(
@@ -85,7 +84,6 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
                 _showAnimationCanvas ? _animationCanvas() : _drawingCanvas(),
-                _smallerCanvas(),
               ],
             ),
             _buttons(),
@@ -187,7 +185,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _smallerCanvas() {
+  /*Widget _smallerCanvas() {
     return SizedBox(
       height: 100,
       child: AspectRatio(
@@ -204,7 +202,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
-  }
+  }*/
 
   Widget _drawingCanvas() {
     if (!_hasCalculatedSize) {
@@ -213,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return AspectRatio(
       key: _canvasKey,
-      aspectRatio: 1.2,
+      aspectRatio: 0.6,
       child: Container(
         color: Color.fromRGBO(255, 250, 235, 1),
         child: GestureDetector(
@@ -311,7 +309,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 Map<String, dynamic> pathInfo = _drawingStorage.toJson();
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 await prefs.setString('drawing', jsonEncode(pathInfo));
-                //print(jsonEncode(pathInfo));
               },
             ),
             FlatButton(

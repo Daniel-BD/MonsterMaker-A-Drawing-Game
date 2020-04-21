@@ -231,6 +231,7 @@ class DrawingStorage {
           ..color = Color(int.parse(values[1]))
           ..strokeWidth = double.parse(values[0])
           ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
           ..style = PaintingStyle.stroke);
       }
 
