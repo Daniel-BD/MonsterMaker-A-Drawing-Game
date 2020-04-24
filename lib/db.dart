@@ -38,6 +38,10 @@ class DatabaseService {
   Future<bool> joinRoom({@required String roomCode}) async {
     bool result = false;
 
+    if (roomCode.length != 4) {
+      return result;
+    }
+
     var docs = await _db.collection(roomCode).getDocuments();
 
     if (docs.documents.length == 0) {
