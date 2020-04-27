@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'start_screen.dart';
+import 'package:exquisitecorpse/route_generator.dart';
 
 void main() {
   runApp(MyApp());
@@ -11,8 +11,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Drawing Game',
-      home: StartScreen(),
       debugShowCheckedModeBanner: false,
+      initialRoute: '/',
+      onGenerateRoute: RouteGenerator.generateRoute,
     );
   }
 }

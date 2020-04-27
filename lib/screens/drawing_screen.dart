@@ -5,8 +5,8 @@ import 'package:drawing_animation/drawing_animation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'painters.dart';
-import 'drawing_storage.dart';
+import '../painters.dart';
+import '../drawing_storage.dart';
 import 'dart:math' as math;
 
 class DrawingScreen extends StatefulWidget {
