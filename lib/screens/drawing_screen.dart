@@ -70,7 +70,12 @@ class _DrawingScreenState extends State<DrawingScreen> {
         child: StreamBuilder<GameRoom>(
             stream: _db.streamWaitingRoom(roomCode: widget.room.roomCode),
             builder: (context, snapshot) {
-              int position = snapshot.data.player;
+              if (snapshot.data == null) {
+                return Center(
+                  child: CircularProgressIndicator(backgroundColor: Colors.purple),
+                );
+              }
+              //int position = snapshot.data.player;
               //String part = position == 1 ? 'top' : position == 2 ? 'middle' : 'bottom';
               String instruction = 'Draw the ' + 'top (head)' + ' of the figure!';
               return Stack(

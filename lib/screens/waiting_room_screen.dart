@@ -1,5 +1,6 @@
 import 'package:exquisitecorpse/models.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 import 'package:exquisitecorpse/db.dart';
 
@@ -15,6 +16,23 @@ class WaitingRoomScreen extends StatefulWidget {
 class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   final _db = DatabaseService.instance;
   bool _loading = false;
+  StreamSubscription<GameRoom> _stream;
+
+  @override
+  void initState() {
+    super.initState();
+    _stream = _db.streamWaitingRoom(roomCode: widget.roomCode).listen((room) {
+      if (room.startedGame) {
+        Navigator.of(context).pushReplacementNamed('/drawingScreen', arguments: room);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _stream.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +45,6 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
               return Center(
                 child: CircularProgressIndicator(backgroundColor: Colors.orange),
               );
-            }
-
-            if (snapshot.data.startedGame) {
-              Navigator.of(context).pushReplacementNamed('/drawingScreen', arguments: snapshot.data);
             }
 
             return Center(
