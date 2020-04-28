@@ -190,11 +190,11 @@ class DatabaseService {
     String position;
 
     /// First we need to figure out what part of the drawing this is
-    if (room.drawings[0].length < 3) {
+    if (!room.topDrawingsDone()) {
       position = _top;
-    } else if (room.drawings[1].length < 3) {
+    } else if (!room.midDrawingsDone()) {
       position = _mid;
-    } else if (room.drawings[2].length < 3) {
+    } else if (!room.bottomDrawingsDone()) {
       position = _bottom;
     }
     assert(position != null);
