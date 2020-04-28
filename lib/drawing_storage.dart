@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DrawingStorage {
   double height, width;
@@ -142,6 +141,9 @@ class DrawingStorage {
   }
 
   double _scaleNumbers({@required double inputScale, @required double outputScale, @required double number}) {
+    assert(inputScale != null, 'inputScale is null');
+    assert(outputScale != null, 'outputScale is null');
+    assert(number != null, 'number is null');
     return number * (outputScale / inputScale);
   }
 
