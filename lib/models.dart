@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tuple/tuple.dart';
 
 class GameRoom {
   GameRoom({
@@ -7,10 +8,13 @@ class GameRoom {
     @required this.startedGame,
     @required this.isHost,
     @required this.player,
+    @required this.drawings,
   })  : assert(roomCode != null),
         assert(activePlayers != null),
         assert(isHost != null),
-        assert(startedGame != null);
+        assert(startedGame != null),
+        assert(player != null),
+        assert(drawings != null);
 
   /// The room code of the room
   final String roomCode;
@@ -26,6 +30,10 @@ class GameRoom {
 
   /// The player number the current player has, where 1 means first player, 2 means second player etc
   final int player;
+
+  /// A list of the drawings done in the game so far. The outer list holds 'top', 'mid', 'bottom' drawings, and should only be between 0-3 long.
+  /// The inner list holds the drawings withing each part (top, mid, bottom), where item1 (int) is the players number and item2 (String) is the drawing info.
+  final List<List<Tuple2<int, String>>> drawings;
 
   @override
   String toString() {

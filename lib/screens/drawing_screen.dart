@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:drawing_animation/drawing_animation.dart';
 //import 'package:shared_preferences/shared_preferences.dart';
@@ -26,18 +27,14 @@ class DrawingScreen extends StatefulWidget {
 
 class _DrawingScreenState extends State<DrawingScreen> {
   final _db = DatabaseService.instance;
-
-  bool _showButtons = true;
-
   GlobalKey _canvasKey = GlobalKey();
-
+  bool _showButtons = true;
   bool _needToCalculateSize = false;
   bool _hasCalculatedSize = false;
   bool _runAnimation = true;
   bool _showAnimationCanvas = false;
   bool _lastPointOutOfBounds = false;
   bool _ignorePath = false;
-
   DrawingStorage _drawingStorage = DrawingStorage();
 
   Paint _paint = Paint()
@@ -47,12 +44,27 @@ class _DrawingScreenState extends State<DrawingScreen> {
     ..strokeJoin = StrokeJoin.round
     ..style = PaintingStyle.stroke;
 
+  StreamSubscription<GameRoom> _stream;
+
   @override
   initState() {
     super.initState();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
+
+    if (widget.room.isHost) {
+      _stream = _db.streamWaitingRoom(roomCode: widget.room.roomCode).listen((room) {
+        /// TODO: När alla är klara med sin ritning för första delen, då ska nästa sak ritas.
+        /// Det måste hända lite saker där emellan...
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _stream.cancel();
+    super.dispose();
   }
 
   @override
@@ -75,9 +87,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
                   child: CircularProgressIndicator(backgroundColor: Colors.purple),
                 );
               }
-              //int position = snapshot.data.player;
-              //String part = position == 1 ? 'top' : position == 2 ? 'middle' : 'bottom';
-              String instruction = 'Draw the ' + 'top (head)' + ' of the figure!';
+
               return Stack(
                 alignment: AlignmentDirectional.bottomStart,
                 children: <Widget>[
@@ -87,8 +97,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
                       _showAnimationCanvas ? _animationCanvas() : _drawingCanvas(),
                     ],
                   ),
-                  _buttons(),
-                  Text(instruction),
+                  _buttons(snapshot.data),
                   if (_showButtons)
                     Container(
                       color: Colors.lightGreen.withOpacity(0.5),
@@ -190,6 +199,8 @@ class _DrawingScreenState extends State<DrawingScreen> {
   }
 
   bool _pointOutsideCanvas(double dy) {
+    // TODO: fixa
+    //print('debugging: ${_drawingStorage.height}, ${_paint.strokeWidth}');
     return (dy > _drawingStorage.height - (_paint.strokeWidth / 2) || dy < (_paint.strokeWidth / 2));
   }
 
@@ -242,7 +253,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
     );
   }
 
-  Widget _buttons() {
+  Widget _buttons(GameRoom room) {
     return Column(
       children: <Widget>[
         if (_showButtons)
@@ -308,8 +319,11 @@ class _DrawingScreenState extends State<DrawingScreen> {
                 padding: const EdgeInsets.only(left: 10, right: 10),
                 child: FlatButton(
                   color: Colors.green,
-                  child: Text("SAVE"),
-                  onPressed: () async {
+                  child: Text("DONE"),
+                  onPressed: () {
+                    final db = DatabaseService.instance;
+                    db.handInDrawing(room: room, drawing: jsonEncode(_drawingStorage.toJson()));
+
                     /*if (_drawingStorage.getPaths().isEmpty) {
                       return;
                     }
@@ -322,7 +336,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
                   },
                 ),
               ),
-              Padding(
+              /* Padding(
                 padding: const EdgeInsets.only(left: 10, right: 10),
                 child: FlatButton(
                   color: Colors.yellow,
@@ -351,7 +365,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
                     });*/
                   },
                 ),
-              ),
+              ),*/
             ],
           ),
         FlatButton(

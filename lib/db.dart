@@ -14,6 +14,9 @@ const String _gameData = 'gameData';
 const String _isHost = 'isHost';
 const String _startedGame = 'startedGame';
 const String _player = 'player';
+const String _top = 'top';
+const String _mid = 'middle';
+const String _bottom = 'bottom';
 
 class DatabaseService {
   final Firestore _db = Firestore.instance;
@@ -36,9 +39,41 @@ class DatabaseService {
       bool isHost;
       int player;
 
+      List<List<Tuple2<int, String>>> drawings = [[], [], []];
+
       room.documents.forEach((doc) {
         if (doc.documentID == _gameData) {
           startedGame = doc.data[_startedGame];
+
+          if (doc.data[_top] != null) {
+            for (var drawing in doc.data[_top]) {
+              var data = Map<String, String>.from(drawing);
+
+              data.forEach((key, value) {
+                drawings[0].add(Tuple2(int.parse(key), value));
+              });
+            }
+          }
+
+          if (doc.data[_mid] != null) {
+            for (var drawing in doc.data[_mid]) {
+              var data = Map<String, String>.from(drawing);
+
+              data.forEach((key, value) {
+                drawings[1].add(Tuple2(int.parse(key), value));
+              });
+            }
+          }
+
+          if (doc.data[_bottom] != null) {
+            for (var drawing in doc.data[_bottom]) {
+              var data = Map<String, String>.from(drawing);
+
+              data.forEach((key, value) {
+                drawings[0].add(Tuple2(int.parse(key), value));
+              });
+            }
+          }
         } else if (doc.documentID == _deviceID) {
           isHost = doc.data[_isHost];
           player = doc.data[_player];
@@ -49,7 +84,7 @@ class DatabaseService {
       assert(isHost != null, 'isHost is null');
       assert(player != null, 'player is null');
       if (startedGame == null || isHost == null || player == null) {
-        print('startedGame, isHost or player is null!!');
+        print('startedGame, isHost, player or part is null!!');
       }
       return GameRoom(
         roomCode: roomCode,
@@ -57,6 +92,7 @@ class DatabaseService {
         startedGame: startedGame,
         isHost: isHost,
         player: player,
+        drawings: drawings,
       );
     });
   }
@@ -145,6 +181,42 @@ class DatabaseService {
     } else if (docs.documents.length > 3) {
       print('The room is full!');
     }
+
+    return result;
+  }
+
+  Future<bool> handInDrawing({@required GameRoom room, @required String drawing}) async {
+    bool result = false;
+    String position;
+
+    /// First we need to figure out what part of the drawing this is
+    if (room.drawings[0].length < 3) {
+      position = _top;
+    } else if (room.drawings[1].length < 3) {
+      position = _mid;
+    } else if (room.drawings[2].length < 3) {
+      position = _bottom;
+    }
+    assert(position != null);
+
+    /// Then we need to see if this player has already submitted their drawing for this part of the drawing
+    int index = position == _top ? 0 : position == _mid ? 1 : 2;
+    for (var stuff in room.drawings[index]) {
+      if (stuff.item1 == room.player) {
+        print('You already submitted drawing!');
+        return false;
+      }
+    }
+
+    await _db.collection(_home).document(_roomsDoc).collection(room.roomCode).document(_gameData).updateData({
+      position: FieldValue.arrayUnion([
+        {'${room.player}': drawing}
+      ])
+    }).catchError((Object error) {
+      print('ERROR handing in drawing, $error');
+    }).whenComplete(() {
+      result = true;
+    });
 
     return result;
   }
