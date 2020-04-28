@@ -35,6 +35,10 @@ class _DrawingScreenState extends State<DrawingScreen> {
   bool _showAnimationCanvas = false;
   bool _lastPointOutOfBounds = false;
   bool _ignorePath = false;
+  bool _topDrawingsDone = false;
+  bool _midDrawingsDone = false;
+  bool _bottomDrawingsDone = false;
+
   DrawingStorage _drawingStorage = DrawingStorage();
 
   Paint _paint = Paint()
@@ -53,12 +57,11 @@ class _DrawingScreenState extends State<DrawingScreen> {
       DeviceOrientation.portraitUp,
     ]);
 
-    if (widget.room.isHost) {
-      _stream = _db.streamWaitingRoom(roomCode: widget.room.roomCode).listen((room) {
-        /// TODO: När alla är klara med sin ritning för första delen, då ska nästa sak ritas.
-        /// Det måste hända lite saker där emellan...
-      });
-    }
+    _stream = _db.streamWaitingRoom(roomCode: widget.room.roomCode).listen((room) {
+      _topDrawingsDone = room.topDrawingsDone();
+      _midDrawingsDone = room.midDrawingsDone();
+      _bottomDrawingsDone = room.bottomDrawingsDone();
+    });
   }
 
   @override

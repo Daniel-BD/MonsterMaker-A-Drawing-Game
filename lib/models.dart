@@ -35,6 +35,10 @@ class GameRoom {
   /// The inner list holds the drawings withing each part (top, mid, bottom), where item1 (int) is the players number and item2 (String) is the drawing info.
   final List<List<Tuple2<int, String>>> drawings;
 
+  bool topDrawingsDone() => drawings[0].length == 3;
+  bool midDrawingsDone() => drawings[1].length == 3;
+  bool bottomDrawingsDone() => drawings[2].length == 3;
+
   @override
   String toString() {
     return 'Room Code: $roomCode, active players: $activePlayers, game has started: $startedGame, current player is host: $isHost, player: $player';
