@@ -1,20 +1,32 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:drawing_animation/drawing_animation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+//import 'package:shared_preferences/shared_preferences.dart';
+//import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../painters.dart';
-import '../drawing_storage.dart';
-import 'dart:math' as math;
+import 'package:exquisitecorpse/painters.dart';
+import 'package:exquisitecorpse/drawing_storage.dart';
+import 'package:exquisitecorpse/models.dart';
+import 'package:exquisitecorpse/db.dart';
 
 class DrawingScreen extends StatefulWidget {
+  DrawingScreen({
+    Key key,
+    @required this.room,
+  })  : assert(room != null),
+        super(key: key);
+
+  final GameRoom room;
+
   @override
   _DrawingScreenState createState() => _DrawingScreenState();
 }
 
 class _DrawingScreenState extends State<DrawingScreen> {
+  final _db = DatabaseService.instance;
+
   bool _showButtons = true;
 
   GlobalKey _canvasKey = GlobalKey();
@@ -55,32 +67,40 @@ class _DrawingScreenState extends State<DrawingScreen> {
     return Scaffold(
       backgroundColor: Color.fromRGBO(180, 180, 180, 1),
       body: SafeArea(
-        child: Stack(
-          alignment: AlignmentDirectional.bottomStart,
-          children: <Widget>[
-            Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                _showAnimationCanvas ? _animationCanvas() : _drawingCanvas(),
-              ],
-            ),
-            _buttons(),
-            if (_showButtons)
-              Container(
-                color: Colors.lightGreen.withOpacity(0.5),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+        child: StreamBuilder<GameRoom>(
+            stream: _db.streamWaitingRoom(roomCode: widget.room.roomCode),
+            builder: (context, snapshot) {
+              int position = snapshot.data.player;
+              //String part = position == 1 ? 'top' : position == 2 ? 'middle' : 'bottom';
+              String instruction = 'Draw the ' + 'top (head)' + ' of the figure!';
+              return Stack(
+                alignment: AlignmentDirectional.bottomStart,
+                children: <Widget>[
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
-                      _thicknessButton(),
+                      _showAnimationCanvas ? _animationCanvas() : _drawingCanvas(),
                     ],
                   ),
-                ),
-              ),
-          ],
-        ),
+                  _buttons(),
+                  Text(instruction),
+                  if (_showButtons)
+                    Container(
+                      color: Colors.lightGreen.withOpacity(0.5),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            _thicknessButton(),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            }),
       ),
     );
   }
@@ -285,7 +305,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
                   color: Colors.green,
                   child: Text("SAVE"),
                   onPressed: () async {
-                    if (_drawingStorage.getPaths().isEmpty) {
+                    /*if (_drawingStorage.getPaths().isEmpty) {
                       return;
                     }
 
@@ -293,7 +313,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
                     SharedPreferences prefs = await SharedPreferences.getInstance();
                     await prefs.setString('drawing', jsonEncode(pathInfo));
 
-                    Firestore.instance.collection('drawings').document('1').setData({'json': jsonEncode(pathInfo)});
+                    Firestore.instance.collection('drawings').document('1').setData({'json': jsonEncode(pathInfo)}); */
                   },
                 ),
               ),
@@ -303,11 +323,11 @@ class _DrawingScreenState extends State<DrawingScreen> {
                   color: Colors.yellow,
                   child: Text("LOAD CLOUD"),
                   onPressed: () async {
-                    var docs = await Firestore.instance.collection('drawings').getDocuments();
+                    /*var docs = await Firestore.instance.collection('drawings').getDocuments();
                     setState(() {
                       _drawingStorage = DrawingStorage.fromJson(
                           jsonDecode(docs.documents.first.data['json']), true, _drawingStorage.height, _drawingStorage.width);
-                    });
+                    }); */
                   },
                 ),
               ),
@@ -317,12 +337,13 @@ class _DrawingScreenState extends State<DrawingScreen> {
                   color: Colors.yellow,
                   child: Text("LOAD"),
                   onPressed: () async {
+                    /*
                     SharedPreferences prefs = await SharedPreferences.getInstance();
                     String drawingInfo = prefs.getString('drawing');
                     setState(() {
                       _drawingStorage =
                           DrawingStorage.fromJson(jsonDecode(drawingInfo), false, _drawingStorage.height, _drawingStorage.width);
-                    });
+                    });*/
                   },
                 ),
               ),

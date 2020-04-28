@@ -54,12 +54,14 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
                         controller: _roomCodeController,
                         onSubmitted: (str) => _joinRoom(context),
                       ),
-                    StartScreenButton(
-                      padding: _overlap,
-                      color: Colors.blueAccent[100],
-                      text: 'Join Game',
-                      key: _joinGameKey,
-                      onPressed: () => _joinRoom(context),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: _overlap),
+                      child: StartScreenButton(
+                        color: Colors.blueAccent[100],
+                        text: 'Join Game',
+                        key: _joinGameKey,
+                        onPressed: () => _joinRoom(context),
+                      ),
                     ),
                   ],
                 ),
@@ -76,7 +78,7 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
     Tuple2<bool, String> result = await _db.createNewRoom();
 
     if (result.item1) {
-      Navigator.of(context).pushNamed('/waitingRoom', arguments: result.item2);
+      Navigator.of(context).pushReplacementNamed('/waitingRoom', arguments: result.item2);
     } else {
       assert(false, 'creating new room failed');
       setState(() {
@@ -98,7 +100,7 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
       });
       var success = await _db.joinRoom(roomCode: _roomCodeController.text);
       if (success) {
-        Navigator.of(context).pushNamed('/waitingRoom', arguments: _roomCodeController.text);
+        Navigator.of(context).pushReplacementNamed('/waitingRoom', arguments: _roomCodeController.text);
       } else {
         Scaffold.of(context).showSnackBar(
           SnackBar(

@@ -7,6 +7,14 @@ import 'package:tuple/tuple.dart';
 
 import 'package:exquisitecorpse/models.dart';
 
+const String _home = 'home';
+const String _roomsDoc = 'rooms';
+const String _active = 'active';
+const String _gameData = 'gameData';
+const String _isHost = 'isHost';
+const String _startedGame = 'startedGame';
+const String _player = 'player';
+
 class DatabaseService {
   final Firestore _db = Firestore.instance;
   var _deviceID;
@@ -22,21 +30,34 @@ class DatabaseService {
     assert(_deviceID != null || _deviceID is String);
   }
 
-  Stream<WaitingRoom> streamWaitingRoom({@required String roomCode}) {
-    return _db.collection(roomCode).snapshots().map((room) {
-      bool startedGame = false;
+  Stream<GameRoom> streamWaitingRoom({@required String roomCode}) {
+    return _db.collection(_home).document(_roomsDoc).collection(roomCode).snapshots().map((room) {
+      bool startedGame;
       bool isHost;
+      int player;
 
       room.documents.forEach((doc) {
-        if (doc.documentID == 'gameData') {
-          startedGame = doc.data['startedGame'];
+        if (doc.documentID == _gameData) {
+          startedGame = doc.data[_startedGame];
         } else if (doc.documentID == _deviceID) {
-          isHost = doc.data['isHost'];
+          isHost = doc.data[_isHost];
+          player = doc.data[_player];
         }
       });
 
-      assert(startedGame != null && isHost != null, 'startedGame or isHost is null');
-      return WaitingRoom(roomCode: roomCode, activePlayers: room.documents.length - 1, startedGame: startedGame, isHost: isHost);
+      assert(startedGame != null, 'startedGame is null');
+      assert(isHost != null, 'isHost is null');
+      assert(player != null, 'player is null');
+      if (startedGame == null || isHost == null || player == null) {
+        print('startedGame, isHost or player is null!!');
+      }
+      return GameRoom(
+        roomCode: roomCode,
+        activePlayers: room.documents.length - 1,
+        startedGame: startedGame,
+        isHost: isHost,
+        player: player,
+      );
     });
   }
 
@@ -46,19 +67,50 @@ class DatabaseService {
     String roomCode = randomAlpha(4).toUpperCase();
     Tuple2<bool, String> result = Tuple2(false, roomCode);
 
-    var docs = await _db.collection(roomCode).getDocuments();
+    var docs = await _db.collection(_home).document(_roomsDoc).collection(roomCode).getDocuments();
 
     if (docs.documents.length == 0) {
-      await _db.collection(roomCode).document(_deviceID).setData({'active': true, 'isHost': true}).catchError((Object error) {
+      await _db
+          .collection(_home)
+          .document(_roomsDoc)
+          .collection(roomCode)
+          .document(_deviceID)
+          .setData({_active: true, _isHost: true, _player: 1}).catchError((Object error) {
         print('ERROR creating new game room, $error');
       }).whenComplete(() async {
-        await _db.collection(roomCode).document('gameData').setData({'startedGame': false}).catchError((Object error) {
+        await _db
+            .collection(_home)
+            .document(_roomsDoc)
+            .collection(roomCode)
+            .document(_gameData)
+            .setData({_startedGame: false}).catchError((Object error) {
           print('ERROR creating new game room, $error');
         }).whenComplete(() {
           result = Tuple2(true, roomCode);
         });
       });
     }
+
+    return result;
+  }
+
+  Future<bool> startGame({@required GameRoom room}) async {
+    bool result = false;
+
+    if (!room.isHost) {
+      return result;
+    }
+
+    await _db
+        .collection(_home)
+        .document(_roomsDoc)
+        .collection(room.roomCode)
+        .document(_gameData)
+        .setData({_startedGame: true}).catchError((Object error) {
+      print('ERROR starting game, $error');
+    }).whenComplete(() {
+      result = true;
+    });
 
     return result;
   }
@@ -70,15 +122,25 @@ class DatabaseService {
       return result;
     }
 
-    var docs = await _db.collection(roomCode).getDocuments();
+    var docs = await _db.collection(_home).document(_roomsDoc).collection(roomCode).getDocuments();
 
-    if (docs.documents.length == 0) {
+    if (docs.documents.length < 2) {
       print('No room with that code!');
     } else if (docs.documents.length == 2) {
-      Firestore.instance.collection(roomCode).document(_deviceID).setData({'active': true, 'isHost': false});
+      _db
+          .collection(_home)
+          .document(_roomsDoc)
+          .collection(roomCode)
+          .document(_deviceID)
+          .setData({_active: true, _isHost: false, _player: 2});
       result = true;
     } else if (docs.documents.length == 3) {
-      Firestore.instance.collection(roomCode).document(_deviceID).setData({'active': true, 'isHost': false});
+      _db
+          .collection(_home)
+          .document(_roomsDoc)
+          .collection(roomCode)
+          .document(_deviceID)
+          .setData({_active: true, _isHost: false, _player: 3});
       result = true;
     } else if (docs.documents.length > 3) {
       print('The room is full!');
@@ -90,12 +152,9 @@ class DatabaseService {
   Future<bool> leaveRoom({@required String roomCode}) async {
     bool result = false;
 
-    print('leaving room...');
-
-    await _db.collection(roomCode).document(_deviceID).delete().catchError((Object error) {
+    await _db.collection(_home).document(_roomsDoc).collection(roomCode).document(_deviceID).delete().catchError((Object error) {
       print('ERROR leaving room, $error');
     }).whenComplete(() async {
-      print('deleted...');
       result = true;
     });
 
