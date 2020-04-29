@@ -81,7 +81,8 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   }
 
   VoidCallback startGame(AsyncSnapshot snapshot) {
-    if (snapshot.data.activePlayers != 3) {
+    /// TODO: Detta skall vara 3 sen, inte 1
+    if (snapshot.data.activePlayers != 1) {
       return null;
     }
     return () async {

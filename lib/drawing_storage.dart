@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 class DrawingStorage {
+  Paint paint = Paint()
+    ..color = Colors.orange
+    ..strokeWidth = 12
+    ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.round
+    ..style = PaintingStyle.stroke;
+
   double height, width;
 
   /// This is essentially a list of paths, even though it may be hard to see. The inner list is a list of points (dx dy),

@@ -4,8 +4,7 @@ import 'dart:math' as math;
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:drawing_animation/drawing_animation.dart';
-//import 'package:shared_preferences/shared_preferences.dart';
-//import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:after_layout/after_layout.dart';
 
 import 'package:exquisitecorpse/painters.dart';
 import 'package:exquisitecorpse/drawing_storage.dart';
@@ -27,26 +26,18 @@ class DrawingScreen extends StatefulWidget {
 
 class _DrawingScreenState extends State<DrawingScreen> {
   final _db = DatabaseService.instance;
-  GlobalKey _canvasKey = GlobalKey();
   bool _showButtons = true;
-  bool _needToCalculateSize = false;
-  bool _hasCalculatedSize = false;
-  bool _runAnimation = true;
   bool _showAnimationCanvas = false;
-  bool _lastPointOutOfBounds = false;
-  bool _ignorePath = false;
+
+  bool _topDrawingBegun = false;
   bool _topDrawingsDone = false;
+  bool _midDrawingBegun = false;
   bool _midDrawingsDone = false;
+  bool _bottomDrawingBegun = false;
   bool _bottomDrawingsDone = false;
+  bool _loadingHandIn = false;
 
   DrawingStorage _drawingStorage = DrawingStorage();
-
-  Paint _paint = Paint()
-    ..color = Colors.orange
-    ..strokeWidth = 12
-    ..strokeCap = StrokeCap.round
-    ..strokeJoin = StrokeJoin.round
-    ..style = PaintingStyle.stroke;
 
   StreamSubscription<GameRoom> _stream;
 
@@ -72,15 +63,8 @@ class _DrawingScreenState extends State<DrawingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_needToCalculateSize && !_hasCalculatedSize) {
-      RenderBox renderBox = _canvasKey.currentContext.findRenderObject();
-      _drawingStorage.height = renderBox.size.height;
-      _drawingStorage.width = renderBox.size.width;
-      _hasCalculatedSize = true;
-    }
-
     return Scaffold(
-      backgroundColor: Color.fromRGBO(180, 180, 180, 1),
+      backgroundColor: const Color.fromRGBO(180, 180, 180, 1),
       body: SafeArea(
         child: StreamBuilder<GameRoom>(
             stream: _db.streamWaitingRoom(roomCode: widget.room.roomCode),
@@ -97,7 +81,9 @@ class _DrawingScreenState extends State<DrawingScreen> {
                   Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
-                      _showAnimationCanvas ? _animationCanvas() : _drawingCanvas(),
+                      _showAnimationCanvas
+                          ? AnimationCanvas(drawingStorage: _drawingStorage)
+                          : DrawingCanvas(drawingStorage: _drawingStorage),
                     ],
                   ),
                   _buttons(snapshot.data),
@@ -132,13 +118,13 @@ class _DrawingScreenState extends State<DrawingScreen> {
             iconSize: 40,
             icon: Icon(Icons.add_circle_outline),
             onPressed: () {
-              if (_paint.strokeWidth > 40) {
+              if (_drawingStorage.paint.strokeWidth > 40) {
                 return;
               }
               setState(() {
-                _paint = Paint()
-                  ..color = _paint.color
-                  ..strokeWidth = _paint.strokeWidth + 4
+                _drawingStorage.paint = Paint()
+                  ..color = _drawingStorage.paint.color
+                  ..strokeWidth = _drawingStorage.paint.strokeWidth + 4
                   ..strokeCap = StrokeCap.round
                   ..strokeJoin = StrokeJoin.round
                   ..style = PaintingStyle.stroke;
@@ -149,10 +135,10 @@ class _DrawingScreenState extends State<DrawingScreen> {
         Padding(
           padding: const EdgeInsets.only(top: 10, bottom: 10),
           child: Container(
-            width: _paint.strokeWidth,
-            height: _paint.strokeWidth,
+            width: _drawingStorage.paint.strokeWidth,
+            height: _drawingStorage.paint.strokeWidth,
             decoration: BoxDecoration(
-              color: _paint.color,
+              color: _drawingStorage.paint.color,
               shape: BoxShape.circle,
             ),
           ),
@@ -163,13 +149,13 @@ class _DrawingScreenState extends State<DrawingScreen> {
             iconSize: 40,
             icon: Icon(Icons.remove_circle_outline),
             onPressed: () {
-              if (_paint.strokeWidth < 8) {
+              if (_drawingStorage.paint.strokeWidth < 8) {
                 return;
               }
               setState(() {
-                _paint = Paint()
-                  ..color = _paint.color
-                  ..strokeWidth = _paint.strokeWidth - 4
+                _drawingStorage.paint = Paint()
+                  ..color = _drawingStorage.paint.color
+                  ..strokeWidth = _drawingStorage.paint.strokeWidth - 4
                   ..strokeCap = StrokeCap.round
                   ..strokeJoin = StrokeJoin.round
                   ..style = PaintingStyle.stroke;
@@ -179,80 +165,6 @@ class _DrawingScreenState extends State<DrawingScreen> {
         ),
         Container(height: 10, width: 10),
       ],
-    );
-  }
-
-  Widget _animationCanvas() {
-    return AspectRatio(
-      aspectRatio: 0.6,
-      child: Container(
-        color: Colors.grey[200],
-        child: AnimatedDrawing.paths(
-          _drawingStorage.getPaths(),
-          paints: _drawingStorage.getPaints(),
-          run: this._runAnimation,
-          scaleToViewport: false,
-          duration: Duration(seconds: 1),
-          onFinish: () => setState(() {
-            this._runAnimation = false;
-          }),
-        ),
-      ),
-    );
-  }
-
-  bool _pointOutsideCanvas(double dy) {
-    // TODO: fixa
-    //print('debugging: ${_drawingStorage.height}, ${_paint.strokeWidth}');
-    return (dy > _drawingStorage.height - (_paint.strokeWidth / 2) || dy < (_paint.strokeWidth / 2));
-  }
-
-  Widget _drawingCanvas() {
-    if (!_hasCalculatedSize) {
-      _needToCalculateSize = true;
-    }
-
-    return AspectRatio(
-      key: _canvasKey,
-      aspectRatio: 0.6,
-      child: Container(
-        color: Color.fromRGBO(255, 250, 235, 1),
-        child: GestureDetector(
-          onPanStart: (details) {
-            if (_pointOutsideCanvas(details.localPosition.dy)) {
-              _ignorePath = true;
-              return;
-            }
-
-            setState(() {
-              _drawingStorage.startNewPath(details.localPosition.dx, details.localPosition.dy, _paint, false);
-            });
-
-            _lastPointOutOfBounds = false;
-          },
-          onPanUpdate: (details) {
-            if (_pointOutsideCanvas(details.localPosition.dy)) {
-              _lastPointOutOfBounds = true;
-              return;
-            }
-
-            setState(() {
-              _drawingStorage.addPoint(details.localPosition.dx, details.localPosition.dy, _lastPointOutOfBounds, false);
-            });
-
-            _lastPointOutOfBounds = false;
-          },
-          onPanEnd: (details) {
-            if (_ignorePath) {
-              return;
-            }
-            _drawingStorage.endPath();
-          },
-          child: CustomPaint(
-            painter: MyPainter(_drawingStorage.getPaths(), _drawingStorage.getPaints()),
-          ),
-        ),
-      ),
     );
   }
 
@@ -310,9 +222,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
                     if (_drawingStorage.getPaths().isEmpty) {
                       return;
                     }
-
                     setState(() {
-                      this._runAnimation = true;
                       _showAnimationCanvas = !_showAnimationCanvas;
                     });
                   },
@@ -323,9 +233,15 @@ class _DrawingScreenState extends State<DrawingScreen> {
                 child: FlatButton(
                   color: Colors.green,
                   child: Text("DONE"),
-                  onPressed: () {
+                  onPressed: () async {
                     final db = DatabaseService.instance;
-                    db.handInDrawing(room: room, drawing: jsonEncode(_drawingStorage.toJson()));
+                    setState(() {
+                      _loadingHandIn = true;
+                    });
+                    var result = await db.handInDrawing(room: room, drawing: jsonEncode(_drawingStorage.toJson()));
+                    setState(() {
+                      _loadingHandIn = false;
+                    });
 
                     /*if (_drawingStorage.getPaths().isEmpty) {
                       return;
@@ -382,5 +298,123 @@ class _DrawingScreenState extends State<DrawingScreen> {
         ),
       ],
     );
+  }
+}
+
+class AnimationCanvas extends StatefulWidget {
+  AnimationCanvas({
+    Key key,
+    @required this.drawingStorage,
+  }) : super(key: key);
+
+  final DrawingStorage drawingStorage;
+
+  @override
+  _AnimationCanvasState createState() => _AnimationCanvasState();
+}
+
+class _AnimationCanvasState extends State<AnimationCanvas> {
+  bool _runAnimation = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 0.6,
+      child: Container(
+        color: Colors.grey[200],
+        child: AnimatedDrawing.paths(
+          widget.drawingStorage.getPaths(),
+          paints: widget.drawingStorage.getPaints(),
+          run: this._runAnimation,
+          scaleToViewport: false,
+          duration: Duration(seconds: 1),
+          onFinish: () => setState(() {
+            this._runAnimation = false;
+          }),
+        ),
+      ),
+    );
+  }
+}
+
+class DrawingCanvas extends StatefulWidget {
+  DrawingCanvas({Key key, @required this.drawingStorage}) : super(key: key);
+
+  final DrawingStorage drawingStorage;
+
+  @override
+  _DrawingCanvasState createState() => _DrawingCanvasState();
+}
+
+class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<DrawingCanvas> {
+  final canvasKey = GlobalKey();
+  DrawingStorage _data;
+  bool _lastPointOutOfBounds = false;
+  bool _ignorePath = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _data = widget.drawingStorage;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      key: canvasKey,
+      aspectRatio: 0.6,
+      child: Container(
+        color: Color.fromRGBO(255, 250, 235, 1),
+        child: GestureDetector(
+          onPanStart: (details) {
+            if (_pointOutsideCanvas(details.localPosition.dy)) {
+              _ignorePath = true;
+              return;
+            }
+
+            setState(() {
+              _data.startNewPath(details.localPosition.dx, details.localPosition.dy, _data.paint, false);
+            });
+
+            _lastPointOutOfBounds = false;
+          },
+          onPanUpdate: (details) {
+            if (_pointOutsideCanvas(details.localPosition.dy)) {
+              _lastPointOutOfBounds = true;
+              return;
+            }
+
+            setState(() {
+              _data.addPoint(details.localPosition.dx, details.localPosition.dy, _lastPointOutOfBounds, false);
+            });
+
+            _lastPointOutOfBounds = false;
+          },
+          onPanEnd: (details) {
+            if (_ignorePath) {
+              return;
+            }
+            _data.endPath();
+          },
+          child: CustomPaint(
+            painter: MyPainter(_data.getPaths(), _data.getPaints()),
+          ),
+        ),
+      ),
+    );
+  }
+
+  bool _pointOutsideCanvas(double dy) {
+    return (dy > _data.height - (_data.paint.strokeWidth / 2) || dy < (_data.paint.strokeWidth / 2));
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    if (canvasKey.currentContext != null && (_data.width == null || _data.height == null)) {
+      RenderBox renderBox = canvasKey.currentContext.findRenderObject();
+      _data.height = renderBox.size.height;
+      _data.width = renderBox.size.width;
+      assert(_data.height != null && _data.width != null);
+    }
   }
 }

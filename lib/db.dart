@@ -200,12 +200,8 @@ class DatabaseService {
     assert(position != null);
 
     /// Then we need to see if this player has already submitted their drawing for this part of the drawing
-    int index = position == _top ? 0 : position == _mid ? 1 : 2;
-    for (var stuff in room.drawings[index]) {
-      if (stuff.item1 == room.player) {
-        print('You already submitted drawing!');
-        return false;
-      }
+    if (room.haveAlreadySubmittedDrawing()) {
+      return false;
     }
 
     await _db.collection(_home).document(_roomsDoc).collection(room.roomCode).document(_gameData).updateData({

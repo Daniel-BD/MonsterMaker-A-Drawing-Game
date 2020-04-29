@@ -29,6 +29,7 @@ dependencies:
   random_string: ^2.0.1
   provider: ^4.0.5
   device_info: ^0.4.2+2
+  after_layout: ^1.0.7+2
 
 dev_dependencies:
   flutter_test:

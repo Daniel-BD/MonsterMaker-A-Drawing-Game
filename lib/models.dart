@@ -39,6 +39,23 @@ class GameRoom {
   bool midDrawingsDone() => drawings[1].length == 3;
   bool bottomDrawingsDone() => drawings[2].length == 3;
 
+  bool haveAlreadySubmittedDrawing() {
+    int index = bottomDrawingsDone() ? null : midDrawingsDone() ? 2 : topDrawingsDone() ? 1 : 0;
+
+    if (index == null) {
+      print('All drawings are submitted');
+      return true;
+    }
+
+    for (var data in drawings[index]) {
+      if (data.item1 == player) {
+        print('You already submitted drawing!');
+        return true;
+      }
+    }
+    return false;
+  }
+
   @override
   String toString() {
     return 'Room Code: $roomCode, active players: $activePlayers, game has started: $startedGame, current player is host: $isHost, player: $player';

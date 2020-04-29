@@ -2,6 +2,13 @@
   <library name="Dart Packages" type="DartPackagesLibraryType">
     <properties>
       <option name="packageNameToDirsMap">
+        <entry key="after_layout">
+          <value>
+            <list>
+              <option value="/Library/flutter/.pub-cache/hosted/pub.dartlang.org/after_layout-1.0.7+2/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="archive">
           <value>
             <list>
@@ -362,6 +369,7 @@
       </option>
     </properties>
     <CLASSES>
+      <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/after_layout-1.0.7+2/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/archive-2.0.11/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/args-1.5.2/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/async-2.4.0/lib" />
