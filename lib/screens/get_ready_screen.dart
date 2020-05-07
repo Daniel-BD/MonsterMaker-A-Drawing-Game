@@ -46,11 +46,10 @@ class _GetReadyScreenState extends State<GetReadyScreen> {
                 child: CircularProgressIndicator(backgroundColor: Colors.green),
               );
             }
-            _allTopDrawingsDone = snapshot.data.allTopDrawingsDone();
-            _allMidDrawingsDone = snapshot.data.allMidDrawingsDone();
+            GameRoom room = snapshot.data;
             assert(!snapshot.data.allBottomDrawingsDone(), "Should not be on this screen if all drawings of the game are finised!");
-
-            String instruction = !_allTopDrawingsDone ? _firstInstruction : !_allMidDrawingsDone ? _secondInstruction : _thirdInstruction;
+            String instruction =
+                !room.myTopDrawingDone() ? _firstInstruction : !room.myMidDrawingDone() ? _secondInstruction : _thirdInstruction;
 
             return Center(
               child: Column(

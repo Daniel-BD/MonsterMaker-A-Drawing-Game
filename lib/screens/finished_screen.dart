@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class FinishedScreen extends StatefulWidget {
   @override
@@ -6,6 +7,15 @@ class FinishedScreen extends StatefulWidget {
 }
 
 class _FinishedScreenState extends State<FinishedScreen> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

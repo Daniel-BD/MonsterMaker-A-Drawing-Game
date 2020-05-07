@@ -184,14 +184,16 @@ class DatabaseService {
     String position;
 
     /// First we need to figure out what part of the drawing this is
-    if (!room.allTopDrawingsDone()) {
+    if (!room.myTopDrawingDone()) {
       position = _top;
-    } else if (!room.allMidDrawingsDone()) {
+    } else if (!room.myMidDrawingDone()) {
       position = _mid;
-    } else if (!room.allBottomDrawingsDone()) {
+    } else if (!room.myBottomDrawingDone()) {
       position = _bottom;
     }
     assert(position != null);
+
+    print(position);
 
     /// Then we need to see if this player has already submitted their drawing for this part of the drawing
     if (room.haveAlreadySubmittedDrawing()) {

@@ -27,29 +27,19 @@ class _DrawingScreenState extends State<DrawingScreen> {
   initState() {
     super.initState();
     SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
     ]);
-  }
-
-  Widget _waitingForOtherPlayers(bool bottomDrawingsDone) {
-    return Column(
-      children: <Widget>[
-        if (bottomDrawingsDone) Text('THE GAME IS FINIHSED!'),
-        if (!bottomDrawingsDone) Text('You have handed in your top/mid/bottom drawing! Now you have to wait for the other players...'),
-      ],
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final GameState gameState = Provider.of<GameState>(context);
-    bool allTopDrawingsDone = false;
-    bool midDrawingsDone = false;
-    bool bottomDrawingsDone = false;
 
     return Scaffold(
       backgroundColor: const Color.fromRGBO(180, 180, 180, 1),
       body: SafeArea(
+        bottom: false,
         child: MultiProvider(
           providers: [
             ChangeNotifierProvider<DrawingState>(create: (_) => DrawingState()),
@@ -66,12 +56,6 @@ class _DrawingScreenState extends State<DrawingScreen> {
                   child: CircularProgressIndicator(backgroundColor: Colors.purple),
                 );
               }
-              allTopDrawingsDone = snapshot.data.allTopDrawingsDone();
-              midDrawingsDone = snapshot.data.allMidDrawingsDone();
-              bottomDrawingsDone = snapshot.data.allBottomDrawingsDone();
-              /*if (snapshot.data.haveAlreadySubmittedDrawing()) {
-                return _waitingForOtherPlayers(bottomDrawingsDone);
-              }*/
 
               /*if (allTopDrawingsDone) {
                 drawingState.otherPlayerDrawing = DrawingStorage.fromJson(jsonDecode(snapshot.data.topDrawings[3]), true);
@@ -80,10 +64,12 @@ class _DrawingScreenState extends State<DrawingScreen> {
               return Stack(
                 alignment: AlignmentDirectional.bottomStart,
                 children: <Widget>[
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  Flex(
+                    direction: Axis.horizontal,
                     children: <Widget>[
-                      drawingState.showAnimationCanvas ? AnimationCanvas() : DrawingCanvas(),
+                      Expanded(
+                        child: drawingState.showAnimationCanvas ? AnimationCanvas() : DrawingCanvas(),
+                      ),
                     ],
                   ),
                   Provider<GameRoom>.value(
@@ -201,10 +187,8 @@ class _DrawingControlsState extends State<DrawingControls> {
                         drawingState.loadingHandIn = false;
                         if (success) {
                           if (gameRoom.allMidDrawingsDone()) {
-                            print('Alla dina målningar är klara!');
                             Navigator.of(context).pushReplacementNamed('/finishedScreen');
                           } else {
-                            print('Nu ska vi navigera till get ready screen!');
                             myDrawing.clearDrawing();
                             Navigator.of(context).pushReplacementNamed('/getReadyScreen');
                           }
@@ -233,24 +217,21 @@ class _DrawingControlsState extends State<DrawingControls> {
                       Column(
                         children: <Widget>[
                           Container(height: 10, width: 10),
-                          Transform.rotate(
-                            angle: math.pi / 2,
-                            child: IconButton(
-                              iconSize: 40,
-                              icon: Icon(Icons.add_circle_outline),
-                              onPressed: () {
-                                if (myDrawing.paint.strokeWidth > 40) {
-                                  return;
-                                }
+                          IconButton(
+                            iconSize: 40,
+                            icon: Icon(Icons.add_circle_outline),
+                            onPressed: () {
+                              if (myDrawing.paint.strokeWidth > 40) {
+                                return;
+                              }
 
-                                myDrawing.paint = Paint()
-                                  ..color = myDrawing.paint.color
-                                  ..strokeWidth = myDrawing.paint.strokeWidth + 4
-                                  ..strokeCap = StrokeCap.round
-                                  ..strokeJoin = StrokeJoin.round
-                                  ..style = PaintingStyle.stroke;
-                              },
-                            ),
+                              myDrawing.paint = Paint()
+                                ..color = myDrawing.paint.color
+                                ..strokeWidth = myDrawing.paint.strokeWidth + 4
+                                ..strokeCap = StrokeCap.round
+                                ..strokeJoin = StrokeJoin.round
+                                ..style = PaintingStyle.stroke;
+                            },
                           ),
                           Padding(
                             padding: const EdgeInsets.only(top: 10, bottom: 10),
@@ -263,23 +244,20 @@ class _DrawingControlsState extends State<DrawingControls> {
                               ),
                             ),
                           ),
-                          Transform.rotate(
-                            angle: math.pi / 2,
-                            child: IconButton(
-                              iconSize: 40,
-                              icon: Icon(Icons.remove_circle_outline),
-                              onPressed: () {
-                                if (myDrawing.paint.strokeWidth < 8) {
-                                  return;
-                                }
-                                myDrawing.paint = Paint()
-                                  ..color = myDrawing.paint.color
-                                  ..strokeWidth = myDrawing.paint.strokeWidth - 4
-                                  ..strokeCap = StrokeCap.round
-                                  ..strokeJoin = StrokeJoin.round
-                                  ..style = PaintingStyle.stroke;
-                              },
-                            ),
+                          IconButton(
+                            iconSize: 40,
+                            icon: Icon(Icons.remove_circle_outline),
+                            onPressed: () {
+                              if (myDrawing.paint.strokeWidth < 8) {
+                                return;
+                              }
+                              myDrawing.paint = Paint()
+                                ..color = myDrawing.paint.color
+                                ..strokeWidth = myDrawing.paint.strokeWidth - 4
+                                ..strokeCap = StrokeCap.round
+                                ..strokeJoin = StrokeJoin.round
+                                ..style = PaintingStyle.stroke;
+                            },
                           ),
                           Container(height: 10, width: 10),
                         ],
