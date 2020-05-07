@@ -13,22 +13,12 @@ class RouteGenerator {
       case '/':
         return MaterialPageRoute(builder: (_) => StartScreen());
       case '/waitingRoom':
-        if (args is String) {
-          return MaterialPageRoute(
-            builder: (_) => WaitingRoomScreen(roomCode: args),
-          );
-        }
-        return _errorRoute();
         return MaterialPageRoute(builder: (_) => WaitingRoomScreen());
       case '/getReadyScreen':
         return MaterialPageRoute(builder: (_) => GetReadyScreen());
       case '/drawingScreen':
-        if (args is GameRoom) {
-          return MaterialPageRoute(
-            builder: (_) => DrawingScreen(room: args),
-          );
-        }
-        return _errorRoute();
+        return MaterialPageRoute(builder: (_) => DrawingScreen());
+
       default:
         return _errorRoute();
     }

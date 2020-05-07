@@ -1,14 +1,14 @@
-import 'package:exquisitecorpse/models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
 
+import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/db.dart';
+import 'package:exquisitecorpse/game_state.dart';
 
 class WaitingRoomScreen extends StatefulWidget {
-  WaitingRoomScreen({Key key, @required this.roomCode}) : super(key: key);
-
-  final String roomCode;
+  WaitingRoomScreen({Key key}) : super(key: key);
 
   @override
   _WaitingRoomScreenState createState() => _WaitingRoomScreenState();
@@ -22,7 +22,6 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   @override
   void initState() {
     super.initState();
-    _stream = _db.streamWaitingRoom(roomCode: widget.roomCode).listen((room) {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -42,10 +41,12 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String roomCode = Provider.of<CurrentRoomCode>(context).currentRoomCode;
+
     return Scaffold(
       body: SafeArea(
         child: StreamBuilder<GameRoom>(
-          stream: _db.streamWaitingRoom(roomCode: widget.roomCode),
+          stream: _db.streamWaitingRoom(roomCode: roomCode),
           builder: (context, snapshot) {
             if (snapshot.data == null) {
               return Center(
@@ -87,8 +88,6 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   }
 
   VoidCallback startGame(AsyncSnapshot snapshot) {
-    /// TODO: Detta skall vara 3 sen, inte 1
-    if (snapshot.data.activePlayers != 1) {
     /// TODO: Skall vara 3 personer
     if (snapshot.data.activePlayers != 3) {
       return null;

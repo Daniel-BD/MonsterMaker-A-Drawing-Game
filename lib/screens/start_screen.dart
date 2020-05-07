@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:exquisitecorpse/db.dart';
+import 'package:exquisitecorpse/game_state.dart';
 
 class StartScreen extends StatefulWidget {
   @override
@@ -84,7 +85,8 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
     Tuple2<bool, String> result = await _db.createNewRoom();
 
     if (result.item1) {
-      Navigator.of(context).pushReplacementNamed('/waitingRoom', arguments: result.item2);
+      Provider.of<CurrentRoomCode>(context, listen: false).currentRoomCode = result.item2;
+      Navigator.of(context).pushReplacementNamed('/waitingRoom');
     } else {
       assert(false, 'creating new room failed');
       setState(() {

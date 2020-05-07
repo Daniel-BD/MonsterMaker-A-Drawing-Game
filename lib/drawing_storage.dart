@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
-class DrawingStorage {
-  Paint paint = Paint()
+class DrawingStorage extends ChangeNotifier {
+  double height, width;
+
+  Paint _paint = Paint()
     ..color = Colors.orange
     ..strokeWidth = 12
     ..strokeCap = StrokeCap.round
     ..strokeJoin = StrokeJoin.round
     ..style = PaintingStyle.stroke;
 
-  double height, width;
+  get paint => _paint;
+  set paint(Paint value) {
+    _paint = value;
+    notifyListeners();
+  }
 
   /// This is essentially a list of paths, even though it may be hard to see. The inner list is a list of points (dx dy),
   /// which is the same thing as a path really. The outer list is a list of those, meaning a list of paths.
-
   List<List<Path>> _superPaths = [];
   List<List<Paint>> _superPaints = [];
   List<List<List<Tuple2<double, double>>>> _superDeconstructedPaths = [];
@@ -29,28 +34,7 @@ class DrawingStorage {
     _undonePaths.clear();
     _undonePaints.clear();
     _undoneDeconstructedPaths.clear();
-  }
-
-  List<Path> getPaths() {
-    List<Path> paths = [];
-    for (var pathList in _superPaths) {
-      for (var path in pathList) {
-        paths.add(path);
-      }
-    }
-    assert(_assertLengths());
-    return paths;
-  }
-
-  List<Paint> getPaints() {
-    List<Paint> paints = [];
-    for (var paintList in _superPaints) {
-      for (var paint in paintList) {
-        paints.add(paint);
-      }
-    }
-    assert(_assertLengths());
-    return paints;
+    notifyListeners();
   }
 
   void undoLastPath() {
@@ -61,6 +45,7 @@ class DrawingStorage {
     _undonePaths.add(_superPaths.removeLast());
     _undonePaints.add(_superPaints.removeLast());
     assert(_assertLengths());
+    notifyListeners();
   }
 
   void redoLastUndonePath() {
@@ -71,6 +56,7 @@ class DrawingStorage {
     _superPaths.add(_undonePaths.removeLast());
     _superPaints.add(_undonePaints.removeLast());
     assert(_assertLengths());
+    notifyListeners();
   }
 
   void startNewPath(double dx, double dy, Paint paint, bool continuesLastPath) {
@@ -91,6 +77,7 @@ class DrawingStorage {
     }
 
     assert(_assertLengths());
+    notifyListeners();
   }
 
   /// This function looks if the last path was a simple dot, and if it was, then it adds a very small line to it.
@@ -98,6 +85,7 @@ class DrawingStorage {
   void endPath() {
     if (_superDeconstructedPaths.last.last.length < 2) {
       addPoint(_superDeconstructedPaths.last.last.last.item1 + 0.001, _superDeconstructedPaths.last.last.last.item2 + 0.001, false, true);
+      notifyListeners();
     }
   }
 
@@ -123,6 +111,77 @@ class DrawingStorage {
 
     _superPaths.last.last.lineTo(dx, dy);
     _superDeconstructedPaths.last.last.add(Tuple2<double, double>(dx, dy));
+    notifyListeners();
+  }
+
+  List<Path> getPaths() {
+    List<Path> paths = [];
+    for (var pathList in _superPaths) {
+      for (var path in pathList) {
+        paths.add(path);
+      }
+    }
+    assert(_assertLengths());
+    return paths;
+  }
+
+  List<Paint> getPaints() {
+    List<Paint> paints = [];
+    for (var paintList in _superPaints) {
+      for (var paint in paintList) {
+        paints.add(paint);
+      }
+    }
+    assert(_assertLengths());
+    return paints;
+  }
+
+  List<Paint> getScaledPaints({@required double inputHeight, @required outputHeight}) {
+    List<Paint> paints = [];
+
+    for (var paintList in _superPaints) {
+      for (var paint in paintList) {
+        paints.add(Paint()
+          ..color = paint.color
+          ..strokeJoin = paint.strokeJoin
+          ..strokeCap = paint.strokeCap
+          ..style = paint.style
+          ..strokeWidth = _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: paint.strokeWidth));
+      }
+    }
+    assert(_assertLengths());
+    return paints;
+  }
+
+  List<Path> getScaledPaths({@required double inputHeight, @required inputWidth, @required outputHeight, @required outputWidth}) {
+    List<Path> scaledPaths = [];
+
+    List<List<Path>> tempPaths = [];
+    for (var pathList in _superDeconstructedPaths) {
+      List<Path> tempList = [];
+
+      pathList.forEach((fakePath) {
+        tempList.add(Path()
+          ..moveTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath.first.item1),
+              _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath.first.item2))
+          ..lineTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath.first.item1),
+              _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath.first.item2)));
+
+        for (int i = 1; i < fakePath.length; i++) {
+          tempList.last.lineTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath[i].item1),
+              _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath[i].item2));
+        }
+      });
+
+      tempPaths.add(tempList);
+    }
+
+    for (var pathList in tempPaths) {
+      for (var path in pathList) {
+        scaledPaths.add(path);
+      }
+    }
+    return scaledPaths;
   }
 
   List<List<Path>> _createPathsFromDeconstructed() {
@@ -154,58 +213,8 @@ class DrawingStorage {
     return number * (outputScale / inputScale);
   }
 
-  List<Paint> scaledPaints({@required double inputHeight, @required outputHeight}) {
-    List<Paint> paints = [];
-
-    for (var paintList in _superPaints) {
-      for (var paint in paintList) {
-        paints.add(Paint()
-          ..color = paint.color
-          ..strokeJoin = paint.strokeJoin
-          ..strokeCap = paint.strokeCap
-          ..style = paint.style
-          ..strokeWidth = _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: paint.strokeWidth));
-      }
-    }
-    assert(_assertLengths());
-    return paints;
-  }
-
-  List<Path> scaledPaths({@required double inputHeight, @required inputWidth, @required outputHeight, @required outputWidth}) {
-    List<Path> scaledPaths = [];
-
-    List<List<Path>> tempPaths = [];
-    for (var pathList in _superDeconstructedPaths) {
-      List<Path> tempList = [];
-
-      pathList.forEach((fakePath) {
-        tempList.add(Path()
-          ..moveTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath.first.item1),
-              _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath.first.item2))
-          ..lineTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath.first.item1),
-              _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath.first.item2)));
-
-        for (int i = 1; i < fakePath.length; i++) {
-          tempList.last.lineTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath[i].item1),
-              _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath[i].item2));
-        }
-      });
-
-      tempPaths.add(tempList);
-    }
-
-    for (var pathList in tempPaths) {
-      for (var path in pathList) {
-        scaledPaths.add(path);
-      }
-    }
-    return scaledPaths;
-  }
-
   DrawingStorage();
 
-  /// [json] describes the painting, [doScale] indicates if the drawing should scale to correctly fit the device or not
-  /// [height] and [width] is the height and width of this device, not the device the drawing in json was drawn on.
   DrawingStorage.fromJson(Map<String, dynamic> json, bool doScale, double height, width) {
     this.height = height;
     this.width = width;

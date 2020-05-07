@@ -178,7 +178,8 @@ class DatabaseService {
     return result;
   }
 
-  Future<bool> handInDrawing({@required GameRoom room, @required String drawing}) async {
+  Future<bool> handInDrawing({@required String roomCode, @required String drawing}) async {
+    GameRoom room = await streamWaitingRoom(roomCode: roomCode).first;
     bool result = false;
     String position;
 
@@ -197,9 +198,11 @@ class DatabaseService {
       return false;
     }
 
-    await _db.collection(_home).document(_roomsDoc).collection(room.roomCode).document(_gameData).setData({
-      position: {'${room.player}': drawing}
-    }, merge: true).catchError((Object error) {
+    await _db.collection(_home).document(_roomsDoc).collection(room.roomCode).document(_gameData).updateData({
+      position: FieldValue.arrayUnion([
+        {'${room.player}': drawing}
+      ])
+    }).catchError((Object error) {
       print('ERROR handing in drawing, $error');
     }).whenComplete(() {
       result = true;
