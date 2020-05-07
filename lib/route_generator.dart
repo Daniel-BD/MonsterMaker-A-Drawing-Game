@@ -4,11 +4,10 @@ import 'package:exquisitecorpse/screens/start_screen.dart';
 import 'package:exquisitecorpse/screens/waiting_room_screen.dart';
 import 'package:exquisitecorpse/screens/drawing_screen.dart';
 import 'package:exquisitecorpse/screens/get_ready_screen.dart';
+import 'package:exquisitecorpse/screens/finished_screen.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
-    final args = settings.arguments;
-
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(builder: (_) => StartScreen());
@@ -18,6 +17,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => GetReadyScreen());
       case '/drawingScreen':
         return MaterialPageRoute(builder: (_) => DrawingScreen());
+      case '/finishedScreen':
+        return MaterialPageRoute(builder: (_) => FinishedScreen());
 
       default:
         return _errorRoute();

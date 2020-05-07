@@ -36,8 +36,6 @@ class _GetReadyScreenState extends State<GetReadyScreen> {
   Widget build(BuildContext context) {
     final GameState gameState = Provider.of<GameState>(context);
 
-    String instruction = !_allTopDrawingsDone ? _firstInstruction : !_allMidDrawingsDone ? _secondInstruction : _thirdInstruction;
-
     return Scaffold(
       body: SafeArea(
         child: StreamBuilder<GameRoom>(
@@ -51,6 +49,8 @@ class _GetReadyScreenState extends State<GetReadyScreen> {
             _allTopDrawingsDone = snapshot.data.allTopDrawingsDone();
             _allMidDrawingsDone = snapshot.data.allMidDrawingsDone();
             assert(!snapshot.data.allBottomDrawingsDone(), "Should not be on this screen if all drawings of the game are finised!");
+
+            String instruction = !_allTopDrawingsDone ? _firstInstruction : !_allMidDrawingsDone ? _secondInstruction : _thirdInstruction;
 
             return Center(
               child: Column(

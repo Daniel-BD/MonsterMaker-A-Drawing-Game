@@ -86,7 +86,10 @@ class _DrawingScreenState extends State<DrawingScreen> {
                       drawingState.showAnimationCanvas ? AnimationCanvas() : DrawingCanvas(),
                     ],
                   ),
-                  DrawingControls(),
+                  Provider<GameRoom>.value(
+                    value: snapshot.data,
+                    child: DrawingControls(),
+                  ),
                   if (drawingState.loadingHandIn)
                     Center(
                       child: CircularProgressIndicator(),
@@ -115,6 +118,7 @@ class _DrawingControlsState extends State<DrawingControls> {
     final drawingState = Provider.of<DrawingState>(context);
     final myDrawing = Provider.of<DrawingStorage>(context);
     final String roomCode = Provider.of<GameState>(context).currentRoomCode;
+    final gameRoom = Provider.of<GameRoom>(context);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -192,13 +196,19 @@ class _DrawingControlsState extends State<DrawingControls> {
                         drawingState.loadingHandIn = true;
                         var success = await db.handInDrawing(roomCode: roomCode, drawing: jsonEncode(myDrawing.toJson()));
                         assert(success, 'Could not hand in drawing!');
+
+                        /// TODO: Felmeddelande om man det misslyckas...
                         drawingState.loadingHandIn = false;
                         if (success) {
-                          print('Nu ska vi navigera till get ready screen!');
-                          myDrawing.clearDrawing();
-                          Navigator.of(context).pushReplacementNamed('/getReadyScreen');
+                          if (gameRoom.allMidDrawingsDone()) {
+                            print('Alla dina målningar är klara!');
+                            Navigator.of(context).pushReplacementNamed('/finishedScreen');
+                          } else {
+                            print('Nu ska vi navigera till get ready screen!');
+                            myDrawing.clearDrawing();
+                            Navigator.of(context).pushReplacementNamed('/getReadyScreen');
+                          }
                         }
-                        // TODO: Gå till nästa steg när man är klar
                       },
                     ),
                   ),
