@@ -34,65 +34,58 @@ class DatabaseService {
   }
 
   Stream<GameRoom> streamWaitingRoom({@required String roomCode}) {
+    assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is not null or empty');
     return _db.collection(_home).document(_roomsDoc).collection(roomCode).snapshots().map((room) {
       bool startedGame;
       bool isHost;
       int player;
 
-      List<List<Tuple2<int, String>>> drawings = [[], [], []];
+      //List<List<Tuple2<int, String>>> drawings = [[], [], []];
+
+      Map<int, String> topDrawings = {};
+      Map<int, String> midDrawings = {};
+      Map<int, String> bottomDrawings = {};
 
       room.documents.forEach((doc) {
-        if (doc.documentID == _gameData) {
+        if (doc.documentID == _deviceID) {
+          isHost = doc.data[_isHost];
+          player = doc.data[_player];
+        } else if (doc.documentID == _gameData) {
           startedGame = doc.data[_startedGame];
 
           if (doc.data[_top] != null) {
-            for (var drawing in doc.data[_top]) {
-              var data = Map<String, String>.from(drawing);
-
-              data.forEach((key, value) {
-                drawings[0].add(Tuple2(int.parse(key), value));
-              });
-            }
+            topDrawings = Map<String, String>.from(doc.data[_top]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
           }
-
           if (doc.data[_mid] != null) {
-            for (var drawing in doc.data[_mid]) {
-              var data = Map<String, String>.from(drawing);
-
-              data.forEach((key, value) {
-                drawings[1].add(Tuple2(int.parse(key), value));
-              });
-            }
+            midDrawings = Map<String, String>.from(doc.data[_mid]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
           }
-
           if (doc.data[_bottom] != null) {
-            for (var drawing in doc.data[_bottom]) {
-              var data = Map<String, String>.from(drawing);
-
-              data.forEach((key, value) {
-                drawings[0].add(Tuple2(int.parse(key), value));
-              });
-            }
+            bottomDrawings = Map<String, String>.from(doc.data[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
+            /*var mapData = Map<String, String>.from(doc.data[_bottom]);
+            mapData.forEach((key, value) {
+              drawings[2].add(Tuple2(int.parse(key), value));
+            });*/
           }
-        } else if (doc.documentID == _deviceID) {
-          isHost = doc.data[_isHost];
-          player = doc.data[_player];
         }
       });
 
+      assert(topDrawings != null, 'topdrawing null');
+      assert(midDrawings != null, 'midDrawings null');
+      assert(topDrawings != null, 'topDrawings null');
       assert(startedGame != null, 'startedGame is null');
       assert(isHost != null, 'isHost is null');
       assert(player != null, 'player is null');
-      if (startedGame == null || isHost == null || player == null) {
-        print('startedGame, isHost, player or part is null!!');
-      }
+
       return GameRoom(
         roomCode: roomCode,
         activePlayers: room.documents.length - 1,
         startedGame: startedGame,
         isHost: isHost,
         player: player,
-        drawings: drawings,
+        //drawings: drawings,
+        topDrawings: topDrawings,
+        midDrawings: midDrawings,
+        bottomDrawings: bottomDrawings,
       );
     });
   }
@@ -190,11 +183,11 @@ class DatabaseService {
     String position;
 
     /// First we need to figure out what part of the drawing this is
-    if (!room.topDrawingsDone()) {
+    if (!room.allTopDrawingsDone()) {
       position = _top;
-    } else if (!room.midDrawingsDone()) {
+    } else if (!room.allMidDrawingsDone()) {
       position = _mid;
-    } else if (!room.bottomDrawingsDone()) {
+    } else if (!room.allBottomDrawingsDone()) {
       position = _bottom;
     }
     assert(position != null);
@@ -204,11 +197,9 @@ class DatabaseService {
       return false;
     }
 
-    await _db.collection(_home).document(_roomsDoc).collection(room.roomCode).document(_gameData).updateData({
-      position: FieldValue.arrayUnion([
-        {'${room.player}': drawing}
-      ])
-    }).catchError((Object error) {
+    await _db.collection(_home).document(_roomsDoc).collection(room.roomCode).document(_gameData).setData({
+      position: {'${room.player}': drawing}
+    }, merge: true).catchError((Object error) {
       print('ERROR handing in drawing, $error');
     }).whenComplete(() {
       result = true;

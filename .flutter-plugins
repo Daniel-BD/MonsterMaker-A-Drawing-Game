@@ -2,9 +2,14 @@
 cloud_firestore=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/cloud_firestore-0.13.5/
 cloud_firestore_web=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/cloud_firestore_web-0.1.1+2/
 device_info=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/device_info-0.4.2+2/
+device_info=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/device_info-0.4.2+3/
 firebase_analytics=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_analytics-5.0.11/
 firebase_core=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_core-0.4.4+3/
 firebase_core_web=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_core_web-0.1.1+2/
 shared_preferences=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences-0.5.6+3/
 shared_preferences_macos=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences_macos-0.0.1+6/
 shared_preferences_web=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences_web-0.1.2+4/
+home_indicator=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/home_indicator-1.1.5/
+shared_preferences=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences-0.5.7+1/
+shared_preferences_macos=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences_macos-0.0.1+8/
+shared_preferences_web=/Library/flutter/.pub-cache/hosted/pub.dartlang.org/shared_preferences_web-0.1.2+5/

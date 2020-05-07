@@ -204,6 +204,8 @@ class DrawingStorage {
 
   DrawingStorage();
 
+  /// [json] describes the painting, [doScale] indicates if the drawing should scale to correctly fit the device or not
+  /// [height] and [width] is the height and width of this device, not the device the drawing in json was drawn on.
   DrawingStorage.fromJson(Map<String, dynamic> json, bool doScale, double height, width) {
     this.height = height;
     this.width = width;

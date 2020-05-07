@@ -8,13 +8,19 @@ class GameRoom {
     @required this.startedGame,
     @required this.isHost,
     @required this.player,
-    @required this.drawings,
+    //@required this.drawings,
+    @required this.topDrawings,
+    @required this.midDrawings,
+    @required this.bottomDrawings,
   })  : assert(roomCode != null),
         assert(activePlayers != null),
         assert(isHost != null),
         assert(startedGame != null),
         assert(player != null),
-        assert(drawings != null);
+        assert(topDrawings != null),
+        assert(midDrawings != null),
+        assert(bottomDrawings != null);
+  //assert(drawings != null);
 
   /// The room code of the room
   final String roomCode;
@@ -33,27 +39,33 @@ class GameRoom {
 
   /// A list of the drawings done in the game so far. The outer list holds 'top', 'mid', 'bottom' drawings, and should only be between 0-3 long.
   /// The inner list holds the drawings withing each part (top, mid, bottom), where item1 (int) is the players number and item2 (String) is the drawing info.
-  final List<List<Tuple2<int, String>>> drawings;
+  //final List<List<Tuple2<int, String>>> drawings;
 
-  bool topDrawingsDone() => drawings[0].length == 3;
-  bool midDrawingsDone() => drawings[1].length == 3;
-  bool bottomDrawingsDone() => drawings[2].length == 3;
+  final Map<int, String> topDrawings;
+  final Map<int, String> midDrawings;
+  final Map<int, String> bottomDrawings;
 
+  bool allTopDrawingsDone() => topDrawings.length == 3;
+  bool allMidDrawingsDone() => midDrawings.length == 3;
+  bool allBottomDrawingsDone() => bottomDrawings.length == 3;
+
+  bool myTopDrawingDone() => topDrawings[player] != null;
+  bool myMidDrawingDone() => midDrawings[player] != null;
+  bool myBottomDrawingDone() => bottomDrawings[player] != null;
+
+  /// Returns true if the current player has already submitted a drawing in the current phase (top, mid, bottom).
+  /// [phase] is expected to be 0, 1 or 2 to represent top, mid, bottom respectively.
   bool haveAlreadySubmittedDrawing() {
-    int index = bottomDrawingsDone() ? null : midDrawingsDone() ? 2 : topDrawingsDone() ? 1 : 0;
-
-    if (index == null) {
-      print('All drawings are submitted');
-      return true;
+    if (!allTopDrawingsDone() && !myTopDrawingDone()) {
+      return false;
+    } else if (allTopDrawingsDone() && !allMidDrawingsDone() && !myMidDrawingDone()) {
+      return false;
+    }
+    if (allTopDrawingsDone() && allMidDrawingsDone() && !allBottomDrawingsDone() && !myBottomDrawingDone()) {
+      return false;
     }
 
-    for (var data in drawings[index]) {
-      if (data.item1 == player) {
-        print('You already submitted drawing!');
-        return true;
-      }
-    }
-    return false;
+    return true;
   }
 
   @override

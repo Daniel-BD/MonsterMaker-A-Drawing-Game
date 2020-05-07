@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:exquisitecorpse/db.dart';
@@ -13,6 +15,10 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -98,9 +104,13 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
       setState(() {
         _loading = true;
       });
-      var success = await _db.joinRoom(roomCode: _roomCodeController.text);
+
+      String roomCode = _roomCodeController.text;
+      var success = await _db.joinRoom(roomCode: roomCode);
+
       if (success) {
-        Navigator.of(context).pushReplacementNamed('/waitingRoom', arguments: _roomCodeController.text);
+        Provider.of<CurrentRoomCode>(context, listen: false).currentRoomCode = roomCode;
+        Navigator.of(context).pushReplacementNamed('/waitingRoom');
       } else {
         Scaffold.of(context).showSnackBar(
           SnackBar(

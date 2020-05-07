@@ -1,5 +1,6 @@
 import 'package:exquisitecorpse/models.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 
 import 'package:exquisitecorpse/db.dart';
@@ -22,8 +23,13 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   void initState() {
     super.initState();
     _stream = _db.streamWaitingRoom(roomCode: widget.roomCode).listen((room) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    _stream = _db.streamWaitingRoom(roomCode: Provider.of<CurrentRoomCode>(context, listen: false).currentRoomCode).listen((room) {
       if (room.startedGame) {
-        Navigator.of(context).pushReplacementNamed('/drawingScreen', arguments: room);
+        Navigator.of(context).pushReplacementNamed('/getReadyScreen');
       }
     });
   }
@@ -83,6 +89,8 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   VoidCallback startGame(AsyncSnapshot snapshot) {
     /// TODO: Detta skall vara 3 sen, inte 1
     if (snapshot.data.activePlayers != 1) {
+    /// TODO: Skall vara 3 personer
+    if (snapshot.data.activePlayers != 3) {
       return null;
     }
     return () async {
@@ -91,7 +99,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
       });
       bool result = await _db.startGame(room: snapshot.data);
       if (result) {
-        Navigator.of(context).pushReplacementNamed('/drawingScreen', arguments: snapshot.data);
+        Navigator.of(context).pushReplacementNamed('/getReadyScreen');
       }
       setState(() {
         _loading = false;
