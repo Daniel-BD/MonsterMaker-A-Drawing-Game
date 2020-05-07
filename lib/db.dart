@@ -193,8 +193,6 @@ class DatabaseService {
     }
     assert(position != null);
 
-    print(position);
-
     /// Then we need to see if this player has already submitted their drawing for this part of the drawing
     if (room.haveAlreadySubmittedDrawing()) {
       return false;

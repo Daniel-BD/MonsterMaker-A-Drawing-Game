@@ -330,20 +330,18 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
         color: Color.fromRGBO(255, 250, 235, 1),
         child: GestureDetector(
           onPanStart: (details) {
-            if (_pointOutsideCanvas(details.localPosition.dy)) {
+            if (_pointOutsideCanvas(details.localPosition.dx)) {
               _ignorePath = true;
               return;
             }
-
             myDrawing.startNewPath(details.localPosition.dx, details.localPosition.dy, myDrawing.paint, false);
             _lastPointOutOfBounds = false;
           },
           onPanUpdate: (details) {
-            if (_pointOutsideCanvas(details.localPosition.dy)) {
+            if (_pointOutsideCanvas(details.localPosition.dx)) {
               _lastPointOutOfBounds = true;
               return;
             }
-
             myDrawing.addPoint(details.localPosition.dx, details.localPosition.dy, _lastPointOutOfBounds, false);
             _lastPointOutOfBounds = false;
           },
@@ -362,9 +360,10 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
   }
 
   /// TODO: Flytta in i DrawingStorage?
-  bool _pointOutsideCanvas(double dy) {
+  bool _pointOutsideCanvas(double dx) {
     final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
-    return (dy > myDrawing.height - (myDrawing.paint.strokeWidth / 2) || dy < (myDrawing.paint.strokeWidth / 2));
+    print('height: ${myDrawing.height}, width: ${myDrawing.width}');
+    return (dx > myDrawing.width - (myDrawing.paint.strokeWidth / 2) || dx < (myDrawing.paint.strokeWidth / 2));
   }
 
   @override
