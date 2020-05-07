@@ -1,13 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'drawing_storage.dart';
 
-class CurrentRoomCode extends ChangeNotifier {
+class GameState extends ChangeNotifier {
   String _currentRoomCode;
   get currentRoomCode => _currentRoomCode;
   set currentRoomCode(String value) {
     _currentRoomCode = value;
     notifyListeners();
   }
+
+  static double canvasHeight;
+  static double canvasWidth;
 }
 
 class DrawingState extends ChangeNotifier {

@@ -42,7 +42,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final CurrentRoomCode currentRoomCode = Provider.of<CurrentRoomCode>(context);
+    final GameState gameState = Provider.of<GameState>(context);
     bool allTopDrawingsDone = false;
     bool midDrawingsDone = false;
     bool bottomDrawingsDone = false;
@@ -56,7 +56,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
             ChangeNotifierProvider<DrawingStorage>(create: (_) => DrawingStorage()),
           ],
           child: StreamBuilder<GameRoom>(
-            stream: _db.streamWaitingRoom(roomCode: currentRoomCode.currentRoomCode),
+            stream: _db.streamWaitingRoom(roomCode: gameState.currentRoomCode),
             builder: (context, snapshot) {
               final drawingState = Provider.of<DrawingState>(context);
               final myDrawing = Provider.of<DrawingStorage>(context);
@@ -73,10 +73,9 @@ class _DrawingScreenState extends State<DrawingScreen> {
                 return _waitingForOtherPlayers(bottomDrawingsDone);
               }*/
 
-              if (allTopDrawingsDone) {
-                drawingState.otherPlayerDrawing =
-                    DrawingStorage.fromJson(jsonDecode(snapshot.data.topDrawings[3]), true, myDrawing.height, myDrawing.width);
-              }
+              /*if (allTopDrawingsDone) {
+                drawingState.otherPlayerDrawing = DrawingStorage.fromJson(jsonDecode(snapshot.data.topDrawings[3]), true);
+              } */
 
               return Stack(
                 alignment: AlignmentDirectional.bottomStart,
@@ -115,7 +114,7 @@ class _DrawingControlsState extends State<DrawingControls> {
   Widget build(BuildContext context) {
     final drawingState = Provider.of<DrawingState>(context);
     final myDrawing = Provider.of<DrawingStorage>(context);
-    final String roomCode = Provider.of<CurrentRoomCode>(context).currentRoomCode;
+    final String roomCode = Provider.of<GameState>(context).currentRoomCode;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -383,11 +382,13 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
   @override
   void afterFirstLayout(BuildContext context) {
     final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
-    if (canvasKey.currentContext != null && (myDrawing.width == null || myDrawing.height == null)) {
+    if (canvasKey.currentContext != null && (GameState.canvasHeight == null || GameState.canvasWidth == null)) {
       RenderBox renderBox = canvasKey.currentContext.findRenderObject();
-      myDrawing.height = renderBox.size.height;
-      myDrawing.width = renderBox.size.width;
-      assert(myDrawing.height != null && myDrawing.width != null);
+      GameState.canvasHeight = renderBox.size.height;
+      GameState.canvasWidth = renderBox.size.width;
+      var result = myDrawing.updateSize();
+      assert(result, 'update size failed');
+      assert(GameState.canvasHeight != null && GameState.canvasWidth != null);
     }
   }
 }

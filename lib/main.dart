@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
     HomeIndicator.deferScreenEdges([ScreenEdge.bottom]);
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<CurrentRoomCode>(create: (_) => CurrentRoomCode()),
+        ChangeNotifierProvider<GameState>(create: (_) => GameState()),
       ],
       child: MaterialApp(
         title: 'Drawing Game',

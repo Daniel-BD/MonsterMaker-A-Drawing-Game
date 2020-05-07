@@ -85,7 +85,7 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
     Tuple2<bool, String> result = await _db.createNewRoom();
 
     if (result.item1) {
-      Provider.of<CurrentRoomCode>(context, listen: false).currentRoomCode = result.item2;
+      Provider.of<GameState>(context, listen: false).currentRoomCode = result.item2;
       Navigator.of(context).pushReplacementNamed('/waitingRoom');
     } else {
       assert(false, 'creating new room failed');
@@ -111,7 +111,7 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
       var success = await _db.joinRoom(roomCode: roomCode);
 
       if (success) {
-        Provider.of<CurrentRoomCode>(context, listen: false).currentRoomCode = roomCode;
+        Provider.of<GameState>(context, listen: false).currentRoomCode = roomCode;
         Navigator.of(context).pushReplacementNamed('/waitingRoom');
       } else {
         Scaffold.of(context).showSnackBar(

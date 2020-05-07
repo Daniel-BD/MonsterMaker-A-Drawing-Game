@@ -34,7 +34,7 @@ class _GetReadyScreenState extends State<GetReadyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final CurrentRoomCode gameState = Provider.of<CurrentRoomCode>(context);
+    final GameState gameState = Provider.of<GameState>(context);
 
     String instruction = !_allTopDrawingsDone ? _firstInstruction : !_allMidDrawingsDone ? _secondInstruction : _thirdInstruction;
 
@@ -52,32 +52,30 @@ class _GetReadyScreenState extends State<GetReadyScreen> {
             _allMidDrawingsDone = snapshot.data.allMidDrawingsDone();
             assert(!snapshot.data.allBottomDrawingsDone(), "Should not be on this screen if all drawings of the game are finised!");
 
-            if (!_allTopDrawingsDone) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      width: MediaQuery.of(context).size.width / 2,
-                      child: Text(
-                        instruction,
-                        textAlign: TextAlign.center,
-                      ),
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                    width: MediaQuery.of(context).size.width / 2,
+                    child: Text(
+                      instruction,
+                      textAlign: TextAlign.center,
                     ),
-                    Container(height: 20),
-                    FlatButton(
-                      color: Colors.lightBlueAccent,
-                      onPressed: () {
-                        Navigator.of(context).pushReplacementNamed('/drawingScreen');
-                      },
-                      child: Text('Start Drawing'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return Container();
+                  ),
+                  Container(height: 20),
+                  FlatButton(
+                    color: Colors.lightBlueAccent,
+                    onPressed: snapshot.data.haveAlreadySubmittedDrawing()
+                        ? null
+                        : () {
+                            Navigator.of(context).pushReplacementNamed('/drawingScreen');
+                          },
+                    child: Text('Start Drawing'),
+                  ),
+                ],
+              ),
+            );
           },
         ),
       ),

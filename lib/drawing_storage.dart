@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
+import 'package:exquisitecorpse/game_state.dart';
+
 class DrawingStorage extends ChangeNotifier {
-  double height, width;
+  double height = GameState.canvasHeight;
+  double width = GameState.canvasWidth;
 
   Paint _paint = Paint()
     ..color = Colors.orange
@@ -213,11 +216,21 @@ class DrawingStorage extends ChangeNotifier {
     return number * (outputScale / inputScale);
   }
 
+  /// Makes sure this drawing storage has the latest drawing canvas sizes. Returns true if successful, false if any value is null.
+  bool updateSize() {
+    this.height = GameState.canvasHeight;
+    this.width = GameState.canvasWidth;
+
+    if (this.height != null && this.width != null) return true;
+
+    return false;
+  }
+
   DrawingStorage();
 
-  DrawingStorage.fromJson(Map<String, dynamic> json, bool doScale, double height, width) {
-    this.height = height;
-    this.width = width;
+  DrawingStorage.fromJson(Map<String, dynamic> json, bool doScale) {
+    this.height = GameState.canvasHeight;
+    this.width = GameState.canvasWidth;
 
     List<List<List<Tuple2<double, double>>>> listOfListsOfPaths = [];
     List<List<Paint>> listOfListsOfPaints = [];

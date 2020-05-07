@@ -26,7 +26,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    _stream = _db.streamWaitingRoom(roomCode: Provider.of<CurrentRoomCode>(context, listen: false).currentRoomCode).listen((room) {
+    _stream = _db.streamWaitingRoom(roomCode: Provider.of<GameState>(context, listen: false).currentRoomCode).listen((room) {
       if (room.startedGame) {
         Navigator.of(context).pushReplacementNamed('/getReadyScreen');
       }
@@ -41,7 +41,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String roomCode = Provider.of<CurrentRoomCode>(context).currentRoomCode;
+    String roomCode = Provider.of<GameState>(context).currentRoomCode;
 
     return Scaffold(
       body: SafeArea(
