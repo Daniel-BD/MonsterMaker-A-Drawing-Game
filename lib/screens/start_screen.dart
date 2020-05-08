@@ -171,6 +171,9 @@ class _RoomCodeTextFieldState extends State<RoomCodeTextField> {
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: 150),
       child: TextField(
+        autocorrect: false,
+        enableSuggestions: false,
+        keyboardType: TextInputType.visiblePassword,
         controller: widget.controller,
         textCapitalization: TextCapitalization.characters,
         textAlign: TextAlign.center,

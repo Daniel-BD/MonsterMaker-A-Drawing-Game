@@ -11,6 +11,10 @@ class GameState extends ChangeNotifier {
 
   static double canvasHeight;
   static double canvasWidth;
+
+  void notify() {
+    notifyListeners();
+  }
 }
 
 class DrawingState extends ChangeNotifier {

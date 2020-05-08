@@ -54,33 +54,37 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
               );
             }
 
-            return Center(
-              child: _loading
-                  ? CircularProgressIndicator(backgroundColor: Colors.green)
-                  : Column(
-                      children: [
-                        Container(height: 10),
-                        Text('Room Code'),
-                        Text(
-                          snapshot.data.roomCode,
-                          style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
+            return _loading
+                ? Center(
+                    child: CircularProgressIndicator(backgroundColor: Colors.green),
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(height: MediaQuery.of(context).size.height / 5),
+                      Text('Room Code'),
+                      Text(
+                        snapshot.data.roomCode,
+                        style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
+                      ),
+                      Container(height: 50),
+                      Text(
+                        '${snapshot.data.activePlayers} player(s) in the room',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      if (snapshot.data.isHost) ...[
+                        Container(height: 50),
+                        FlatButton(
+                          child: Text('START GAME'),
+                          color: Colors.green,
+                          disabledColor: Colors.grey[300],
+                          onPressed: startGame(snapshot),
                         ),
-                        Text(
-                          '${snapshot.data.activePlayers} player(s) in the room',
-                          style: TextStyle(fontSize: 20),
-                        ),
-                        if (snapshot.data.isHost)
-                          FlatButton(
-                            child: Text('START GAME'),
-                            color: Colors.green,
-                            disabledColor: Colors.grey[300],
-                            onPressed: startGame(snapshot),
-                          ),
-                        if (!snapshot.data.isHost && snapshot.data.startedGame == false) Text('Waiting for the host to start the game'),
-                        if (snapshot.data.startedGame == true) Text('The game has started!!'),
                       ],
-                    ),
-            );
+                      if (!snapshot.data.isHost && snapshot.data.startedGame == false) Text('Waiting for the host to start the game'),
+                      if (snapshot.data.startedGame == true) Text('The game has started!!'),
+                    ],
+                  );
           },
         ),
       ),

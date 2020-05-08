@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:drawing_animation/drawing_animation.dart';
 import 'package:after_layout/after_layout.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dash/flutter_dash.dart';
 
 import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/painters.dart';
@@ -61,26 +62,21 @@ class _DrawingScreenState extends State<DrawingScreen> {
                 drawingState.otherPlayerDrawing = DrawingStorage.fromJson(jsonDecode(snapshot.data.topDrawings[3]), true);
               } */
 
-              return Stack(
-                alignment: AlignmentDirectional.bottomStart,
-                children: <Widget>[
-                  Flex(
-                    direction: Axis.horizontal,
-                    children: <Widget>[
-                      Expanded(
-                        child: drawingState.showAnimationCanvas ? AnimationCanvas() : DrawingCanvas(),
-                      ),
-                    ],
-                  ),
-                  Provider<GameRoom>.value(
-                    value: snapshot.data,
-                    child: DrawingControls(),
-                  ),
-                  if (drawingState.loadingHandIn)
+              return Provider<GameRoom>.value(
+                value: snapshot.data,
+                child: Stack(
+                  alignment: AlignmentDirectional.bottomStart,
+                  children: <Widget>[
                     Center(
-                      child: CircularProgressIndicator(),
+                      child: DrawingCanvas(),
                     ),
-                ],
+                    DrawingControls(),
+                    if (drawingState.loadingHandIn)
+                      Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                  ],
+                ),
               );
             },
           ),
@@ -106,10 +102,10 @@ class _DrawingControlsState extends State<DrawingControls> {
     final String roomCode = Provider.of<GameState>(context).currentRoomCode;
     final gameRoom = Provider.of<GameRoom>(context);
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Stack(
       children: <Widget>[
         Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Row(),
             Wrap(
@@ -204,8 +200,8 @@ class _DrawingControlsState extends State<DrawingControls> {
         if (drawingState.showButtons)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Row(),
               Container(
                 color: Colors.lightGreen.withOpacity(0.5),
                 child: Padding(
@@ -306,6 +302,53 @@ class _AnimationCanvasState extends State<AnimationCanvas> {
   }
 }
 
+class OverlapDashedLines extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final gameRoom = Provider.of<GameRoom>(context);
+
+    /// I think I should listen to gameState changes to know that this will rebuild after canvasHeigt/Width is not null anymore
+    /// Right now I think it's just by chance that this works, because it rebuilds this widget when navigating in because
+    /// of the animation in navigation?
+    //final gameState = Provider.of<GameState>(context);
+
+    if (GameState.canvasHeight == null || GameState.canvasWidth == null) {
+      return Container();
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        if (!gameRoom.allTopDrawingsDone()) Container(),
+        if (gameRoom.allTopDrawingsDone())
+          Padding(
+            padding: EdgeInsets.only(top: MediaQuery.of(context).size.height / 7),
+            child: Dash(
+              direction: Axis.horizontal,
+              length: GameState.canvasWidth,
+              dashColor: Colors.black.withOpacity(0.5),
+              dashLength: 20,
+              dashGap: 20,
+              dashThickness: 4,
+            ),
+          ),
+        if (!gameRoom.allMidDrawingsDone())
+          Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 7),
+            child: Dash(
+              direction: Axis.horizontal,
+              length: GameState.canvasWidth,
+              dashColor: Colors.black.withOpacity(0.5),
+              dashLength: 20,
+              dashGap: 20,
+              dashThickness: 4,
+            ),
+          )
+      ],
+    );
+  }
+}
+
 class DrawingCanvas extends StatefulWidget {
   DrawingCanvas({Key key}) : super(key: key);
 
@@ -325,10 +368,11 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
 
     return AspectRatio(
       key: canvasKey,
-      aspectRatio: 0.6,
+      aspectRatio: (16.0 / 9.0),
       child: Container(
         color: Color.fromRGBO(255, 250, 235, 1),
         child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
           onPanStart: (details) {
             if (_pointOutsideCanvas(details.localPosition.dx)) {
               _ignorePath = true;
@@ -351,8 +395,13 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
             }
             myDrawing.endPath();
           },
-          child: CustomPaint(
-            painter: MyPainter(myDrawing.getPaths(), myDrawing.getPaints()),
+          child: Stack(
+            children: <Widget>[
+              CustomPaint(
+                painter: MyPainter(myDrawing.getPaths(), myDrawing.getPaints()),
+              ),
+              OverlapDashedLines(),
+            ],
           ),
         ),
       ),
@@ -362,18 +411,19 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
   /// TODO: Flytta in i DrawingStorage?
   bool _pointOutsideCanvas(double dx) {
     final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
-    print('height: ${myDrawing.height}, width: ${myDrawing.width}');
     return (dx > myDrawing.width - (myDrawing.paint.strokeWidth / 2) || dx < (myDrawing.paint.strokeWidth / 2));
   }
 
   @override
   void afterFirstLayout(BuildContext context) {
     final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
+    final gameState = Provider.of<GameState>(context, listen: false);
     if (canvasKey.currentContext != null && (GameState.canvasHeight == null || GameState.canvasWidth == null)) {
       RenderBox renderBox = canvasKey.currentContext.findRenderObject();
       GameState.canvasHeight = renderBox.size.height;
       GameState.canvasWidth = renderBox.size.width;
       var result = myDrawing.updateSize();
+      gameState.notify();
       assert(result, 'update size failed');
       assert(GameState.canvasHeight != null && GameState.canvasWidth != null);
     }
