@@ -9,6 +9,13 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearCurrentRoomCode({bool notify}) {
+    _currentRoomCode = null;
+    if (notify == true) {
+      notifyListeners();
+    }
+  }
+
   static double canvasHeight;
   static double canvasWidth;
 

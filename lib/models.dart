@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
 
 class GameRoom {
   GameRoom({
@@ -8,7 +7,8 @@ class GameRoom {
     @required this.startedGame,
     @required this.isHost,
     @required this.player,
-    //@required this.drawings,
+    @required this.startAnimation,
+    @required this.monsterIndex,
     @required this.topDrawings,
     @required this.midDrawings,
     @required this.bottomDrawings,
@@ -17,10 +17,11 @@ class GameRoom {
         assert(isHost != null),
         assert(startedGame != null),
         assert(player != null),
+        assert(startAnimation != null),
+        assert(monsterIndex == 1 || monsterIndex == 2 || monsterIndex == 3),
         assert(topDrawings != null),
         assert(midDrawings != null),
         assert(bottomDrawings != null);
-  //assert(drawings != null);
 
   /// The room code of the room
   final String roomCode;
@@ -37,10 +38,13 @@ class GameRoom {
   /// The player number the current player has, where 1 means first player, 2 means second player etc
   final int player;
 
-  /// A list of the drawings done in the game so far. The outer list holds 'top', 'mid', 'bottom' drawings, and should only be between 0-3 long.
-  /// The inner list holds the drawings withing each part (top, mid, bottom), where item1 (int) is the players number and item2 (String) is the drawing info.
-  //final List<List<Tuple2<int, String>>> drawings;
+  /// Weather to start the animation of the monster on the finished screen. Controlled by the room host.
+  final bool startAnimation;
 
+  /// What monster to show on the finished screen. Controlled by the room host.
+  final int monsterIndex;
+
+  /// Maps of the drawings done so far. The player number is the key, the string is the drawing in json.
   final Map<int, String> topDrawings;
   final Map<int, String> midDrawings;
   final Map<int, String> bottomDrawings;

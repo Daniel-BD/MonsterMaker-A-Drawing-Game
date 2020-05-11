@@ -17,6 +17,8 @@ const String _player = 'player';
 const String _top = 'top';
 const String _mid = 'middle';
 const String _bottom = 'bottom';
+const String _startAnimation = 'startAnimation';
+const String _monsterIndex = 'monsterIndex';
 
 class DatabaseService {
   final Firestore _db = Firestore.instance;
@@ -39,8 +41,8 @@ class DatabaseService {
       bool startedGame;
       bool isHost;
       int player;
-
-      //List<List<Tuple2<int, String>>> drawings = [[], [], []];
+      bool startAnimation;
+      int monsterIndex;
 
       Map<int, String> topDrawings = {};
       Map<int, String> midDrawings = {};
@@ -52,6 +54,8 @@ class DatabaseService {
           player = doc.data[_player];
         } else if (doc.documentID == _gameData) {
           startedGame = doc.data[_startedGame];
+          startAnimation = doc.data[_startAnimation];
+          monsterIndex = doc.data[_monsterIndex];
 
           if (doc.data[_top] != null) {
             topDrawings = Map<String, String>.from(doc.data[_top]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
@@ -61,10 +65,6 @@ class DatabaseService {
           }
           if (doc.data[_bottom] != null) {
             bottomDrawings = Map<String, String>.from(doc.data[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
-            /*var mapData = Map<String, String>.from(doc.data[_bottom]);
-            mapData.forEach((key, value) {
-              drawings[2].add(Tuple2(int.parse(key), value));
-            });*/
           }
         }
       });
@@ -82,7 +82,8 @@ class DatabaseService {
         startedGame: startedGame,
         isHost: isHost,
         player: player,
-        //drawings: drawings,
+        startAnimation: startAnimation ?? false,
+        monsterIndex: monsterIndex ?? 1,
         topDrawings: topDrawings,
         midDrawings: midDrawings,
         bottomDrawings: bottomDrawings,
@@ -137,6 +138,51 @@ class DatabaseService {
         .document(_gameData)
         .setData({_startedGame: true}).catchError((Object error) {
       print('ERROR starting game, $error');
+    }).whenComplete(() {
+      result = true;
+    });
+
+    return result;
+  }
+
+  Future<bool> setAnimation(bool value, {@required GameRoom room}) async {
+    bool result = false;
+
+    if (!room.isHost) {
+      assert(true, 'non-host is trying to control finished screen...');
+      return result;
+    }
+
+    await _db
+        .collection(_home)
+        .document(_roomsDoc)
+        .collection(room.roomCode)
+        .document(_gameData)
+        .setData({_startAnimation: value}).catchError((Object error) {
+      print('ERROR setting animation value, $error');
+    }).whenComplete(() {
+      result = true;
+    });
+
+    return result;
+  }
+
+  Future<bool> setMonsterIndex(int value, {@required GameRoom room}) async {
+    assert(value == 1 || value == 2 || value == 3, 'Monster Index is invalid numer');
+    bool result = false;
+
+    if (!room.isHost) {
+      assert(true, 'non-host is trying to control finished screen...');
+      return result;
+    }
+
+    await _db
+        .collection(_home)
+        .document(_roomsDoc)
+        .collection(room.roomCode)
+        .document(_gameData)
+        .setData({_monsterIndex: value}).catchError((Object error) {
+      print('ERROR setting monster index, $error');
     }).whenComplete(() {
       result = true;
     });

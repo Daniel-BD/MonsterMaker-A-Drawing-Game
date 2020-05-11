@@ -59,10 +59,8 @@ class _DrawingScreenState extends State<DrawingScreen> {
               GameRoom room = snapshot.data;
 
               if (room.allTopDrawingsDone() && !room.allMidDrawingsDone()) {
-                print('fetching top drawing');
                 drawingState.otherPlayerDrawing = DrawingStorage.fromJson(jsonDecode(room.topDrawings[_drawingIndex(room)]), true);
               } else if (room.allTopDrawingsDone() && room.allMidDrawingsDone()) {
-                print('fetching mid drawing');
                 drawingState.otherPlayerDrawing = DrawingStorage.fromJson(jsonDecode(room.midDrawings[_drawingIndex(room)]), true);
               }
 

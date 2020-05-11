@@ -17,6 +17,7 @@ class FinishedScreen extends StatefulWidget {
 
 class _FinishedScreenState extends State<FinishedScreen> {
   final _db = DatabaseService.instance;
+  GameRoom _room;
 
   bool _clearCanvas = false;
 
@@ -77,6 +78,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
             }
 
             GameRoom room = snapshot.data;
+            //TODO: Byt ut detta mot provider till controller osv...
+            _room = room;
 
             if (!room.allBottomDrawingsDone()) {
               return Center(
@@ -93,96 +96,116 @@ class _FinishedScreenState extends State<FinishedScreen> {
 
             final Size size = MediaQuery.of(context).size;
 
-            return Center(
-              child: SingleChildScrollView(
-                physics: ClampingScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    _controls(),
-                    _monsterNumber(),
-                    AspectRatio(
-                      aspectRatio: 480 / 733,
-                      child: Stack(
-                        children: <Widget>[
-                          if (!_clearCanvas) ...[
-                            AnimatedDrawing.paths(
-                              _top.getScaledPaths(
-                                inputHeight: _top.height,
-                                outputHeight: size.width * (9 / 16),
-                                inputWidth: _top.width,
-                                outputWidth: size.width,
-                              ),
-                              paints: _top.getScaledPaints(
-                                inputHeight: _top.height,
-                                outputHeight: size.width * (9 / 16),
-                              ),
-                              run: _runTopAnimation,
-                              animationOrder: _pathOrder,
-                              scaleToViewport: false,
-                              duration: _duration,
-                              onFinish: () => setState(() {
-                                _runTopAnimation = false;
-                                _runMidAnimation = true;
-                              }),
-                            ),
-                            Positioned(
-                              top: (_mid.height * (9 / 16)) * 6 / 7,
-                              child: AnimatedDrawing.paths(
-                                _mid.getScaledPaths(
-                                  inputHeight: _mid.height,
+            return Stack(
+              children: <Widget>[
+                SingleChildScrollView(
+                  physics: ClampingScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      if (room.isHost) _controls(),
+                      if (!room.isHost) _hostIsControlling(),
+                      _monsterNumber(),
+                      AspectRatio(
+                        aspectRatio: 480 / 733, //TODO: Bör vara något snyggare siffror efter att det är 1/8 overlap istället för 1/7...
+                        child: Stack(
+                          children: <Widget>[
+                            if (!_clearCanvas) ...[
+                              AnimatedDrawing.paths(
+                                _top.getScaledPaths(
+                                  inputHeight: _top.height,
                                   outputHeight: size.width * (9 / 16),
-                                  inputWidth: _mid.width,
+                                  inputWidth: _top.width,
                                   outputWidth: size.width,
                                 ),
-                                paints: _mid.getScaledPaints(
-                                  inputHeight: _mid.height,
+                                paints: _top.getScaledPaints(
+                                  inputHeight: _top.height,
                                   outputHeight: size.width * (9 / 16),
                                 ),
-                                run: _runMidAnimation,
+                                run: _runTopAnimation,
                                 animationOrder: _pathOrder,
                                 scaleToViewport: false,
                                 duration: _duration,
                                 onFinish: () => setState(() {
-                                  _runMidAnimation = false;
-                                  _runBottomAnimation = true;
+                                  _runTopAnimation = false;
+                                  _runMidAnimation = true;
                                 }),
                               ),
-                            ),
-                            Positioned(
-                              top: 2 * (_bottom.height * (9 / 16)) * 6 / 7,
-                              child: AnimatedDrawing.paths(
-                                _bottom.getScaledPaths(
-                                  inputHeight: _bottom.height,
-                                  outputHeight: size.width * (9 / 16),
-                                  inputWidth: _bottom.width,
-                                  outputWidth: size.width,
+                              Positioned(
+                                top: (_mid.height * (9 / 16)) * 6 / 7,
+                                child: AnimatedDrawing.paths(
+                                  _mid.getScaledPaths(
+                                    inputHeight: _mid.height,
+                                    outputHeight: size.width * (9 / 16),
+                                    inputWidth: _mid.width,
+                                    outputWidth: size.width,
+                                  ),
+                                  paints: _mid.getScaledPaints(
+                                    inputHeight: _mid.height,
+                                    outputHeight: size.width * (9 / 16),
+                                  ),
+                                  run: _runMidAnimation,
+                                  animationOrder: _pathOrder,
+                                  scaleToViewport: false,
+                                  duration: _duration,
+                                  onFinish: () => setState(() {
+                                    _runMidAnimation = false;
+                                    _runBottomAnimation = true;
+                                  }),
                                 ),
-                                paints: _bottom.getScaledPaints(
-                                  inputHeight: _bottom.height,
-                                  outputHeight: size.width * (9 / 16),
-                                ),
-                                run: _runBottomAnimation,
-                                animationOrder: _pathOrder,
-                                scaleToViewport: false,
-                                duration: _duration,
-                                onFinish: () => setState(() {
-                                  _runBottomAnimation = false;
-                                }),
                               ),
-                            ),
-                          ]
-                        ],
+                              Positioned(
+                                top: 2 * (_bottom.height * (9 / 16)) * 6 / 7,
+                                child: AnimatedDrawing.paths(
+                                  _bottom.getScaledPaths(
+                                    inputHeight: _bottom.height,
+                                    outputHeight: size.width * (9 / 16),
+                                    inputWidth: _bottom.width,
+                                    outputWidth: size.width,
+                                  ),
+                                  paints: _bottom.getScaledPaints(
+                                    inputHeight: _bottom.height,
+                                    outputHeight: size.width * (9 / 16),
+                                  ),
+                                  run: _runBottomAnimation,
+                                  animationOrder: _pathOrder,
+                                  scaleToViewport: false,
+                                  duration: _duration,
+                                  onFinish: () => setState(() {
+                                    _runBottomAnimation = false;
+                                  }),
+                                ),
+                              ),
+                            ]
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+                Align(alignment: Alignment.bottomCenter, child: _exitButton()),
+              ],
             );
           },
         ),
       ),
     );
+  }
+
+  Widget _exitButton() {
+    return FlatButton(
+      color: Colors.redAccent,
+      textColor: Colors.white,
+      child: Text('QUIT GAME'),
+      onPressed: () {
+        Provider.of<GameState>(context, listen: false).clearCurrentRoomCode();
+        Navigator.of(context).pushReplacementNamed('/');
+      },
+    );
+  }
+
+  Widget _hostIsControlling() {
+    return Text('The game host is controlling what everyone sees!');
   }
 
   Widget _monsterNumber() {
@@ -193,6 +216,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
   }
 
   Widget _controls() {
+    final _db = DatabaseService.instance;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
@@ -200,6 +225,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
           child: Text('Start'),
           color: Colors.cyan,
           onPressed: () {
+            _db.setAnimation(true, room: _room);
             _resetMonster();
           },
         ),
@@ -238,6 +264,21 @@ class _FinishedScreenState extends State<FinishedScreen> {
         ),
       ],
     );
+  }
+
+  /// Vet inte riktigt vad jag håller på med här...
+  void _resetMonsterFromDB() {
+    _clearCanvas = true;
+    _runTopAnimation = false;
+    _runMidAnimation = false;
+    _runBottomAnimation = false;
+
+    Future.delayed(Duration(milliseconds: 50)).then((_) {
+      setState(() {
+        _clearCanvas = false;
+        _runTopAnimation = true;
+      });
+    });
   }
 
   void _resetMonster({bool doNotStartAnimating}) {
