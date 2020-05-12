@@ -39,38 +39,56 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0.0,
+        leading: _inputtingRoomCode
+            ? IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios,
+                  color: Colors.black,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _inputtingRoomCode = false;
+                  });
+                },
+              )
+            : null,
+      ),
       resizeToAvoidBottomInset: false,
       body: Builder(
         builder: (context) => _loading
             ? Center(child: CircularProgressIndicator())
-            : Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!_inputtingRoomCode)
-                      StartScreenButton(
-                        padding: 20,
-                        color: Colors.greenAccent[200],
-                        text: 'New Game',
-                        onPressed: () => _createNewGame(),
+            : SafeArea(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (!_inputtingRoomCode)
+                        StartScreenButton(
+                          padding: 20,
+                          color: Colors.greenAccent[200],
+                          text: 'New Game',
+                          onPressed: () => _createNewGame(),
+                        ),
+                      if (_inputtingRoomCode)
+                        RoomCodeTextField(
+                          controller: _roomCodeController,
+                          onSubmitted: (str) => _joinRoom(context),
+                        ),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: _overlap),
+                        child: StartScreenButton(
+                          color: Colors.blueAccent[100],
+                          text: 'Join Game',
+                          key: _joinGameKey,
+                          onPressed: () => _joinRoom(context),
+                        ),
                       ),
-                    if (_inputtingRoomCode)
-                      RoomCodeTextField(
-                        controller: _roomCodeController,
-                        onSubmitted: (str) => _joinRoom(context),
-                      ),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: _overlap),
-                      child: StartScreenButton(
-                        color: Colors.blueAccent[100],
-                        text: 'Join Game',
-                        key: _joinGameKey,
-                        onPressed: () => _joinRoom(context),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
       ),
