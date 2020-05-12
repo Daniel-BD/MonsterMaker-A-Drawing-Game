@@ -70,7 +70,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
     final GameState gameState = Provider.of<GameState>(context);
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: monsterBackgroundColor,
       body: SafeArea(
         child: StreamBuilder<GameRoom>(
           stream: _db.streamWaitingRoom(roomCode: gameState.currentRoomCode),

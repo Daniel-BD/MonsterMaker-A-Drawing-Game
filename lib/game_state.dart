@@ -24,13 +24,11 @@ class GameState extends ChangeNotifier {
   }
 }
 
-class DrawingState extends ChangeNotifier {
-  DrawingStorage _otherPlayerDrawing;
-  get otherPlayerDrawing => _otherPlayerDrawing;
-  set otherPlayerDrawing(DrawingStorage value) {
-    _otherPlayerDrawing = value;
-  }
+class OtherPlayerDrawing {
+  DrawingStorage drawing;
+}
 
+class DrawingState extends ChangeNotifier {
   bool _showButtons = true;
   get showButtons => _showButtons;
   set showButtons(bool value) {

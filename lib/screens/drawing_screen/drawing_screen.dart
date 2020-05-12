@@ -37,19 +37,19 @@ class _DrawingScreenState extends State<DrawingScreen> {
     final GameState gameState = Provider.of<GameState>(context);
 
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(180, 180, 180, 1),
+      backgroundColor: backgroundColor,
       body: SafeArea(
         bottom: false,
         child: MultiProvider(
           providers: [
             ChangeNotifierProvider<DrawingState>(create: (_) => DrawingState()),
             ChangeNotifierProvider<DrawingStorage>(create: (_) => DrawingStorage()),
+            Provider<OtherPlayerDrawing>(create: (_) => OtherPlayerDrawing()),
           ],
           child: StreamBuilder<GameRoom>(
             stream: _db.streamWaitingRoom(roomCode: gameState.currentRoomCode),
             builder: (context, snapshot) {
-              final drawingState = Provider.of<DrawingState>(context, listen: false);
-              final myDrawing = Provider.of<DrawingStorage>(context);
+              final otherPlayerDrawing = Provider.of<OtherPlayerDrawing>(context, listen: false);
 
               if (snapshot.data == null) {
                 return Center(
@@ -59,10 +59,10 @@ class _DrawingScreenState extends State<DrawingScreen> {
 
               GameRoom room = snapshot.data;
 
-              if (room.allTopDrawingsDone() && !room.allMidDrawingsDone()) {
-                drawingState.otherPlayerDrawing = DrawingStorage.fromJson(jsonDecode(room.topDrawings[_drawingIndex(room)]), true);
-              } else if (room.allTopDrawingsDone() && room.allMidDrawingsDone()) {
-                drawingState.otherPlayerDrawing = DrawingStorage.fromJson(jsonDecode(room.midDrawings[_drawingIndex(room)]), true);
+              if (room.allTopDrawingsDone() && !room.allMidDrawingsDone() && otherPlayerDrawing.drawing == null) {
+                otherPlayerDrawing.drawing = DrawingStorage.fromJson(jsonDecode(room.topDrawings[_drawingIndex(room)]), true);
+              } else if (room.allTopDrawingsDone() && room.allMidDrawingsDone() && otherPlayerDrawing.drawing == null) {
+                otherPlayerDrawing.drawing = DrawingStorage.fromJson(jsonDecode(room.midDrawings[_drawingIndex(room)]), true);
               }
 
               return Provider<GameRoom>.value(
@@ -74,10 +74,6 @@ class _DrawingScreenState extends State<DrawingScreen> {
                       child: DrawingCanvas(),
                     ),
                     DrawingControls(),
-                    if (drawingState.loadingHandIn)
-                      Center(
-                        child: CircularProgressIndicator(),
-                      ),
                   ],
                 ),
               );
@@ -130,14 +126,14 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
   @override
   Widget build(BuildContext context) {
     final myDrawing = Provider.of<DrawingStorage>(context);
-    final DrawingStorage otherPlayerDrawing = Provider.of<DrawingState>(context, listen: false).otherPlayerDrawing;
+    final DrawingStorage otherPlayerDrawing = Provider.of<OtherPlayerDrawing>(context, listen: false).drawing;
     final Size size = MediaQuery.of(context).size;
 
     return AspectRatio(
       key: canvasKey,
       aspectRatio: (16.0 / 9.0),
       child: Container(
-        color: backgroundColor,
+        color: monsterBackgroundColor,
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onPanStart: (details) {

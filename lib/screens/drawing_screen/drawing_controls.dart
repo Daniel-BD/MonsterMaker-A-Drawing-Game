@@ -26,163 +26,170 @@ class _DrawingControlsState extends State<DrawingControls> {
 
     return Stack(
       children: <Widget>[
-        Column(
-          children: <Widget>[
-            Wrap(
-              direction: Axis.horizontal,
-              alignment: WrapAlignment.start,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  child: FlatButton(
-                    color: Colors.blue,
-                    textColor: Colors.white,
-                    child: Text((drawingState.showButtons ? 'HIDE' : 'SHOW') + ' BUTTONS'),
-                    onPressed: () {
-                      drawingState.showButtons = !drawingState.showButtons;
-                    },
-                  ),
-                ),
-                if (drawingState.showButtons) ...[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10, right: 10),
-                    child: FlatButton.icon(
-                      color: Colors.red,
-                      textColor: Colors.white,
-                      label: Text("CLEAR"),
-                      icon: Icon(Icons.clear),
-                      onPressed: () {
-                        myDrawing.clearDrawing();
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10, right: 10),
-                    child: FlatButton.icon(
-                      color: Colors.red,
-                      textColor: Colors.white,
-                      label: Text("UNDO"),
-                      icon: Icon(Icons.undo),
-                      onPressed: () {
-                        myDrawing.undoLastPath();
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10, right: 10),
-                    child: FlatButton.icon(
-                      color: Colors.green,
-                      textColor: Colors.white,
-                      label: Text("REDO"),
-                      icon: Icon(Icons.redo),
-                      onPressed: () {
-                        myDrawing.redoLastUndonePath();
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10, right: 10),
-                    child: FlatButton.icon(
-                      color: Colors.green,
-                      textColor: Colors.white,
-                      label: Text("SUBMIT"),
-                      icon: Icon(Icons.cloud_upload),
-                      onPressed: () async {
-                        if (myDrawing.getPaths().isEmpty) {
-                          /// TODO: Felmeddelande om man försöker lämna in en tom ritning
-                          return;
-                        }
-                        final db = DatabaseService.instance;
-                        drawingState.loadingHandIn = true;
-                        var success = await db.handInDrawing(roomCode: roomCode, drawing: jsonEncode(myDrawing.toJson()));
-                        assert(success, 'Could not hand in drawing!');
-
-                        /// TODO: Felmeddelande om man det misslyckas...
-                        drawingState.loadingHandIn = false;
-                        if (success) {
-                          if (gameRoom.allMidDrawingsDone()) {
-                            Navigator.of(context).pushReplacementNamed('/finishedScreen');
-                          } else {
-                            myDrawing.clearDrawing();
-                            Navigator.of(context).pushReplacementNamed('/getReadyScreen');
-                          }
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            if (drawingState.showButtons)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.start,
+        if (drawingState.loadingHandIn)
+          Center(
+            child: CircularProgressIndicator(),
+          ),
+        if (!drawingState.loadingHandIn)
+          Column(
+            children: <Widget>[
+              Wrap(
+                direction: Axis.horizontal,
+                alignment: WrapAlignment.start,
                 children: <Widget>[
-                  Container(
-                    color: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Column(
-                            children: <Widget>[
-                              Container(height: 10, width: 10),
-                              IconButton(
-                                iconSize: 40,
-                                icon: Icon(Icons.add_circle_outline),
-                                onPressed: () {
-                                  if (myDrawing.paint.strokeWidth > 40) {
-                                    return;
-                                  }
-
-                                  myDrawing.paint = Paint()
-                                    ..color = myDrawing.paint.color
-                                    ..strokeWidth = myDrawing.paint.strokeWidth + 4
-                                    ..strokeCap = StrokeCap.round
-                                    ..strokeJoin = StrokeJoin.round
-                                    ..style = PaintingStyle.stroke;
-                                },
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(top: 10, bottom: 10),
-                                child: Container(
-                                  width: myDrawing.paint.strokeWidth,
-                                  height: myDrawing.paint.strokeWidth,
-                                  decoration: BoxDecoration(
-                                    color: myDrawing.paint.color,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                iconSize: 40,
-                                icon: Icon(Icons.remove_circle_outline),
-                                onPressed: () {
-                                  if (myDrawing.paint.strokeWidth < 8) {
-                                    return;
-                                  }
-                                  myDrawing.paint = Paint()
-                                    ..color = myDrawing.paint.color
-                                    ..strokeWidth = myDrawing.paint.strokeWidth - 4
-                                    ..strokeCap = StrokeCap.round
-                                    ..strokeJoin = StrokeJoin.round
-                                    ..style = PaintingStyle.stroke;
-                                },
-                              ),
-                              Container(height: 10, width: 10),
-                            ],
-                          ),
-                        ],
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10, right: 10),
+                    child: FlatButton(
+                      color: Colors.blue,
+                      textColor: Colors.white,
+                      child: Text((drawingState.showButtons ? 'HIDE' : 'SHOW') + ' BUTTONS'),
+                      onPressed: () {
+                        drawingState.showButtons = !drawingState.showButtons;
+                      },
+                    ),
+                  ),
+                  if (drawingState.showButtons) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      child: FlatButton.icon(
+                        color: Colors.red,
+                        textColor: Colors.white,
+                        label: Text("CLEAR"),
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          myDrawing.clearDrawing();
+                        },
                       ),
                     ),
-                  ),
-                  ColorPicker(),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      child: FlatButton.icon(
+                        color: Colors.red,
+                        textColor: Colors.white,
+                        label: Text("UNDO"),
+                        icon: Icon(Icons.undo),
+                        onPressed: () {
+                          myDrawing.undoLastPath();
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      child: FlatButton.icon(
+                        color: Colors.green,
+                        textColor: Colors.white,
+                        label: Text("REDO"),
+                        icon: Icon(Icons.redo),
+                        onPressed: () {
+                          myDrawing.redoLastUndonePath();
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      child: FlatButton.icon(
+                        color: Colors.green,
+                        textColor: Colors.white,
+                        label: Text("SUBMIT"),
+                        icon: Icon(Icons.cloud_upload),
+                        onPressed: () async {
+                          if (myDrawing.getPaths().isEmpty) {
+                            /// TODO: Felmeddelande om man försöker lämna in en tom ritning
+                            return;
+                          }
+                          final db = DatabaseService.instance;
+                          drawingState.loadingHandIn = true;
+                          var success = await db.handInDrawing(roomCode: roomCode, drawing: jsonEncode(myDrawing.toJson()));
+                          assert(success, 'Could not hand in drawing!');
+
+                          /// TODO: Felmeddelande om man det misslyckas...
+                          drawingState.loadingHandIn = false;
+                          if (success) {
+                            /// Setting this property to null, since we don't want to use the drawing downloaded last anymore
+                            Provider.of<OtherPlayerDrawing>(context, listen: false).drawing = null;
+                            if (gameRoom.allMidDrawingsDone()) {
+                              Navigator.of(context).pushReplacementNamed('/finishedScreen');
+                            } else {
+                              myDrawing.clearDrawing();
+                              Navigator.of(context).pushReplacementNamed('/getReadyScreen');
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                 ],
               ),
-          ],
-        ),
+              if (drawingState.showButtons)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Column(
+                              children: <Widget>[
+                                Container(height: 10, width: 10),
+                                IconButton(
+                                  iconSize: 40,
+                                  icon: Icon(Icons.add_circle_outline),
+                                  onPressed: () {
+                                    if (myDrawing.paint.strokeWidth > 40) {
+                                      return;
+                                    }
+
+                                    myDrawing.paint = Paint()
+                                      ..color = myDrawing.paint.color
+                                      ..strokeWidth = myDrawing.paint.strokeWidth + 4
+                                      ..strokeCap = StrokeCap.round
+                                      ..strokeJoin = StrokeJoin.round
+                                      ..style = PaintingStyle.stroke;
+                                  },
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 10, bottom: 10),
+                                  child: Container(
+                                    width: myDrawing.paint.strokeWidth,
+                                    height: myDrawing.paint.strokeWidth,
+                                    decoration: BoxDecoration(
+                                      color: myDrawing.paint.color,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  iconSize: 40,
+                                  icon: Icon(Icons.remove_circle_outline),
+                                  onPressed: () {
+                                    if (myDrawing.paint.strokeWidth < 8) {
+                                      return;
+                                    }
+                                    myDrawing.paint = Paint()
+                                      ..color = myDrawing.paint.color
+                                      ..strokeWidth = myDrawing.paint.strokeWidth - 4
+                                      ..strokeCap = StrokeCap.round
+                                      ..strokeJoin = StrokeJoin.round
+                                      ..style = PaintingStyle.stroke;
+                                  },
+                                ),
+                                Container(height: 10, width: 10),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    ColorPicker(),
+                  ],
+                ),
+            ],
+          ),
       ],
     );
   }
