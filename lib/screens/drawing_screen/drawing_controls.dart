@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:exquisitecorpse/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -32,6 +33,7 @@ class _DrawingControlsState extends State<DrawingControls> {
           ),
         if (!drawingState.loadingHandIn)
           Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Wrap(
                 direction: Axis.horizontal,
@@ -42,7 +44,7 @@ class _DrawingControlsState extends State<DrawingControls> {
                     child: FlatButton(
                       color: Colors.blue,
                       textColor: Colors.white,
-                      child: Text((drawingState.showButtons ? 'HIDE' : 'SHOW') + ' BUTTONS'),
+                      child: Text((drawingState.showButtons ? 'HIDE BUTTONS' : 'SHOW')),
                       onPressed: () {
                         drawingState.showButtons = !drawingState.showButtons;
                       },
@@ -126,7 +128,7 @@ class _DrawingControlsState extends State<DrawingControls> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Container(
-                      color: Colors.white,
+                      color: Colors.grey[300],
                       child: Padding(
                         padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
                         child: Column(
@@ -201,7 +203,7 @@ class ColorPicker extends StatelessWidget {
     final myDrawing = Provider.of<DrawingStorage>(context);
 
     return Container(
-      color: Colors.white,
+      color: Colors.grey[300],
       width: MediaQuery.of(context).size.width * 0.8,
       child: Padding(
         padding: const EdgeInsets.only(top: 16, bottom: 16),
@@ -210,6 +212,7 @@ class ColorPicker extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: <Widget>[
+            _circleColor(monsterBackgroundColor, context),
             _circleColor(Colors.black, context),
             _circleColor(Colors.brown[500], context),
             _circleColor(Colors.red[500], context),
@@ -246,7 +249,7 @@ class ColorPicker extends StatelessWidget {
 }
 
 class CircleColor extends StatelessWidget {
-  final double circleSize = 60;
+  final double circleSize = 50;
   final bool isSelected;
   final Color color;
   final VoidCallback onColorChoose;
