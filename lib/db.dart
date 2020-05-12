@@ -19,6 +19,7 @@ const String _mid = 'middle';
 const String _bottom = 'bottom';
 const String _startAnimation = 'startAnimation';
 const String _monsterIndex = 'monsterIndex';
+const String _animateAllAtOnce = 'animateAllAtOnce';
 
 class DatabaseService {
   final Firestore _db = Firestore.instance;
@@ -43,6 +44,7 @@ class DatabaseService {
       int player;
       bool startAnimation;
       int monsterIndex;
+      bool animateAllAtOnce;
 
       Map<int, String> topDrawings = {};
       Map<int, String> midDrawings = {};
@@ -56,6 +58,7 @@ class DatabaseService {
           startedGame = doc.data[_startedGame];
           startAnimation = doc.data[_startAnimation];
           monsterIndex = doc.data[_monsterIndex];
+          animateAllAtOnce = doc.data[_animateAllAtOnce];
 
           if (doc.data[_top] != null) {
             topDrawings = Map<String, String>.from(doc.data[_top]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
@@ -84,6 +87,7 @@ class DatabaseService {
         player: player,
         startAnimation: startAnimation ?? false,
         monsterIndex: monsterIndex ?? 1,
+        animateAllAtOnce: animateAllAtOnce ?? true,
         topDrawings: topDrawings,
         midDrawings: midDrawings,
         bottomDrawings: bottomDrawings,
@@ -158,8 +162,30 @@ class DatabaseService {
         .document(_roomsDoc)
         .collection(room.roomCode)
         .document(_gameData)
-        .setData({_startAnimation: value}).catchError((Object error) {
+        .setData({_startAnimation: value}, merge: true).catchError((Object error) {
       print('ERROR setting animation value, $error');
+    }).whenComplete(() {
+      result = true;
+    });
+
+    return result;
+  }
+
+  Future<bool> setAnimateAllAtOnce(bool value, {@required GameRoom room}) async {
+    bool result = false;
+
+    if (!room.isHost) {
+      assert(true, 'non-host is trying to control finished screen...');
+      return result;
+    }
+
+    await _db
+        .collection(_home)
+        .document(_roomsDoc)
+        .collection(room.roomCode)
+        .document(_gameData)
+        .setData({_animateAllAtOnce: value}, merge: true).catchError((Object error) {
+      print('ERROR setting animateAllAtOnce value, $error');
     }).whenComplete(() {
       result = true;
     });
@@ -181,7 +207,7 @@ class DatabaseService {
         .document(_roomsDoc)
         .collection(room.roomCode)
         .document(_gameData)
-        .setData({_monsterIndex: value}).catchError((Object error) {
+        .setData({_monsterIndex: value}, merge: true).catchError((Object error) {
       print('ERROR setting monster index, $error');
     }).whenComplete(() {
       result = true;

@@ -8,7 +8,6 @@ import 'package:drawing_animation/drawing_animation.dart';
 import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/db.dart';
-import 'package:exquisitecorpse/painters.dart';
 
 class FinishedScreen extends StatefulWidget {
   @override
@@ -19,12 +18,13 @@ class _FinishedScreenState extends State<FinishedScreen> {
   final _db = DatabaseService.instance;
   GameRoom _room;
 
-  bool _clearCanvas = false;
+  bool _clearCanvas = true;
 
   DrawingStorage _top;
   DrawingStorage _mid;
   DrawingStorage _bottom;
 
+  int _hostIndex = 1;
   int _index = 1;
 
   int _topIndex = 1;
@@ -35,7 +35,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
   bool _runMidAnimation = false;
   bool _runBottomAnimation = false;
 
-  final _duration = Duration(seconds: 3);
+  var _duration = Duration(seconds: 2);
   PathOrder _pathOrder = PathOrders.topToBottom;
 
   @override
@@ -74,7 +74,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
           stream: _db.streamWaitingRoom(roomCode: gameState.currentRoomCode),
           builder: (context, snapshot) {
             if (snapshot.data == null) {
-              return CircularProgressIndicator();
+              debugPrint(gameState.currentRoomCode);
+              return Center(child: CircularProgressIndicator());
             }
 
             GameRoom room = snapshot.data;
@@ -89,6 +90,19 @@ class _FinishedScreenState extends State<FinishedScreen> {
                 ),
               );
             }
+
+            if (_clearCanvas && room.startAnimation) {
+              _startAnimations();
+            }
+
+            _clearCanvas = !room.startAnimation;
+
+            if (room.monsterIndex != _index) {
+              _index = room.monsterIndex;
+              _readyNextMonster();
+            }
+
+            indexHandler(room.monsterIndex);
 
             _top = DrawingStorage.fromJson(jsonDecode(room.topDrawings[_topIndex]), true);
             _mid = DrawingStorage.fromJson(jsonDecode(room.midDrawings[_midIndex]), true);
@@ -128,7 +142,9 @@ class _FinishedScreenState extends State<FinishedScreen> {
                                 duration: _duration,
                                 onFinish: () => setState(() {
                                   _runTopAnimation = false;
-                                  _runMidAnimation = true;
+                                  if (!_room.animateAllAtOnce) {
+                                    _runMidAnimation = true;
+                                  }
                                 }),
                               ),
                               Positioned(
@@ -150,7 +166,9 @@ class _FinishedScreenState extends State<FinishedScreen> {
                                   duration: _duration,
                                   onFinish: () => setState(() {
                                     _runMidAnimation = false;
-                                    _runBottomAnimation = true;
+                                    if (!_room.animateAllAtOnce) {
+                                      _runBottomAnimation = true;
+                                    }
                                   }),
                                 ),
                               ),
@@ -180,10 +198,11 @@ class _FinishedScreenState extends State<FinishedScreen> {
                           ],
                         ),
                       ),
+                      _exitButton(),
                     ],
                   ),
                 ),
-                Align(alignment: Alignment.bottomCenter, child: _exitButton()),
+                //Align(alignment: Alignment.bottomRight, child: _exitButton()),
               ],
             );
           },
@@ -205,7 +224,10 @@ class _FinishedScreenState extends State<FinishedScreen> {
   }
 
   Widget _hostIsControlling() {
-    return Text('The game host is controlling what everyone sees!');
+    return Text(
+      'The game host controls what you see!',
+      textAlign: TextAlign.center,
+    );
   }
 
   Widget _monsterNumber() {
@@ -218,83 +240,84 @@ class _FinishedScreenState extends State<FinishedScreen> {
   Widget _controls() {
     final _db = DatabaseService.instance;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: <Widget>[
-        FlatButton(
-          child: Text('Start'),
-          color: Colors.cyan,
-          onPressed: () {
-            _db.setAnimation(true, room: _room);
-            _resetMonster();
-          },
-        ),
-        FlatButton(
-          child: Text('Next'),
-          color: Colors.cyan,
-          onPressed: () {
-            _resetMonster();
-            setState(() {
-              if (_index < 3) {
-                _index++;
-                indexHandler(_index);
+    return SingleChildScrollView(
+      physics: ClampingScrollPhysics(),
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: <Widget>[
+          FlatButton(
+            child: Text('Start'),
+            textColor: Colors.white,
+            color: Colors.green,
+            onPressed: () {
+              _db.setAnimation(true, room: _room);
+            },
+          ),
+          Container(width: 10),
+          IconButton(
+            icon: Icon(Icons.skip_previous),
+            color: Colors.blue,
+            iconSize: 32,
+            onPressed: () {
+              if (_hostIndex > 1) {
+                _hostIndex--;
+                _db.setMonsterIndex(_hostIndex, room: _room);
               }
-            });
-          },
-        ),
-        FlatButton(
-          child: Text('Previous'),
-          color: Colors.cyan,
-          onPressed: () {
-            _resetMonster();
-            setState(() {
-              if (_index > 1) {
-                _index--;
-                indexHandler(_index);
+            },
+          ),
+          Container(width: 6),
+          IconButton(
+            icon: Icon(Icons.skip_next),
+            color: Colors.blue,
+            iconSize: 32,
+            onPressed: () {
+              if (_hostIndex < 3) {
+                _hostIndex++;
+                _db.setMonsterIndex(_hostIndex, room: _room);
               }
-            });
-          },
-        ),
-        FlatButton(
-          child: Text('Reset'),
-          color: Colors.cyan,
-          onPressed: () {
-            _resetMonster(doNotStartAnimating: true);
-          },
-        ),
-      ],
+            },
+          ),
+          Container(width: 10),
+          FlatButton(
+            child: Text('Clear'),
+            textColor: Colors.white,
+            color: Colors.redAccent,
+            onPressed: () {
+              _db.setAnimation(false, room: _room);
+            },
+          ),
+          Container(width: 10),
+          FlatButton(
+            child: Text(_room.animateAllAtOnce ? 'One By One' : 'All At Once'),
+            textColor: Colors.white,
+            color: Colors.deepPurpleAccent,
+            onPressed: () {
+              _db.setAnimateAllAtOnce(!_room.animateAllAtOnce, room: _room);
+            },
+          ),
+        ],
+      ),
     );
   }
 
-  /// Vet inte riktigt vad jag håller på med här...
-  void _resetMonsterFromDB() {
+  void _startAnimations() {
+    _clearCanvas = false;
+    _runTopAnimation = true;
+    if (_room.animateAllAtOnce) {
+      _runMidAnimation = true;
+      _runBottomAnimation = true;
+    }
+  }
+
+  void _readyNextMonster() {
     _clearCanvas = true;
     _runTopAnimation = false;
     _runMidAnimation = false;
     _runBottomAnimation = false;
-
     Future.delayed(Duration(milliseconds: 50)).then((_) {
       setState(() {
-        _clearCanvas = false;
-        _runTopAnimation = true;
-      });
-    });
-  }
-
-  void _resetMonster({bool doNotStartAnimating}) {
-    setState(() {
-      _clearCanvas = true;
-      _runTopAnimation = false;
-      _runMidAnimation = false;
-      _runBottomAnimation = false;
-    });
-    if (doNotStartAnimating == true) {
-      return;
-    }
-    Future.delayed(Duration(milliseconds: 50)).then((_) {
-      setState(() {
-        _clearCanvas = false;
-        _runTopAnimation = true;
+        _startAnimations();
       });
     });
   }

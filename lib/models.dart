@@ -8,6 +8,7 @@ class GameRoom {
     @required this.isHost,
     @required this.player,
     @required this.startAnimation,
+    @required this.animateAllAtOnce,
     @required this.monsterIndex,
     @required this.topDrawings,
     @required this.midDrawings,
@@ -18,6 +19,7 @@ class GameRoom {
         assert(startedGame != null),
         assert(player != null),
         assert(startAnimation != null),
+        assert(animateAllAtOnce != null),
         assert(monsterIndex == 1 || monsterIndex == 2 || monsterIndex == 3),
         assert(topDrawings != null),
         assert(midDrawings != null),
@@ -40,6 +42,9 @@ class GameRoom {
 
   /// Weather to start the animation of the monster on the finished screen. Controlled by the room host.
   final bool startAnimation;
+
+  /// Weather to animate all three drawings at once, or one at a time (top to bottom).
+  final bool animateAllAtOnce;
 
   /// What monster to show on the finished screen. Controlled by the room host.
   final int monsterIndex;
