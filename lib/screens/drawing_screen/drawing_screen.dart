@@ -130,7 +130,6 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
   Widget build(BuildContext context) {
     final myDrawing = Provider.of<DrawingStorage>(context);
     final DrawingStorage otherPlayerDrawing = Provider.of<DrawingState>(context, listen: false).otherPlayerDrawing;
-
     final Size size = MediaQuery.of(context).size;
 
     return AspectRatio(

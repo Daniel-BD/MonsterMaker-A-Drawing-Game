@@ -8,7 +8,7 @@ class DrawingStorage extends ChangeNotifier {
   double width = GameState.canvasWidth;
 
   Paint _paint = Paint()
-    ..color = Colors.orange
+    ..color = Colors.black
     ..strokeWidth = 12
     ..strokeCap = StrokeCap.round
     ..strokeJoin = StrokeJoin.round

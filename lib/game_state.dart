@@ -39,13 +39,6 @@ class DrawingState extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool _showAnimationCanvas = false;
-  get showAnimationCanvas => _showAnimationCanvas;
-  set showAnimationCanvas(bool value) {
-    _showAnimationCanvas = value;
-    notifyListeners();
-  }
-
   bool _loadingHandIn = false;
   get loadingHandIn => _loadingHandIn;
   set loadingHandIn(bool value) {
