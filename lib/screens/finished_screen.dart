@@ -8,6 +8,7 @@ import 'package:drawing_animation/drawing_animation.dart';
 import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/db.dart';
+import 'package:exquisitecorpse/constants.dart';
 
 class FinishedScreen extends StatefulWidget {
   @override
@@ -69,12 +70,12 @@ class _FinishedScreenState extends State<FinishedScreen> {
     final GameState gameState = Provider.of<GameState>(context);
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: StreamBuilder<GameRoom>(
           stream: _db.streamWaitingRoom(roomCode: gameState.currentRoomCode),
           builder: (context, snapshot) {
             if (snapshot.data == null) {
-              debugPrint(gameState.currentRoomCode);
               return Center(child: CircularProgressIndicator());
             }
 
@@ -202,7 +203,6 @@ class _FinishedScreenState extends State<FinishedScreen> {
                     ],
                   ),
                 ),
-                //Align(alignment: Alignment.bottomRight, child: _exitButton()),
               ],
             );
           },
@@ -247,7 +247,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[
           FlatButton(
-            child: Text('Start'),
+            child: Text('START'),
             textColor: Colors.white,
             color: Colors.green,
             onPressed: () {
@@ -280,7 +280,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
           ),
           Container(width: 10),
           FlatButton(
-            child: Text('Clear'),
+            child: Text('CLEAR'),
             textColor: Colors.white,
             color: Colors.redAccent,
             onPressed: () {
@@ -307,6 +307,9 @@ class _FinishedScreenState extends State<FinishedScreen> {
     if (_room.animateAllAtOnce) {
       _runMidAnimation = true;
       _runBottomAnimation = true;
+    } else {
+      _runMidAnimation = false;
+      _runBottomAnimation = false;
     }
   }
 

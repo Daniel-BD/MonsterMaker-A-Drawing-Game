@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<GameState>(create: (_) => GameState()),
       ],
       child: MaterialApp(
-        title: 'Drawing Game',
+        title: 'MonsterMaker',
         debugShowCheckedModeBanner: false,
         initialRoute: '/',
         onGenerateRoute: RouteGenerator.generateRoute,

@@ -193,8 +193,6 @@ class ColorPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final myDrawing = Provider.of<DrawingStorage>(context);
 
-    print(myDrawing.paint.color);
-    print(Colors.green);
     return Container(
       color: Colors.white,
       width: MediaQuery.of(context).size.width * 0.8,

@@ -221,24 +221,9 @@ class DrawingStorage extends ChangeNotifier {
     this.height = GameState.canvasHeight;
     this.width = GameState.canvasWidth;
 
-    _drawInvisibleDots();
-
     if (this.height != null && this.width != null) return true;
 
     return false;
-  }
-
-  /// A weird solution to get animated paths plugin to work as I want to...
-  /// TODO: Testa om det funkar utan denna...
-  void _drawInvisibleDots() {
-    addPoint(0, 0, false, true);
-    endPath();
-    addPoint(0, height, false, true);
-    endPath();
-    addPoint(width, 0, false, true);
-    endPath();
-    addPoint(width, height, false, true);
-    endPath();
   }
 
   DrawingStorage();

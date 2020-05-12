@@ -11,6 +11,7 @@ import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/screens/drawing_screen/drawing_controls.dart';
 import 'package:exquisitecorpse/screens/drawing_screen/overlap_dashed_lines.dart';
+import 'package:exquisitecorpse/constants.dart';
 
 class DrawingScreen extends StatefulWidget {
   DrawingScreen({Key key}) : super(key: key);
@@ -47,7 +48,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
           child: StreamBuilder<GameRoom>(
             stream: _db.streamWaitingRoom(roomCode: gameState.currentRoomCode),
             builder: (context, snapshot) {
-              final drawingState = Provider.of<DrawingState>(context);
+              final drawingState = Provider.of<DrawingState>(context, listen: false);
               final myDrawing = Provider.of<DrawingStorage>(context);
 
               if (snapshot.data == null) {
@@ -136,7 +137,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
       key: canvasKey,
       aspectRatio: (16.0 / 9.0),
       child: Container(
-        color: Color.fromRGBO(255, 250, 235, 1),
+        color: backgroundColor,
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onPanStart: (details) {
@@ -174,7 +175,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
                     width: size.width,
                     child: ClipRect(
                       child: CustomPaint(
-                        size: Size(double.infinity, double.infinity),
+                        size: Size(size.width, size.height),
                         painter: MyPainter(
                           otherPlayerDrawing.getPaths(),
                           otherPlayerDrawing.getPaints(),

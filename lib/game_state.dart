@@ -29,7 +29,6 @@ class DrawingState extends ChangeNotifier {
   get otherPlayerDrawing => _otherPlayerDrawing;
   set otherPlayerDrawing(DrawingStorage value) {
     _otherPlayerDrawing = value;
-    notifyListeners();
   }
 
   bool _showButtons = true;
