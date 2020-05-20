@@ -8,6 +8,8 @@ import 'package:exquisitecorpse/route_generator.dart';
 import 'package:exquisitecorpse/models.dart';
 import 'drawing_storage.dart';
 
+import 'components/buttons.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -15,7 +17,11 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    HomeIndicator.deferScreenEdges([ScreenEdge.bottom]);
+    return MaterialApp(
+      home: Components(),
+    );
+
+    /*HomeIndicator.deferScreenEdges([ScreenEdge.bottom]);
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<GameState>(create: (_) => GameState()),
@@ -26,6 +32,6 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         onGenerateRoute: RouteGenerator.generateRoute,
       ),
-    );
+    ); */
   }
 }
