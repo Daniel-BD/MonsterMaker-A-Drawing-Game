@@ -1,128 +1,241 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 
-import 'package:exquisitecorpse/components/colors.dart';
-import 'package:flutter/services.dart';
+import 'colors.dart';
+import 'game_text_field.dart';
 
 class Components extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: paper,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            GreenGameButton(
-              label: "BUTTON",
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[LeaveGameButton()],
+                ),
+                Container(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    ModalDoneGameButton(),
+                    ModalQuitGameButton(),
+                  ],
+                ),
+                Container(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    ModalBackGameButton(),
+                    ModalClearGameButton(),
+                  ],
+                ),
+                Container(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    QuitButton(),
+                    ShareButton(),
+                  ],
+                ),
+                Container(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    UndoButton(),
+                    RedoButton(),
+                    DeleteButton(),
+                    DoneButton(),
+                    BrushButton(),
+                  ],
+                ),
+                Container(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    PlayButton(),
+                    StopButton(),
+                    PreviousButton(),
+                    NextButton(),
+                    AnimateOrderButton(
+                      label: "ONE BY ONE",
+                    ),
+                  ],
+                ),
+                Container(height: 40),
+                GreenGameButton(
+                  label: "BUTTON",
+                ),
+                Container(height: 40),
+                BlueGameButton(
+                  label: "BUTTON",
+                ),
+                Container(height: 40),
+                GameTextField(
+                  controller: TextEditingController(),
+                ),
+              ],
             ),
-            Container(height: 40),
-            BlueGameButton(
-              label: "BUTTON",
-            ),
-            Container(height: 40),
-            AnimateOrderButton(
-              label: "ONE BY ONE",
-            ),
-            Container(height: 40),
-            GameTextField(
-              controller: TextEditingController(),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class GameTextField extends StatefulWidget {
-  final TextEditingController controller;
+/// CANVAS CONTROL BUTTONS
 
-  GameTextField({@required this.controller});
+class UndoButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
 
-  @override
-  _GameTextFieldState createState() => _GameTextFieldState();
-}
-
-class _GameTextFieldState extends State<GameTextField> {
-  final focus = FocusNode();
-  final controller = TextEditingController();
-
-  final style = TextStyle(
-    fontFamily: 'Gaegu',
-    color: textColor,
-    fontSize: 40,
-    fontWeight: FontWeight.w700,
-  );
-
-  final hintStyle = TextStyle(
-    fontFamily: 'Gaegu',
-    color: textColor,
-    fontSize: 22,
-  );
-
-  final unFocusedBorder = OutlineInputBorder(
-    borderRadius: const BorderRadius.all(
-      const Radius.circular(8),
-    ),
-    borderSide: BorderSide(
-      width: 2.0,
-      color: textColor,
-    ),
-  );
-
-  final focusedBorder = OutlineInputBorder(
-    borderRadius: const BorderRadius.all(
-      const Radius.circular(20),
-    ),
-    borderSide: BorderSide(
-      width: 4.0,
-      color: focused,
-    ),
-  );
+  UndoButton({@required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      height: 60,
-      width: 200,
-      duration: Duration(milliseconds: 150),
-      decoration: BoxDecoration(
-        color: textFieldBackground,
-        borderRadius: BorderRadius.all(
-          Radius.circular(focus.hasFocus ? 20 : 8),
-        ),
-      ),
-      child: TextField(
-        focusNode: focus,
-        controller: controller,
-        textAlign: TextAlign.center,
-        textAlignVertical: TextAlignVertical(y: 1.0),
-        cursorColor: focused,
-        style: controller.text.isEmpty ? hintStyle : style,
-        textCapitalization: TextCapitalization.characters,
-        onTap: () => setState(() {}),
-        inputFormatters: [
-          LengthLimitingTextInputFormatter(4),
-        ],
-        onChanged: (_) {
-          if (controller.text.isNotEmpty) {
-            Future.delayed(Duration(milliseconds: 100)).then((value) => setState(() {}));
-          } else {
-            setState(() {});
-          }
-        },
-        decoration: InputDecoration(
-          hintStyle: controller.text.isEmpty ? hintStyle : style,
-          hintText: 'Enter Room Code',
-          enabledBorder: unFocusedBorder,
-          focusedBorder: focusedBorder,
-        ),
-      ),
+    return _RoundGameButton(
+      onPressed: onPressed,
+      icon: Icons.undo,
+      buttonColor: blue,
     );
   }
 }
 
+class RedoButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  RedoButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _RoundGameButton(
+      onPressed: onPressed,
+      icon: Icons.redo,
+      buttonColor: blue,
+    );
+  }
+}
+
+class DeleteButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  DeleteButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _RoundGameButton(
+      onPressed: onPressed,
+      icon: Icons.delete,
+      buttonColor: warning,
+    );
+  }
+}
+
+class DoneButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  DoneButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _RoundGameButton(
+      onPressed: onPressed,
+      icon: Icons.check,
+      buttonColor: green,
+    );
+  }
+}
+
+class BrushButton extends StatelessWidget {
+  final Color color;
+  final GestureTapCallback onPressed;
+
+  BrushButton({
+    @required this.onPressed,
+    this.color = Colors.black,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    print(color.toString());
+
+    return _RoundGameButton(
+      onPressed: onPressed,
+      icon: Icons.brush,
+      buttonColor: color,
+    );
+  }
+}
+
+/// MONSTER PLAYBACK BUTTONS
+
+class PlayButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  PlayButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _RoundGameButton(
+      onPressed: onPressed,
+      icon: Icons.play_arrow,
+      buttonColor: green,
+    );
+  }
+}
+
+class StopButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  StopButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _RoundGameButton(
+      onPressed: onPressed,
+      icon: Icons.stop,
+      buttonColor: blue,
+    );
+  }
+}
+
+class PreviousButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  PreviousButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _RoundGameButton(
+      onPressed: onPressed,
+      icon: Icons.skip_previous,
+      buttonColor: blue,
+    );
+  }
+}
+
+class NextButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  NextButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _RoundGameButton(
+      onPressed: onPressed,
+      icon: Icons.skip_next,
+      buttonColor: blue,
+    );
+  }
+}
+
+/// ANIMATE ORDER BUTTON
+
 class AnimateOrderButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
   final String label;
   final style = TextStyle(
     fontFamily: 'Gaegu',
@@ -130,11 +243,12 @@ class AnimateOrderButton extends StatelessWidget {
     fontSize: 16,
   );
 
-  AnimateOrderButton({@required this.label});
+  AnimateOrderButton({@required this.onPressed, @required this.label});
 
   @override
   Widget build(BuildContext context) {
     return _GameButton(
+      onPressed: onPressed,
       color: blue,
       height: 40,
       width: 150,
@@ -156,38 +270,299 @@ class AnimateOrderButton extends StatelessWidget {
   }
 }
 
+/// BIG GAME BUTTONS
+
 class GreenGameButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
   final String label;
 
-  GreenGameButton({@required this.label});
+  GreenGameButton({
+    @required this.onPressed,
+    @required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _BigGameButton(
+      onPressed: onPressed,
+      label: label,
+      color: green,
+    );
+  }
+}
+
+class BlueGameButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+  final String label;
+
+  BlueGameButton({
+    @required this.onPressed,
+    @required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _BigGameButton(
+      onPressed: onPressed,
+      label: label,
+      color: blue,
+    );
+  }
+}
+
+/// BOTTOM CORNER BUTTONS
+
+class ShareButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  ShareButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _BottomCornerGameButton(
+      onPressed: onPressed,
+      color: blue,
+      textColor: textColor,
+      leftAligned: false,
+      label: "SHARE",
+    );
+  }
+}
+
+class QuitButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  QuitButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _BottomCornerGameButton(
+      onPressed: onPressed,
+      color: warning,
+      textColor: onWarning,
+      leftAligned: true,
+      label: "QUIT",
+    );
+  }
+}
+
+/// TOP CORNER BUTTONS
+
+class LeaveGameButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  LeaveGameButton({@required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return _GameButton(
-      color: green,
+      onPressed: onPressed,
       height: 50,
-      width: 200,
+      width: 120,
+      color: warning,
+      borderRadius: BorderRadius.horizontal(
+        right: Radius.circular(16),
+      ),
       child: Text(
-        label,
+        "LEAVE GAME",
         style: TextStyle(
           fontFamily: 'Gaegu',
-          color: textColor,
-          fontSize: 24,
+          color: onWarning,
+          fontSize: 20,
         ),
       ),
     );
   }
 }
 
-class BlueGameButton extends StatelessWidget {
-  final String label;
+/// MODAL MESSAGE BUTTONS
 
-  BlueGameButton({@required this.label});
+class ModalBackGameButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  ModalBackGameButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _ModalGameButton(
+      onPressed: onPressed,
+      label: "BACK",
+      color: blue,
+      textColor: textColor,
+    );
+  }
+}
+
+class ModalClearGameButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  ModalClearGameButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _ModalGameButton(
+      onPressed: onPressed,
+      label: "CLEAR",
+      color: warning,
+      textColor: onWarning,
+    );
+  }
+}
+
+class ModalDoneGameButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  ModalDoneGameButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _ModalGameButton(
+      onPressed: onPressed,
+      label: "DONE",
+      color: green,
+      textColor: textColor,
+    );
+  }
+}
+
+class ModalQuitGameButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  ModalQuitGameButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _ModalGameButton(
+      onPressed: onPressed,
+      label: "QUIT",
+      color: warning,
+      textColor: onWarning,
+    );
+  }
+}
+
+/// INTERNAL CLASSES
+
+class _ModalGameButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final Color textColor;
+  final GestureTapCallback onPressed;
+
+  _ModalGameButton({
+    @required this.onPressed,
+    @required this.label,
+    @required this.color,
+    @required this.textColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return _GameButton(
-      color: blue,
+      onPressed: onPressed,
+      height: 50,
+      width: 120,
+      color: color,
+      child: Text(
+        label,
+        style: TextStyle(
+          fontFamily: 'Gaegu',
+          color: textColor,
+          fontSize: 20,
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomCornerGameButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final Color textColor;
+  final GestureTapCallback onPressed;
+
+  /// If this is true, then the button is shaped to be placed at the left edge of the screen,
+  /// if false it's shaped to be placed at the right edge of the screen.
+  final bool leftAligned;
+
+  _BottomCornerGameButton({
+    @required this.onPressed,
+    @required this.label,
+    @required this.color,
+    @required this.textColor,
+    @required this.leftAligned,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _GameButton(
+      onPressed: onPressed,
+      height: 50,
+      width: 70,
+      color: color,
+      borderRadius: BorderRadius.horizontal(
+        left: leftAligned ? Radius.zero : Radius.circular(16),
+        right: leftAligned ? Radius.circular(16) : Radius.zero,
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontFamily: 'Gaegu',
+          color: textColor,
+          fontSize: 20,
+        ),
+      ),
+    );
+  }
+}
+
+class _RoundGameButton extends StatelessWidget {
+  final IconData icon;
+  final Color buttonColor;
+  final GestureTapCallback onPressed;
+
+  _RoundGameButton({
+    @required this.onPressed,
+    @required this.icon,
+    @required this.buttonColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final double luminance = buttonColor.computeLuminance();
+
+    return _GameButton(
+      onPressed: onPressed,
+      circular: true,
+      height: 40,
+      width: 40,
+      color: buttonColor,
+      shadowHeight: 2,
+      child: Icon(
+        icon,
+        size: 30,
+        color: luminance < 0.5 ? brightIcon : darkIcon,
+      ),
+    );
+  }
+}
+
+class _BigGameButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final GestureTapCallback onPressed;
+
+  _BigGameButton({
+    @required this.onPressed,
+    @required this.label,
+    @required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _GameButton(
+      onPressed: onPressed,
+      color: color,
       height: 50,
       width: 200,
       child: Text(
@@ -203,58 +578,37 @@ class BlueGameButton extends StatelessWidget {
 }
 
 class _GameButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
   final Color color;
   final double width;
   final double height;
   final Widget child;
+  final bool circular;
+  final BorderRadiusGeometry borderRadius;
+  final double shadowHeight;
 
   _GameButton({
+    @required this.onPressed,
     @required this.color,
     @required this.width,
     @required this.height,
     @required this.child,
+    this.circular = false,
+    this.borderRadius,
+    this.shadowHeight = 4,
   });
 
   @override
   Widget build(BuildContext context) {
     return AnimatedButton(
-      onPressed: () {},
+      onPressed: onPressed,
       height: height,
       width: width,
       color: color,
       shadowDegree: ShadowDegree.dark,
       child: child,
-    );
-  }
-}
-
-class GameButton2 extends StatelessWidget {
-  final String label;
-  final Color color;
-
-  GameButton2({@required this.label, @required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return ButtonTheme(
-      minWidth: 200,
-      height: 50,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30.0),
-      ),
-      child: FlatButton(
-        onPressed: () {},
-        color: color,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontFamily: 'Gaegu',
-            //fontWeight: FontWeight.w700,
-            color: textColor,
-            fontSize: 24,
-          ),
-        ),
-      ),
+      circular: circular,
+      borderRadius: borderRadius,
     );
   }
 }
@@ -272,6 +626,9 @@ class AnimatedButton extends StatefulWidget {
   final double width;
   final ShadowDegree shadowDegree;
   final int duration;
+  final BorderRadiusGeometry borderRadius;
+  final bool circular;
+  final double shadowHeight;
 
   const AnimatedButton({
     Key key,
@@ -283,6 +640,9 @@ class AnimatedButton extends StatefulWidget {
     this.shadowDegree = ShadowDegree.light,
     this.width = 200,
     this.duration = 70,
+    this.borderRadius,
+    this.circular = false,
+    this.shadowHeight = 4,
   })  : assert(child != null),
         super(key: key);
 
@@ -292,18 +652,23 @@ class AnimatedButton extends StatefulWidget {
 
 class _AnimatedButtonState extends State<AnimatedButton> {
   static const Curve _curve = Curves.easeIn;
-  static const double _shadowHeight = 4;
-  double _position = 4;
+  double _position;
+
+  @override
+  void initState() {
+    super.initState();
+    _position = widget.shadowHeight;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final double _height = widget.height - _shadowHeight;
+    final double _height = widget.height - widget.shadowHeight;
 
     return GestureDetector(
       // width here is required for centering the button in parent
       child: Container(
         width: widget.width,
-        height: _height + _shadowHeight,
+        height: _height + widget.shadowHeight,
         child: Stack(
           children: <Widget>[
             // background shadow serves as drop shadow
@@ -315,9 +680,8 @@ class _AnimatedButtonState extends State<AnimatedButton> {
                 width: widget.width,
                 decoration: BoxDecoration(
                   color: widget.enabled ? darken(widget.color, widget.shadowDegree) : darken(Colors.grey, widget.shadowDegree),
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(30),
-                  ),
+                  borderRadius: widget.circular ? null : widget.borderRadius ?? BorderRadius.all(Radius.circular(30)),
+                  shape: widget.circular ? BoxShape.circle : BoxShape.rectangle,
                 ),
               ),
             ),
@@ -330,9 +694,8 @@ class _AnimatedButtonState extends State<AnimatedButton> {
                 width: widget.width,
                 decoration: BoxDecoration(
                   color: widget.enabled ? widget.color : Colors.grey,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(30),
-                  ),
+                  borderRadius: widget.circular ? null : widget.borderRadius ?? BorderRadius.all(Radius.circular(30)),
+                  shape: widget.circular ? BoxShape.circle : BoxShape.rectangle,
                 ),
                 child: Center(
                   child: widget.child,
@@ -358,7 +721,7 @@ class _AnimatedButtonState extends State<AnimatedButton> {
 
   void _unPressed() {
     setState(() {
-      _position = 4;
+      _position = widget.shadowHeight;
     });
     widget.onPressed();
   }
