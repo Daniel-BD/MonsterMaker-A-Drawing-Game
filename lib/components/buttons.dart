@@ -3,6 +3,8 @@ import 'dart:ui';
 
 import 'colors.dart';
 import 'game_text_field.dart';
+import 'modal_message.dart';
+import 'brush_size_slider.dart';
 
 class Components extends StatelessWidget {
   @override
@@ -15,6 +17,14 @@ class Components extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
+                BrushSizeSlider(),
+                Container(height: 40),
+                QuitGameModal(),
+                Container(height: 40),
+                ClearDrawingGameModal(),
+                Container(height: 40),
+                DoneDrawingGameModal(),
+                Container(height: 40),
                 Row(
                   children: <Widget>[LeaveGameButton()],
                 ),
@@ -61,9 +71,7 @@ class Components extends StatelessWidget {
                     StopButton(),
                     PreviousButton(),
                     NextButton(),
-                    AnimateOrderButton(
-                      label: "ONE BY ONE",
-                    ),
+                    AnimateOrderButton(),
                   ],
                 ),
                 Container(height: 40),
@@ -236,14 +244,18 @@ class NextButton extends StatelessWidget {
 
 class AnimateOrderButton extends StatelessWidget {
   final GestureTapCallback onPressed;
-  final String label;
+  final bool animatingOneByOne;
   final style = TextStyle(
     fontFamily: 'Gaegu',
     color: textColor,
     fontSize: 16,
   );
 
-  AnimateOrderButton({@required this.onPressed, @required this.label});
+  AnimateOrderButton({
+    Key key,
+    this.onPressed,
+    this.animatingOneByOne = false,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -260,7 +272,7 @@ class AnimateOrderButton extends StatelessWidget {
               style: style,
             ),
             Text(
-              label,
+              animatingOneByOne ? "ALL AT ONCE" : "ONE BY ONE",
               style: style,
             ),
           ],
