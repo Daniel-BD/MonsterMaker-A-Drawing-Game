@@ -206,7 +206,8 @@ class GreenGameButton extends StatelessWidget {
     return _BigGameButton(
       onPressed: onPressed,
       label: label,
-      color: green,
+      color: onPressed != null ? green : disabled,
+      textColor: onPressed != null ? textColor : disabledText,
     );
   }
 }
@@ -225,7 +226,8 @@ class BlueGameButton extends StatelessWidget {
     return _BigGameButton(
       onPressed: onPressed,
       label: label,
-      color: blue,
+      color: onPressed != null ? blue : disabled,
+      textColor: onPressed != null ? textColor : disabledText,
     );
   }
 }
@@ -470,13 +472,16 @@ class _RoundGameButton extends StatelessWidget {
 class _BigGameButton extends StatelessWidget {
   final String label;
   final Color color;
+  final Color textColor;
   final GestureTapCallback onPressed;
 
-  _BigGameButton({
-    @required this.onPressed,
-    @required this.label,
-    @required this.color,
-  });
+  const _BigGameButton({
+    Key key,
+    this.label,
+    this.color,
+    this.textColor,
+    this.onPressed,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -643,7 +648,9 @@ class _AnimatedButtonState extends State<AnimatedButton> {
     setState(() {
       _position = widget.shadowHeight;
     });
-    widget.onPressed();
+    if (widget.onPressed != null) {
+      widget.onPressed();
+    }
   }
 }
 
