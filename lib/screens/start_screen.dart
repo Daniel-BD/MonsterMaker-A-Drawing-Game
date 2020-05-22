@@ -6,6 +6,10 @@ import 'package:tuple/tuple.dart';
 
 import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/game_state.dart';
+import 'package:exquisitecorpse/components/buttons.dart';
+import 'package:exquisitecorpse/components/game_text_field.dart';
+import 'package:exquisitecorpse/components/text_components.dart';
+import 'package:exquisitecorpse/components/colors.dart';
 
 class StartScreen extends StatefulWidget {
   @override
@@ -39,14 +43,18 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: paper,
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0.0,
+        title: _inputtingRoomCode ? null : FittedBox(child: MonsterMakerLogo()),
         leading: _inputtingRoomCode
             ? IconButton(
                 icon: Icon(
                   Icons.arrow_back_ios,
-                  color: Colors.black,
+                  color: textColor,
+                  size: 32,
                 ),
                 onPressed: () {
                   setState(() {
@@ -67,23 +75,19 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       if (!_inputtingRoomCode)
-                        StartScreenButton(
-                          padding: 20,
-                          color: Colors.greenAccent[200],
-                          text: 'New Game',
+                        GreenGameButton(
                           onPressed: () => _createNewGame(),
+                          label: "NEW GAME",
                         ),
                       if (_inputtingRoomCode)
-                        RoomCodeTextField(
+                        GameTextField(
                           controller: _roomCodeController,
                           onSubmitted: (str) => _joinRoom(context),
                         ),
                       Padding(
-                        padding: EdgeInsets.only(bottom: _overlap),
-                        child: StartScreenButton(
-                          color: Colors.blueAccent[100],
-                          text: 'Join Game',
-                          key: _joinGameKey,
+                        padding: EdgeInsets.only(bottom: _overlap, top: _inputtingRoomCode ? 30 : 40),
+                        child: BlueGameButton(
+                          label: "JOIN GAME",
                           onPressed: () => _joinRoom(context),
                         ),
                       ),
@@ -125,7 +129,7 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
         _loading = true;
       });
 
-      String roomCode = _roomCodeController.text;
+      String roomCode = _roomCodeController.text.toUpperCase();
       var success = await _db.joinRoom(roomCode: roomCode);
 
       if (success) {
@@ -164,104 +168,6 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
         _overlap = 0;
       });
     }
-  }
-}
-
-class RoomCodeTextField extends StatefulWidget {
-  RoomCodeTextField({
-    Key key,
-    @required this.controller,
-    @required this.onSubmitted,
-  })  : assert(controller != null),
-        assert(onSubmitted != null),
-        super(key: key);
-
-  final TextEditingController controller;
-  final ValueChanged<String> onSubmitted;
-
-  @override
-  _RoomCodeTextFieldState createState() => _RoomCodeTextFieldState();
-}
-
-class _RoomCodeTextFieldState extends State<RoomCodeTextField> {
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: 150),
-      child: TextField(
-        autocorrect: false,
-        enableSuggestions: false,
-        keyboardType: TextInputType.visiblePassword,
-        controller: widget.controller,
-        textCapitalization: TextCapitalization.characters,
-        textAlign: TextAlign.center,
-        cursorColor: Colors.purple[200],
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-        maxLength: 4,
-        onSubmitted: widget.onSubmitted,
-        decoration: InputDecoration(
-          counter: Container(),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.purple[200],
-              width: 4,
-            ),
-            borderRadius: BorderRadius.all(
-              Radius.circular(20),
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.grey,
-              width: 2,
-            ),
-            borderRadius: BorderRadius.all(
-              Radius.circular(8),
-            ),
-          ),
-          hintText: 'Enter Room Code',
-          hintStyle: TextStyle(fontSize: 14),
-        ),
-      ),
-    );
-  }
-}
-
-class StartScreenButton extends StatelessWidget {
-  StartScreenButton({
-    Key key,
-    this.padding = 0,
-    @required this.color,
-    @required this.text,
-    @required this.onPressed,
-  })  : assert(color != null),
-        assert(text != null),
-        assert(onPressed != null),
-        super(key: key);
-
-  final Color color;
-  final String text;
-  final VoidCallback onPressed;
-  final double padding;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: padding),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(bottom: 0),
-            child: FlatButton(
-              color: color,
-              child: Text(text),
-              onPressed: onPressed,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

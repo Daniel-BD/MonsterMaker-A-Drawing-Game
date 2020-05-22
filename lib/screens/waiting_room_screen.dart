@@ -6,6 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/game_state.dart';
+import 'package:exquisitecorpse/components/buttons.dart';
+import 'package:exquisitecorpse/components/text_components.dart';
+import 'package:exquisitecorpse/components/colors.dart';
 
 class WaitingRoomScreen extends StatefulWidget {
   WaitingRoomScreen({Key key}) : super(key: key);
@@ -44,45 +47,55 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
     String roomCode = Provider.of<GameState>(context).currentRoomCode;
 
     return Scaffold(
+      backgroundColor: paper,
       body: SafeArea(
         child: StreamBuilder<GameRoom>(
           stream: _db.streamWaitingRoom(roomCode: roomCode),
           builder: (context, snapshot) {
             if (snapshot.data == null) {
               return Center(
-                child: CircularProgressIndicator(backgroundColor: Colors.orange),
+                child: CircularProgressIndicator(),
               );
             }
 
             return _loading
                 ? Center(
-                    child: CircularProgressIndicator(backgroundColor: Colors.green),
+                    child: CircularProgressIndicator(),
                   )
                 : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(height: MediaQuery.of(context).size.height / 5),
-                      Text('Room Code'),
-                      Text(
-                        snapshot.data.roomCode,
-                        style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: <Widget>[
+                              LeaveGameButton(
+                                onPressed: () {
+                                  _db.leaveRoom(roomCode: snapshot.data.roomCode).then((value) {
+                                    if (value) {
+                                      Navigator.of(context).pushReplacementNamed('/');
+                                    }
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12, bottom: 30),
+                            child: RoomCodeInfo(roomCode: snapshot.data.roomCode),
+                          ),
+                          WaitingRoomText(playersReady: snapshot.data.activePlayers),
+                        ],
                       ),
-                      Container(height: 50),
-                      Text(
-                        '${snapshot.data.activePlayers} player(s) in the room',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                      if (snapshot.data.isHost) ...[
-                        Container(height: 50),
-                        FlatButton(
-                          child: Text('START GAME'),
-                          color: Colors.green,
-                          disabledColor: Colors.grey[300],
-                          onPressed: startGame(snapshot),
+                      if (snapshot.data.isHost && startGame(snapshot) != null)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 4),
+                          child: GreenGameButton(
+                            label: "START GAME",
+                            onPressed: startGame(snapshot),
+                          ),
                         ),
-                      ],
-                      if (!snapshot.data.isHost && snapshot.data.startedGame == false) Text('Waiting for the host to start the game'),
-                      if (snapshot.data.startedGame == true) Text('The game has started!!'),
                     ],
                   );
           },
@@ -92,7 +105,6 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   }
 
   VoidCallback startGame(AsyncSnapshot snapshot) {
-    /// TODO: Skall vara 3 personer
     if (snapshot.data.activePlayers != 3) {
       return null;
     }

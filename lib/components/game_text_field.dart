@@ -5,8 +5,9 @@ import 'colors.dart';
 
 class GameTextField extends StatefulWidget {
   final TextEditingController controller;
+  final ValueChanged<String> onSubmitted;
 
-  GameTextField({@required this.controller});
+  const GameTextField({Key key, this.controller, this.onSubmitted}) : super(key: key);
 
   @override
   _GameTextFieldState createState() => _GameTextFieldState();
@@ -14,7 +15,6 @@ class GameTextField extends StatefulWidget {
 
 class _GameTextFieldState extends State<GameTextField> {
   final focus = FocusNode();
-  final controller = TextEditingController();
 
   final style = TextStyle(
     fontFamily: 'Gaegu',
@@ -63,26 +63,27 @@ class _GameTextFieldState extends State<GameTextField> {
       ),
       child: TextField(
         focusNode: focus,
-        controller: controller,
+        controller: widget.controller,
         textAlign: TextAlign.center,
         textAlignVertical: TextAlignVertical(y: 1.0),
         cursorColor: focused,
-        style: controller.text.isEmpty ? hintStyle : style,
+        style: widget.controller.text.isEmpty ? hintStyle : style,
         textCapitalization: TextCapitalization.characters,
         onTap: () => setState(() {}),
         inputFormatters: [
           LengthLimitingTextInputFormatter(4),
         ],
+        onSubmitted: widget.onSubmitted,
         onChanged: (str) {
-          controller.text = str.toUpperCase();
-          if (controller.text.isNotEmpty) {
+          //controller.text = str.toUpperCase();
+          if (widget.controller.text.isNotEmpty) {
             Future.delayed(Duration(milliseconds: 100)).then((value) => setState(() {}));
           } else {
             setState(() {});
           }
         },
         decoration: InputDecoration(
-          hintStyle: controller.text.isEmpty ? hintStyle : style,
+          hintStyle: widget.controller.text.isEmpty ? hintStyle : style,
           hintText: 'Enter Room Code',
           enabledBorder: unFocusedBorder,
           focusedBorder: focusedBorder,

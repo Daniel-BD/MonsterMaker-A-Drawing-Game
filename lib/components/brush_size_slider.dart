@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 import 'colors.dart';
 
@@ -9,49 +8,108 @@ class BrushSizeSlider extends StatefulWidget {
 }
 
 class _BrushSizeSliderState extends State<BrushSizeSlider> {
-  double value = 0;
+  double value = 10;
+  bool showDot = false;
+  bool transparentDot = true;
+  bool timerOn = false;
+
+  void _timerToHideDot(double valueWhenCalled) {
+    Future.delayed(Duration(milliseconds: 800)).then((_) {
+      if (value == valueWhenCalled) {
+        setState(() {
+          showDot = false;
+        });
+        Future.delayed(Duration(milliseconds: 95)).then((_) {
+          if (value == valueWhenCalled) {
+            setState(() {
+              transparentDot = true;
+            });
+          }
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.orange,
-      child: ClipPath(
-        clipper: CustomTriangleClipper(),
-        child: Container(
-          height: 20,
-          width: 170,
-          color: dashes,
-          child: Slider(
-            onChanged: (val) {
-              setState(() {
-                value = val;
-              });
-            },
-            value: value,
-          ),
-        ),
-      ),
-    );
-
-    return ClipPath(
-      clipper: CustomTriangleClipper(),
-      child: Container(
-        height: 170,
-        width: 20,
-        color: dashes,
-        child: Transform.rotate(
-          angle: math.pi / 4,
-          child: Slider(
-            onChanged: (_) {},
-            value: 0.5,
-          ),
+      height: 200,
+      width: 150,
+      child: RotatedBox(
+        quarterTurns: 1,
+        child: Stack(
+          alignment: AlignmentDirectional.bottomCenter,
+          children: <Widget>[
+            ClipPath(
+              clipper: _CustomTriangleClipper(),
+              child: Container(
+                height: 20,
+                width: 170,
+                color: dashes,
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: AnimatedPadding(
+                duration: Duration(milliseconds: 100),
+                padding: EdgeInsets.only(bottom: showDot ? 100 : 0, right: 24 + ((value - 10) * 4.3)),
+                child: Container(
+                  height: value,
+                  width: value,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: transparentDot ? Colors.transparent : Colors.blue,
+                  ),
+                ),
+              ),
+            ),
+            RotatedBox(
+              quarterTurns: 2,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 22),
+                child: Container(
+                  height: 20,
+                  width: 164,
+                  child: SliderTheme(
+                    data: SliderThemeData(
+                      trackHeight: 0,
+                      overlayShape: RoundSliderOverlayShape(overlayRadius: 0.0),
+                      thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10.0),
+                      thumbColor: Colors.black,
+                    ),
+                    child: Slider(
+                      min: 10,
+                      max: 40,
+                      onChanged: (val) {
+                        setState(() {
+                          value = val;
+                        });
+                      },
+                      value: value,
+                      onChangeStart: (_) {
+                        setState(() {
+                          transparentDot = false;
+                          timerOn = false;
+                          showDot = true;
+                        });
+                      },
+                      onChangeEnd: (value) {
+                        timerOn = true;
+                        _timerToHideDot(value);
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class CustomTriangleClipper extends CustomClipper<Path> {
+class _CustomTriangleClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
