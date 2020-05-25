@@ -166,7 +166,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
               OverlapDashedLines(),
               if (otherPlayerDrawing != null)
                 Positioned(
-                  top: -size.height * (6 / 7),
+                  top: -size.height * (5 / 6),
                   child: Container(
                     width: size.width,
                     child: ClipRect(

@@ -25,7 +25,7 @@ class OverlapDashedLines extends StatelessWidget {
         if (!gameRoom.allTopDrawingsDone()) Container(),
         if (gameRoom.allTopDrawingsDone())
           Padding(
-            padding: EdgeInsets.only(top: MediaQuery.of(context).size.height / 7),
+            padding: EdgeInsets.only(top: MediaQuery.of(context).size.height / 6),
             child: Dash(
               direction: Axis.horizontal,
               length: GameState.canvasWidth,
@@ -37,7 +37,7 @@ class OverlapDashedLines extends StatelessWidget {
           ),
         if (!gameRoom.allMidDrawingsDone())
           Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 7),
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 6),
             child: Dash(
               direction: Axis.horizontal,
               length: GameState.canvasWidth,

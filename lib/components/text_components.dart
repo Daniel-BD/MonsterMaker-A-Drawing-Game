@@ -68,10 +68,11 @@ class WaitingRoomText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String friend = playersReady == 2 ? 'friend' : 'friends';
+    String playersAre = playersReady == 1 ? 'player is' : 'players are';
 
     return Text(
       playersReady != 3
-          ? '$playersReady player is ready! \n Invite ${3 - playersReady} more ' + friend + ' to start...'
+          ? '$playersReady ' + playersAre + ' ready! \n Invite ${3 - playersReady} more ' + friend + ' to start...'
           : isHost == true ? 'All 3 players are ready!' : 'All 3 players are ready! \n Waiting for the host to start...',
       textAlign: TextAlign.center,
       style: smallStyle,
@@ -133,6 +134,42 @@ class ThirdInstructionText extends StatelessWidget {
       _thirdInstruction,
       textAlign: TextAlign.center,
       style: _instructionStyle,
+    );
+  }
+}
+
+class GameHostControlsWhatYouSeeText extends StatelessWidget {
+  const GameHostControlsWhatYouSeeText({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      'The game host controls what you see!',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontFamily: 'Gaegu',
+        color: textColor,
+        fontSize: 16,
+      ),
+    );
+  }
+}
+
+class MonsterNumberText extends StatelessWidget {
+  final int number;
+
+  const MonsterNumberText({Key key, this.number}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      'Monster #$number',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontFamily: 'Gaegu',
+        color: textColor,
+        fontSize: 30,
+      ),
     );
   }
 }

@@ -9,6 +9,10 @@ import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/constants.dart';
+import 'package:exquisitecorpse/components/buttons.dart';
+import 'package:exquisitecorpse/components/game_text_field.dart';
+import 'package:exquisitecorpse/components/text_components.dart';
+import 'package:exquisitecorpse/components/colors.dart';
 
 class FinishedScreen extends StatefulWidget {
   @override
@@ -39,6 +43,12 @@ class _FinishedScreenState extends State<FinishedScreen> {
   var _duration = Duration(seconds: 2);
   PathOrder _pathOrder = PathOrders.topToBottom;
 
+  final monsterKey = GlobalKey();
+  Size monsterSize;
+
+  double _outputWidth;
+  double _outputHeight;
+
   @override
   void initState() {
     super.initState();
@@ -65,12 +75,45 @@ class _FinishedScreenState extends State<FinishedScreen> {
     }
   }
 
+  void _calculate(Size size) {
+    print("0");
+    if (monsterKey.currentContext != null) {
+      print("1");
+      RenderBox renderBox = monsterKey.currentContext.findRenderObject();
+      monsterSize = renderBox.size;
+
+      _outputWidth = size.width - 20;
+      _outputHeight = _outputWidth * (2 / 3);
+      print(_outputHeight);
+      print(_outputWidth);
+
+      print('monsterSize:');
+      print(monsterSize.height);
+      print(_outputHeight * (5 / 6) * 3);
+
+      if (_outputHeight * (5 / 6) * 3 > monsterSize.height) {
+        print("3");
+        _outputHeight = monsterSize.height * (6 / 16);
+        _outputWidth = monsterSize.height * (6 / 16) * (3 / 2);
+      }
+      print(_outputHeight);
+      print(_outputWidth);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+    _calculate(size);
+
+    if (monsterSize == null) {
+      Future.delayed(Duration(milliseconds: 10)).then((value) => setState(() {}));
+    }
+
     final GameState gameState = Provider.of<GameState>(context);
 
     return Scaffold(
-      backgroundColor: monsterBackgroundColor,
+      backgroundColor: paper,
       body: SafeArea(
         child: StreamBuilder<GameRoom>(
           stream: _db.streamWaitingRoom(roomCode: gameState.currentRoomCode),
@@ -109,103 +152,111 @@ class _FinishedScreenState extends State<FinishedScreen> {
             _mid = DrawingStorage.fromJson(jsonDecode(room.midDrawings[_midIndex]), true);
             _bottom = DrawingStorage.fromJson(jsonDecode(room.bottomDrawings[_bottomIndex]), true);
 
-            final Size size = MediaQuery.of(context).size;
-
-            return Stack(
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                SingleChildScrollView(
-                  physics: ClampingScrollPhysics(),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      if (room.isHost) _controls(),
-                      if (!room.isHost) _hostIsControlling(),
-                      _monsterNumber(),
-                      AspectRatio(
-                        aspectRatio: 480 / 733, //TODO: Bör vara något snyggare siffror efter att det är 1/8 overlap istället för 1/7...
-                        child: Stack(
-                          children: <Widget>[
-                            if (!_clearCanvas) ...[
-                              AnimatedDrawing.paths(
-                                _top.getScaledPaths(
-                                  inputHeight: _top.height,
-                                  outputHeight: size.width * (9 / 16),
-                                  inputWidth: _top.width,
-                                  outputWidth: size.width,
-                                ),
-                                paints: _top.getScaledPaints(
-                                  inputHeight: _top.height,
-                                  outputHeight: size.width * (9 / 16),
-                                ),
-                                run: _runTopAnimation,
-                                animationOrder: _pathOrder,
-                                scaleToViewport: false,
-                                duration: _duration,
-                                onFinish: () => setState(() {
-                                  _runTopAnimation = false;
-                                  if (!_room.animateAllAtOnce) {
-                                    _runMidAnimation = true;
-                                  }
-                                }),
-                              ),
-                              Positioned(
-                                top: (_mid.height * (9 / 16)) * 6 / 7,
-                                child: AnimatedDrawing.paths(
-                                  _mid.getScaledPaths(
-                                    inputHeight: _mid.height,
-                                    outputHeight: size.width * (9 / 16),
-                                    inputWidth: _mid.width,
-                                    outputWidth: size.width,
-                                  ),
-                                  paints: _mid.getScaledPaints(
-                                    inputHeight: _mid.height,
-                                    outputHeight: size.width * (9 / 16),
-                                  ),
-                                  run: _runMidAnimation,
-                                  animationOrder: _pathOrder,
-                                  scaleToViewport: false,
-                                  duration: _duration,
-                                  onFinish: () => setState(() {
-                                    _runMidAnimation = false;
-                                    if (!_room.animateAllAtOnce) {
-                                      _runBottomAnimation = true;
-                                    }
-                                  }),
-                                ),
-                              ),
-                              Positioned(
-                                top: 2 * (_bottom.height * (9 / 16)) * 6 / 7,
-                                child: AnimatedDrawing.paths(
-                                  _bottom.getScaledPaths(
-                                    inputHeight: _bottom.height,
-                                    outputHeight: size.width * (9 / 16),
-                                    inputWidth: _bottom.width,
-                                    outputWidth: size.width,
-                                  ),
-                                  paints: _bottom.getScaledPaints(
-                                    inputHeight: _bottom.height,
-                                    outputHeight: size.width * (9 / 16),
-                                  ),
-                                  run: _runBottomAnimation,
-                                  animationOrder: _pathOrder,
-                                  scaleToViewport: false,
-                                  duration: _duration,
-                                  onFinish: () => setState(() {
-                                    _runBottomAnimation = false;
-                                  }),
-                                ),
-                              ),
-                            ]
-                          ],
-                        ),
-                      ),
-                      _exitButton(),
-                    ],
-                  ),
+                if (room.isHost) _controls(),
+                if (!room.isHost) GameHostControlsWhatYouSeeText(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[MonsterNumberText(number: _index)],
                 ),
+                if (_clearCanvas || monsterSize == null) _calculateWidget(),
+                if (!_clearCanvas && monsterSize != null) _monster(size)
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _calculateWidget() {
+    return Expanded(
+      child: Container(
+        key: monsterKey,
+      ),
+    );
+  }
+
+  Widget _monster(Size size) {
+    return Padding(
+      padding: EdgeInsets.only(left: (size.width - _outputWidth) / 2),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: monsterSize.width, maxHeight: monsterSize.height),
+        child: Stack(
+          children: <Widget>[
+            AnimatedDrawing.paths(
+              _top.getScaledPaths(
+                inputHeight: _top.height,
+                outputHeight: _outputHeight,
+                inputWidth: _top.width,
+                outputWidth: _outputWidth,
+              ),
+              paints: _top.getScaledPaints(
+                inputHeight: _top.height,
+                outputHeight: _outputHeight,
+              ),
+              run: _runTopAnimation,
+              animationOrder: _pathOrder,
+              scaleToViewport: false,
+              duration: _duration,
+              onFinish: () => setState(() {
+                _runTopAnimation = false;
+                if (!_room.animateAllAtOnce) {
+                  _runMidAnimation = true;
+                }
+              }),
+            ),
+            Positioned(
+              top: _outputHeight * (5 / 6),
+              child: AnimatedDrawing.paths(
+                _mid.getScaledPaths(
+                  inputHeight: _mid.height,
+                  outputHeight: _outputHeight,
+                  inputWidth: _mid.width,
+                  outputWidth: _outputWidth,
+                ),
+                paints: _mid.getScaledPaints(
+                  inputHeight: _mid.height,
+                  outputHeight: _outputHeight,
+                ),
+                run: _runMidAnimation,
+                animationOrder: _pathOrder,
+                scaleToViewport: false,
+                duration: _duration,
+                onFinish: () => setState(() {
+                  _runMidAnimation = false;
+                  if (!_room.animateAllAtOnce) {
+                    _runBottomAnimation = true;
+                  }
+                }),
+              ),
+            ),
+            Positioned(
+              top: 2 * _outputHeight * (5 / 6),
+              child: AnimatedDrawing.paths(
+                _bottom.getScaledPaths(
+                  inputHeight: _bottom.height,
+                  outputHeight: _outputHeight,
+                  inputWidth: _bottom.width,
+                  outputWidth: _outputWidth,
+                ),
+                paints: _bottom.getScaledPaints(
+                  inputHeight: _bottom.height,
+                  outputHeight: _outputHeight,
+                ),
+                run: _runBottomAnimation,
+                animationOrder: _pathOrder,
+                scaleToViewport: false,
+                duration: _duration,
+                onFinish: () => setState(() {
+                  _runBottomAnimation = false;
+                }),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -223,42 +274,30 @@ class _FinishedScreenState extends State<FinishedScreen> {
     );
   }
 
-  Widget _hostIsControlling() {
-    return Text(
-      'The game host controls what you see!',
-      textAlign: TextAlign.center,
-    );
-  }
-
-  Widget _monsterNumber() {
-    return Text(
-      'Exquisite Monster #$_index',
-      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
-    );
-  }
-
   Widget _controls() {
     final _db = DatabaseService.instance;
+    final double padding = 4;
+    final double edgePadding = 2;
 
-    return SingleChildScrollView(
-      physics: ClampingScrollPhysics(),
-      scrollDirection: Axis.horizontal,
+    return FittedBox(
       child: Row(
+        mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[
-          FlatButton(
-            child: Text('START'),
-            textColor: Colors.white,
-            color: Colors.green,
+          Container(width: edgePadding),
+          PlayButton(
             onPressed: () {
               _db.setAnimation(true, room: _room);
             },
           ),
-          Container(width: 10),
-          IconButton(
-            icon: Icon(Icons.skip_previous),
-            color: Colors.blue,
-            iconSize: 32,
+          Container(width: padding),
+          StopButton(
+            onPressed: () {
+              _db.setAnimation(false, room: _room);
+            },
+          ),
+          Container(width: padding),
+          PreviousButton(
             onPressed: () {
               if (_hostIndex > 1) {
                 _hostIndex--;
@@ -266,11 +305,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
               }
             },
           ),
-          Container(width: 6),
-          IconButton(
-            icon: Icon(Icons.skip_next),
-            color: Colors.blue,
-            iconSize: 32,
+          Container(width: padding),
+          NextButton(
             onPressed: () {
               if (_hostIndex < 3) {
                 _hostIndex++;
@@ -278,24 +314,14 @@ class _FinishedScreenState extends State<FinishedScreen> {
               }
             },
           ),
-          Container(width: 10),
-          FlatButton(
-            child: Text('CLEAR'),
-            textColor: Colors.white,
-            color: Colors.redAccent,
-            onPressed: () {
-              _db.setAnimation(false, room: _room);
-            },
-          ),
-          Container(width: 10),
-          FlatButton(
-            child: Text(_room.animateAllAtOnce ? 'One By One' : 'All At Once'),
-            textColor: Colors.white,
-            color: Colors.deepPurpleAccent,
+          Container(width: padding),
+          AnimateOrderButton(
+            animatingOneByOne: !_room.animateAllAtOnce,
             onPressed: () {
               _db.setAnimateAllAtOnce(!_room.animateAllAtOnce, room: _room);
             },
           ),
+          Container(width: edgePadding),
         ],
       ),
     );

@@ -85,7 +85,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                             padding: const EdgeInsets.only(top: 12, bottom: 30),
                             child: RoomCodeInfo(roomCode: snapshot.data.roomCode),
                           ),
-                          WaitingRoomText(playersReady: snapshot.data.activePlayers),
+                          WaitingRoomText(playersReady: snapshot.data.activePlayers, isHost: snapshot.data.isHost),
                         ],
                       ),
                       if (snapshot.data.isHost && startGame(snapshot) != null)
