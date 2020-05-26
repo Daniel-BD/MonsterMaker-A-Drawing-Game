@@ -73,42 +73,51 @@ class _GameModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 200,
-      width: 300,
-      decoration: BoxDecoration(
-        color: textFieldBackground,
-        borderRadius: BorderRadius.all(Radius.circular(20)),
-        border: Border.all(width: 4, color: borderColor),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Gaegu',
-                color: textColor,
-                fontSize: 26,
+    return Center(
+      child: Material(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(20),
+          ),
+        ),
+        child: Container(
+          height: 200,
+          width: 300,
+          decoration: BoxDecoration(
+            color: textFieldBackground,
+            borderRadius: BorderRadius.all(Radius.circular(20)),
+            border: Border.all(width: 4, color: borderColor),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Gaegu',
+                    color: textColor,
+                    fontSize: 26,
+                  ),
+                ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    leftButton,
+                    ModalBackGameButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                    )
+                  ],
+                ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                leftButton,
-                ModalBackGameButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                )
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

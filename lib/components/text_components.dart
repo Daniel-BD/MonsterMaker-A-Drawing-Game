@@ -173,3 +173,21 @@ class MonsterNumberText extends StatelessWidget {
     );
   }
 }
+
+class LastWaitingScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Text(
+        'Turn your phone this way!\n\nYay! You finished all drawings!\n\nWaiting for the other players to finish',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontFamily: 'Gaegu',
+          color: textColor,
+          fontSize: 24,
+        ),
+      ),
+    );
+  }
+}

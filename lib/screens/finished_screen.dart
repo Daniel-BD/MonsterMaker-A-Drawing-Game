@@ -1,3 +1,4 @@
+import 'package:exquisitecorpse/components/modal_message.dart';
 import 'package:exquisitecorpse/drawing_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,9 +9,7 @@ import 'package:drawing_animation/drawing_animation.dart';
 import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/db.dart';
-import 'package:exquisitecorpse/constants.dart';
 import 'package:exquisitecorpse/components/buttons.dart';
-import 'package:exquisitecorpse/components/game_text_field.dart';
 import 'package:exquisitecorpse/components/text_components.dart';
 import 'package:exquisitecorpse/components/colors.dart';
 
@@ -103,13 +102,14 @@ class _FinishedScreenState extends State<FinishedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
+    /*final Size size = MediaQuery.of(context).size;
     _calculate(size);
 
     if (monsterSize == null) {
-      Future.delayed(Duration(milliseconds: 10)).then((value) => setState(() {}));
-    }
+      //Future.delayed(Duration(milliseconds: 10)).then((value) => setState(() {}));
+    }*/
 
+    final Size size = MediaQuery.of(context).size;
     final GameState gameState = Provider.of<GameState>(context);
 
     return Scaffold(
@@ -128,10 +128,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
 
             if (!room.allBottomDrawingsDone()) {
               return Center(
-                child: Text(
-                  'Waiting for the other players to finish...',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
-                ),
+                child: LastWaitingScreen(),
               );
             }
 
@@ -152,18 +149,44 @@ class _FinishedScreenState extends State<FinishedScreen> {
             _mid = DrawingStorage.fromJson(jsonDecode(room.midDrawings[_midIndex]), true);
             _bottom = DrawingStorage.fromJson(jsonDecode(room.bottomDrawings[_bottomIndex]), true);
 
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
+            return Stack(
               children: <Widget>[
-                if (room.isHost) _controls(),
-                if (!room.isHost) GameHostControlsWhatYouSeeText(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[MonsterNumberText(number: _index)],
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    if (room.isHost) _controls(),
+                    if (!room.isHost) GameHostControlsWhatYouSeeText(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[MonsterNumberText(number: _index)],
+                    ),
+                    if (_clearCanvas || monsterSize == null) _calculateWidget(),
+                    if (!_clearCanvas && monsterSize != null) _monster(size)
+                  ],
                 ),
-                if (_clearCanvas || monsterSize == null) _calculateWidget(),
-                if (!_clearCanvas && monsterSize != null) _monster(size)
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      QuitButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => QuitGameModal(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pushReplacementNamed('/');
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                      ShareButton(onPressed: () {}),
+                    ],
+                  ),
+                ),
               ],
             );
           },
@@ -173,6 +196,9 @@ class _FinishedScreenState extends State<FinishedScreen> {
   }
 
   Widget _calculateWidget() {
+    final Size size = MediaQuery.of(context).size;
+    _calculate(size);
+
     return Expanded(
       child: Container(
         key: monsterKey,

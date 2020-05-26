@@ -18,6 +18,7 @@ class Components extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
+                /*
                 GameColorPicker(),
                 Container(height: 40),
                 BrushSizeSlider(),
@@ -84,7 +85,7 @@ class Components extends StatelessWidget {
                 Container(height: 40),
                 BlueGameButton(
                   label: "BUTTON",
-                ),
+                ),*/
                 Container(height: 40),
                 GameTextField(
                   controller: TextEditingController(),
