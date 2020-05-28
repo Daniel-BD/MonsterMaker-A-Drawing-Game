@@ -5,6 +5,22 @@ import 'colors.dart';
 
 /// CANVAS CONTROL BUTTONS
 
+class HideShowControlsButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+  final bool controlsVisible;
+
+  const HideShowControlsButton({Key key, @required this.onPressed, @required this.controlsVisible}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return _RoundGameButton(
+      onPressed: onPressed,
+      icon: controlsVisible ? Icons.visibility_off : Icons.visibility,
+      buttonColor: blue,
+    );
+  }
+}
+
 class UndoButton extends StatelessWidget {
   final GestureTapCallback onPressed;
 
@@ -76,8 +92,6 @@ class BrushButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(color.toString());
-
     return _RoundGameButton(
       onPressed: onPressed,
       icon: Icons.brush,
@@ -452,12 +466,13 @@ class _RoundGameButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double luminance = buttonColor.computeLuminance();
+    final Size size = MediaQuery.of(context).size;
 
     return _GameButton(
       onPressed: onPressed,
       circular: true,
-      height: 40,
-      width: 40,
+      height: (size.height - 70) / 6,
+      width: (size.height - 70) / 6,
       color: buttonColor,
       shadowHeight: 2,
       child: Icon(

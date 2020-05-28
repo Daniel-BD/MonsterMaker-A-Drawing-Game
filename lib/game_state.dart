@@ -33,6 +33,16 @@ class DrawingState extends ChangeNotifier {
   get showButtons => _showButtons;
   set showButtons(bool value) {
     _showButtons = value;
+    if (!_showButtons) {
+      _showBrushSettings = false;
+    }
+    notifyListeners();
+  }
+
+  bool _showBrushSettings = false;
+  get showBrushSettings => _showBrushSettings;
+  set showBrushSettings(bool value) {
+    _showBrushSettings = value;
     notifyListeners();
   }
 

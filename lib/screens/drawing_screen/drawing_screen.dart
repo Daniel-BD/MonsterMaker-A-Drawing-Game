@@ -11,7 +11,7 @@ import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/screens/drawing_screen/drawing_controls.dart';
 import 'package:exquisitecorpse/screens/drawing_screen/overlap_dashed_lines.dart';
-import 'package:exquisitecorpse/constants.dart';
+import 'package:exquisitecorpse/components/colors.dart';
 
 class DrawingScreen extends StatefulWidget {
   DrawingScreen({Key key}) : super(key: key);
@@ -37,7 +37,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
     final GameState gameState = Provider.of<GameState>(context);
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: textFieldBackground,
       body: SafeArea(
         bottom: false,
         child: MultiProvider(
@@ -53,7 +53,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
 
               if (snapshot.data == null) {
                 return Center(
-                  child: CircularProgressIndicator(backgroundColor: Colors.purple),
+                  child: CircularProgressIndicator(),
                 );
               }
 
@@ -70,7 +70,8 @@ class _DrawingScreenState extends State<DrawingScreen> {
                 child: Stack(
                   alignment: AlignmentDirectional.bottomStart,
                   children: <Widget>[
-                    Center(
+                    Align(
+                      alignment: Alignment.centerRight,
                       child: DrawingCanvas(),
                     ),
                     DrawingControls(),
@@ -133,7 +134,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
       key: canvasKey,
       aspectRatio: (16.0 / 9.0),
       child: Container(
-        color: monsterBackgroundColor,
+        color: paper,
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onPanStart: (details) {

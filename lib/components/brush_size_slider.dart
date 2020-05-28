@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
+
+import 'package:exquisitecorpse/drawing_storage.dart';
 import 'colors.dart';
 
 class BrushSizeSlider extends StatefulWidget {
@@ -8,19 +11,20 @@ class BrushSizeSlider extends StatefulWidget {
 }
 
 class _BrushSizeSliderState extends State<BrushSizeSlider> {
-  double value = 10;
   bool showDot = false;
   bool transparentDot = true;
   bool timerOn = false;
 
-  void _timerToHideDot(double valueWhenCalled) {
+  void _timerToHideDot(double valueWhenCalled, BuildContext context) {
+    final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
+
     Future.delayed(Duration(milliseconds: 800)).then((_) {
-      if (value == valueWhenCalled) {
+      if (myDrawing.paint.strokeWidth == valueWhenCalled) {
         setState(() {
           showDot = false;
         });
         Future.delayed(Duration(milliseconds: 95)).then((_) {
-          if (value == valueWhenCalled) {
+          if (myDrawing.paint.strokeWidth == valueWhenCalled) {
             setState(() {
               transparentDot = true;
             });
@@ -32,6 +36,9 @@ class _BrushSizeSliderState extends State<BrushSizeSlider> {
 
   @override
   Widget build(BuildContext context) {
+    final myDrawing = Provider.of<DrawingStorage>(context);
+    double paintSize = myDrawing.paint.strokeWidth;
+
     return Container(
       height: 200,
       width: 150,
@@ -52,13 +59,13 @@ class _BrushSizeSliderState extends State<BrushSizeSlider> {
               alignment: Alignment.bottomRight,
               child: AnimatedPadding(
                 duration: Duration(milliseconds: 100),
-                padding: EdgeInsets.only(bottom: showDot ? 100 : 0, right: 24 + ((value - 10) * 4.3)),
+                padding: EdgeInsets.only(bottom: showDot ? 100 : 0, right: 24 + ((paintSize - 10) * 4.3)),
                 child: Container(
-                  height: value,
-                  width: value,
+                  height: paintSize,
+                  width: paintSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: transparentDot ? Colors.transparent : Colors.blue,
+                    color: transparentDot ? Colors.transparent : myDrawing.paint.color,
                   ),
                 ),
               ),
@@ -82,10 +89,15 @@ class _BrushSizeSliderState extends State<BrushSizeSlider> {
                       max: 40,
                       onChanged: (val) {
                         setState(() {
-                          value = val;
+                          myDrawing.paint = Paint()
+                            ..color = myDrawing.paint.color
+                            ..strokeWidth = val
+                            ..strokeCap = myDrawing.paint.strokeCap
+                            ..strokeJoin = myDrawing.paint.strokeJoin
+                            ..style = myDrawing.paint.style;
                         });
                       },
-                      value: value,
+                      value: myDrawing.paint.strokeWidth,
                       onChangeStart: (_) {
                         setState(() {
                           transparentDot = false;
@@ -95,7 +107,7 @@ class _BrushSizeSliderState extends State<BrushSizeSlider> {
                       },
                       onChangeEnd: (value) {
                         timerOn = true;
-                        _timerToHideDot(value);
+                        _timerToHideDot(value, context);
                       },
                     ),
                   ),

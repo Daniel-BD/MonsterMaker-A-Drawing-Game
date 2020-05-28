@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:exquisitecorpse/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +7,11 @@ import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/drawing_storage.dart';
 import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/db.dart';
+import 'package:exquisitecorpse/components/colors.dart';
+
+import 'package:exquisitecorpse/components/buttons.dart';
+import 'package:exquisitecorpse/components/color_picker.dart';
+import 'package:exquisitecorpse/components/brush_size_slider.dart';
 
 /// This widget is messy by design, it's temporary and will be redesigned later on
 class DrawingControls extends StatefulWidget {
@@ -32,68 +36,39 @@ class _DrawingControlsState extends State<DrawingControls> {
             child: CircularProgressIndicator(),
           ),
         if (!drawingState.loadingHandIn)
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Wrap(
-                direction: Axis.horizontal,
-                alignment: WrapAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10, right: 10),
-                    child: FlatButton(
-                      color: Colors.blue,
-                      textColor: Colors.white,
-                      child: Text((drawingState.showButtons ? 'HIDE BUTTONS' : 'SHOW')),
-                      onPressed: () {
-                        drawingState.showButtons = !drawingState.showButtons;
-                      },
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Column(
+                  mainAxisAlignment: drawingState.showButtons ? MainAxisAlignment.center : MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Container(height: 10),
+                    HideShowControlsButton(
+                      onPressed: () => drawingState.showButtons = !drawingState.showButtons,
+                      controlsVisible: drawingState.showButtons,
                     ),
-                  ),
-                  if (drawingState.showButtons) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10, right: 10),
-                      child: FlatButton.icon(
-                        color: Colors.red,
-                        textColor: Colors.white,
-                        label: Text("CLEAR"),
-                        icon: Icon(Icons.clear),
-                        onPressed: () {
-                          myDrawing.clearDrawing();
-                        },
+                    if (drawingState.showButtons) ...[
+                      Container(height: 10),
+                      BrushButton(
+                        onPressed: () => drawingState.showBrushSettings = !drawingState.showBrushSettings,
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10, right: 10),
-                      child: FlatButton.icon(
-                        color: Colors.red,
-                        textColor: Colors.white,
-                        label: Text("UNDO"),
-                        icon: Icon(Icons.undo),
-                        onPressed: () {
-                          myDrawing.undoLastPath();
-                        },
+                      Container(height: 10),
+                      UndoButton(
+                        onPressed: () => myDrawing.undoLastPath(),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10, right: 10),
-                      child: FlatButton.icon(
-                        color: Colors.green,
-                        textColor: Colors.white,
-                        label: Text("REDO"),
-                        icon: Icon(Icons.redo),
-                        onPressed: () {
-                          myDrawing.redoLastUndonePath();
-                        },
+                      Container(height: 10),
+                      RedoButton(
+                        onPressed: () => myDrawing.redoLastUndonePath(),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10, right: 10),
-                      child: FlatButton.icon(
-                        color: Colors.green,
-                        textColor: Colors.white,
-                        label: Text("SUBMIT"),
-                        icon: Icon(Icons.cloud_upload),
+                      Container(height: 10),
+                      DeleteButton(
+                        onPressed: () => myDrawing.clearDrawing(),
+                      ),
+                      Container(height: 10),
+                      DoneButton(
                         onPressed: () async {
                           if (myDrawing.getPaths().isEmpty) {
                             /// TODO: Felmeddelande om man försöker lämna in en tom ritning
@@ -118,165 +93,45 @@ class _DrawingControlsState extends State<DrawingControls> {
                           }
                         },
                       ),
-                    ),
-                  ],
-                ],
-              ),
-              if (drawingState.showButtons)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Container(
-                      color: Colors.grey[300],
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            Column(
-                              children: <Widget>[
-                                Container(height: 10, width: 10),
-                                IconButton(
-                                  iconSize: 40,
-                                  icon: Icon(Icons.add_circle_outline),
-                                  onPressed: () {
-                                    if (myDrawing.paint.strokeWidth > 40) {
-                                      return;
-                                    }
-
-                                    myDrawing.paint = Paint()
-                                      ..color = myDrawing.paint.color
-                                      ..strokeWidth = myDrawing.paint.strokeWidth + 4
-                                      ..strokeCap = StrokeCap.round
-                                      ..strokeJoin = StrokeJoin.round
-                                      ..style = PaintingStyle.stroke;
-                                  },
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 10, bottom: 10),
-                                  child: Container(
-                                    width: myDrawing.paint.strokeWidth,
-                                    height: myDrawing.paint.strokeWidth,
-                                    decoration: BoxDecoration(
-                                      color: myDrawing.paint.color,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  iconSize: 40,
-                                  icon: Icon(Icons.remove_circle_outline),
-                                  onPressed: () {
-                                    if (myDrawing.paint.strokeWidth < 8) {
-                                      return;
-                                    }
-                                    myDrawing.paint = Paint()
-                                      ..color = myDrawing.paint.color
-                                      ..strokeWidth = myDrawing.paint.strokeWidth - 4
-                                      ..strokeCap = StrokeCap.round
-                                      ..strokeJoin = StrokeJoin.round
-                                      ..style = PaintingStyle.stroke;
-                                  },
-                                ),
-                                Container(height: 10, width: 10),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    ColorPicker(),
+                      Container(height: 10),
+                    ],
                   ],
                 ),
-            ],
+                if (drawingState.showBrushSettings) BrushControls(),
+              ],
+            ),
           ),
       ],
     );
   }
 }
 
-class ColorPicker extends StatelessWidget {
+class BrushControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
     final myDrawing = Provider.of<DrawingStorage>(context);
 
-    return Container(
-      color: Colors.grey[300],
-      width: MediaQuery.of(context).size.width * 0.8,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 16, bottom: 16),
-        child: Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
-          children: <Widget>[
-            _circleColor(monsterBackgroundColor, context),
-            _circleColor(Colors.black, context),
-            _circleColor(Colors.brown[500], context),
-            _circleColor(Colors.red[500], context),
-            _circleColor(Colors.pink[200], context),
-            _circleColor(Colors.orange[500], context),
-            _circleColor(Colors.yellow[500], context),
-            _circleColor(Colors.purple[500], context),
-            _circleColor(Colors.blue[500], context),
-            _circleColor(Colors.cyan[500], context),
-            _circleColor(Colors.green[500], context),
-            _circleColor(Colors.lightGreenAccent[200], context),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _circleColor(Color color, BuildContext context) {
-    final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
-
-    return CircleColor(
-      color: color,
-      isSelected: color == myDrawing.paint.color,
-      onColorChoose: () {
-        myDrawing.paint = Paint()
-          ..color = color
-          ..strokeWidth = myDrawing.paint.strokeWidth
-          ..strokeCap = myDrawing.paint.strokeCap
-          ..strokeJoin = myDrawing.paint.strokeJoin
-          ..style = myDrawing.paint.style;
-      },
-    );
-  }
-}
-
-class CircleColor extends StatelessWidget {
-  final double circleSize = 50;
-  final bool isSelected;
-  final Color color;
-  final VoidCallback onColorChoose;
-
-  const CircleColor({
-    Key key,
-    @required this.color,
-    this.onColorChoose,
-    this.isSelected = false,
-  })  : assert(color != null, "You must provide a not null Color"),
-        super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final brightness = ThemeData.estimateBrightnessForColor(color);
-    final icon = brightness == Brightness.light ? Colors.black : Colors.white;
-
-    return GestureDetector(
-      onTap: onColorChoose,
-      child: Material(
-        elevation: 2,
-        shape: const CircleBorder(),
-        child: CircleAvatar(
-          radius: circleSize / 2,
-          backgroundColor: color,
-          child: isSelected ? Icon(Icons.check, color: icon) : null,
-        ),
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          GameColorPicker(
+            onTap: (color) {
+              myDrawing.paint = Paint()
+                ..color = color
+                ..strokeWidth = myDrawing.paint.strokeWidth
+                ..strokeCap = myDrawing.paint.strokeCap
+                ..strokeJoin = myDrawing.paint.strokeJoin
+                ..style = myDrawing.paint.style;
+            },
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 20 + ((size.height - 70) / 6) / 4),
+            child: BrushSizeSlider(),
+          ),
+        ],
       ),
     );
   }

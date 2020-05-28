@@ -3,12 +3,27 @@ import 'package:flutter/material.dart';
 import 'colors.dart';
 
 class GameColorPicker extends StatelessWidget {
+  final void Function(Color) onTap;
+
+  const GameColorPicker({Key key, @required this.onTap}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      children: <Widget>[
-        for (final color in brushColors) _ColorGameButton(color: color),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, top: 10),
+      child: Wrap(
+        runSpacing: 10,
+        children: <Widget>[
+          for (final color in brushColors)
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: _ColorGameButton(
+                color: color,
+                onTap: () => onTap(color),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -21,11 +36,13 @@ class _ColorGameButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 40,
-        width: 40,
+        height: (size.height - 70) / 6,
+        width: (size.height - 70) / 6,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: color,
