@@ -288,18 +288,6 @@ class _FinishedScreenState extends State<FinishedScreen> {
     );
   }
 
-  Widget _exitButton() {
-    return FlatButton(
-      color: Colors.redAccent,
-      textColor: Colors.white,
-      child: Text('QUIT GAME'),
-      onPressed: () {
-        Provider.of<GameState>(context, listen: false).clearCurrentRoomCode();
-        Navigator.of(context).pushReplacementNamed('/');
-      },
-    );
-  }
-
   Widget _controls() {
     final _db = DatabaseService.instance;
     final double padding = 4;

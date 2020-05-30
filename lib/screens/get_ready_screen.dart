@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -16,15 +15,7 @@ class GetReadyScreen extends StatefulWidget {
 }
 
 class _GetReadyScreenState extends State<GetReadyScreen> {
-  String _firstInstruction =
-      'Turn your phone this way! \n Everyone will make 3 drawings (top, middle, bottom parts). \n These will be stitched together to become monsters! \n The dashed lines indicates what part of your drawing will be visible to the next person when they continue the drawing.';
-  String _secondInstruction =
-      "Now you will draw a middle part to continue the top drawing of another player, you will only see a small sliver of their drawing, but make sure you connect your drawings!";
-  String _thirdInstruction = "Now it's time for the last drawing! Draw the bottom and finish this monster!";
-
   final _db = DatabaseService.instance;
-  bool _allTopDrawingsDone = false;
-  bool _allMidDrawingsDone = false;
 
   @override
   initState() {
