@@ -75,40 +75,22 @@ class _FinishedScreenState extends State<FinishedScreen> {
   }
 
   void _calculate(Size size) {
-    print("0");
     if (monsterKey.currentContext != null) {
-      print("1");
       RenderBox renderBox = monsterKey.currentContext.findRenderObject();
       monsterSize = renderBox.size;
 
       _outputWidth = size.width - 20;
       _outputHeight = _outputWidth * (2 / 3);
-      print(_outputHeight);
-      print(_outputWidth);
-
-      print('monsterSize:');
-      print(monsterSize.height);
-      print(_outputHeight * (5 / 6) * 3);
 
       if (_outputHeight * (5 / 6) * 3 > monsterSize.height) {
-        print("3");
         _outputHeight = monsterSize.height * (6 / 16);
         _outputWidth = monsterSize.height * (6 / 16) * (3 / 2);
       }
-      print(_outputHeight);
-      print(_outputWidth);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    /*final Size size = MediaQuery.of(context).size;
-    _calculate(size);
-
-    if (monsterSize == null) {
-      //Future.delayed(Duration(milliseconds: 10)).then((value) => setState(() {}));
-    }*/
-
     final Size size = MediaQuery.of(context).size;
     final GameState gameState = Provider.of<GameState>(context);
 
@@ -183,7 +165,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
                           );
                         },
                       ),
-                      ShareButton(onPressed: () {}),
+                      //ShareButton(onPressed: () {}), //TODO: Implement share functionality
                     ],
                   ),
                 ),
@@ -294,49 +276,52 @@ class _FinishedScreenState extends State<FinishedScreen> {
     final double edgePadding = 2;
 
     return FittedBox(
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: <Widget>[
-          Container(width: edgePadding),
-          PlayButton(
-            onPressed: () {
-              _db.setAnimation(true, room: _room);
-            },
-          ),
-          Container(width: padding),
-          StopButton(
-            onPressed: () {
-              _db.setAnimation(false, room: _room);
-            },
-          ),
-          Container(width: padding),
-          PreviousButton(
-            onPressed: () {
-              if (_hostIndex > 1) {
-                _hostIndex--;
-                _db.setMonsterIndex(_hostIndex, room: _room);
-              }
-            },
-          ),
-          Container(width: padding),
-          NextButton(
-            onPressed: () {
-              if (_hostIndex < 3) {
-                _hostIndex++;
-                _db.setMonsterIndex(_hostIndex, room: _room);
-              }
-            },
-          ),
-          Container(width: padding),
-          AnimateOrderButton(
-            animatingOneByOne: !_room.animateAllAtOnce,
-            onPressed: () {
-              _db.setAnimateAllAtOnce(!_room.animateAllAtOnce, room: _room);
-            },
-          ),
-          Container(width: edgePadding),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            Container(width: edgePadding),
+            PlayButton(
+              onPressed: () {
+                _db.setAnimation(true, room: _room);
+              },
+            ),
+            Container(width: padding),
+            StopButton(
+              onPressed: () {
+                _db.setAnimation(false, room: _room);
+              },
+            ),
+            Container(width: padding),
+            PreviousButton(
+              onPressed: () {
+                if (_hostIndex > 1) {
+                  _hostIndex--;
+                  _db.setMonsterIndex(_hostIndex, room: _room);
+                }
+              },
+            ),
+            Container(width: padding),
+            NextButton(
+              onPressed: () {
+                if (_hostIndex < 3) {
+                  _hostIndex++;
+                  _db.setMonsterIndex(_hostIndex, room: _room);
+                }
+              },
+            ),
+            Container(width: padding),
+            AnimateOrderButton(
+              animatingOneByOne: !_room.animateAllAtOnce,
+              onPressed: () {
+                _db.setAnimateAllAtOnce(!_room.animateAllAtOnce, room: _room);
+              },
+            ),
+            Container(width: edgePadding),
+          ],
+        ),
       ),
     );
   }
@@ -345,9 +330,11 @@ class _FinishedScreenState extends State<FinishedScreen> {
     _clearCanvas = false;
     _runTopAnimation = true;
     if (_room.animateAllAtOnce) {
+      _duration = Duration(seconds: 2);
       _runMidAnimation = true;
       _runBottomAnimation = true;
     } else {
+      _duration = Duration(seconds: 1);
       _runMidAnimation = false;
       _runBottomAnimation = false;
     }

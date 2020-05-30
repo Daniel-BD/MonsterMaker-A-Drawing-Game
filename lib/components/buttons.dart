@@ -113,6 +113,7 @@ class PlayButton extends StatelessWidget {
       onPressed: onPressed,
       icon: Icons.play_arrow,
       buttonColor: green,
+      isMonsterControl: true,
     );
   }
 }
@@ -128,6 +129,7 @@ class StopButton extends StatelessWidget {
       onPressed: onPressed,
       icon: Icons.stop,
       buttonColor: blue,
+      isMonsterControl: true,
     );
   }
 }
@@ -143,6 +145,7 @@ class PreviousButton extends StatelessWidget {
       onPressed: onPressed,
       icon: Icons.skip_previous,
       buttonColor: blue,
+      isMonsterControl: true,
     );
   }
 }
@@ -158,6 +161,7 @@ class NextButton extends StatelessWidget {
       onPressed: onPressed,
       icon: Icons.skip_next,
       buttonColor: blue,
+      isMonsterControl: true,
     );
   }
 }
@@ -184,7 +188,7 @@ class AnimateOrderButton extends StatelessWidget {
     return _GameButton(
       onPressed: onPressed,
       color: blue,
-      height: 40,
+      height: 50,
       width: 150,
       child: FittedBox(
         child: Column(
@@ -456,23 +460,26 @@ class _RoundGameButton extends StatelessWidget {
   final IconData icon;
   final Color buttonColor;
   final GestureTapCallback onPressed;
+  final bool isMonsterControl;
 
   _RoundGameButton({
     @required this.onPressed,
     @required this.icon,
     @required this.buttonColor,
+    this.isMonsterControl = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final double luminance = buttonColor.computeLuminance();
     final Size size = MediaQuery.of(context).size;
+    final double diameter = isMonsterControl ? 50 : (size.height - 70) / 6;
 
     return _GameButton(
       onPressed: onPressed,
       circular: true,
-      height: (size.height - 70) / 6,
-      width: (size.height - 70) / 6,
+      height: diameter,
+      width: diameter,
       color: buttonColor,
       shadowHeight: 2,
       child: Icon(
