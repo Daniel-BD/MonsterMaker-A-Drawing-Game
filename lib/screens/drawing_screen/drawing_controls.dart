@@ -11,6 +11,7 @@ import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/components/buttons.dart';
 import 'package:exquisitecorpse/components/color_picker.dart';
 import 'package:exquisitecorpse/components/brush_size_slider.dart';
+import 'package:exquisitecorpse/components/modal_message.dart';
 
 /// This widget is messy by design, it's temporary and will be redesigned later on
 class DrawingControls extends StatefulWidget {
@@ -25,8 +26,6 @@ class _DrawingControlsState extends State<DrawingControls> {
   Widget build(BuildContext context) {
     final drawingState = Provider.of<DrawingState>(context);
     final myDrawing = Provider.of<DrawingStorage>(context);
-    final String roomCode = Provider.of<GameState>(context).currentRoomCode;
-    final gameRoom = Provider.of<GameRoom>(context);
 
     return Stack(
       children: <Widget>[
@@ -65,32 +64,30 @@ class _DrawingControlsState extends State<DrawingControls> {
                         ),
                         Container(height: 10),
                         DeleteButton(
-                          onPressed: () => myDrawing.clearDrawing(),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => ClearDrawingGameModal(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  myDrawing.clearDrawing();
+                                },
+                              ),
+                            );
+                          },
                         ),
                         Container(height: 10),
                         DoneButton(
-                          onPressed: () async {
-                            if (myDrawing.getPaths().isEmpty) {
-                              /// TODO: Felmeddelande om man försöker lämna in en tom ritning
-                              return;
-                            }
-                            final db = DatabaseService.instance;
-                            drawingState.loadingHandIn = true;
-                            var success = await db.handInDrawing(roomCode: roomCode, drawing: jsonEncode(myDrawing.toJson()));
-                            assert(success, 'Could not hand in drawing!');
-
-                            /// TODO: Felmeddelande om man det misslyckas...
-                            drawingState.loadingHandIn = false;
-                            if (success) {
-                              /// Setting this property to null, since we don't want to use the drawing downloaded last anymore
-                              Provider.of<OtherPlayerDrawing>(context, listen: false).drawing = null;
-                              if (gameRoom.allMidDrawingsDone()) {
-                                Navigator.of(context).pushReplacementNamed('/finishedScreen');
-                              } else {
-                                myDrawing.clearDrawing();
-                                Navigator.of(context).pushReplacementNamed('/getReadyScreen');
-                              }
-                            }
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => DoneDrawingGameModal(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  _submitDrawing();
+                                },
+                              ),
+                            );
                           },
                         ),
                         Container(height: 10),
@@ -104,6 +101,35 @@ class _DrawingControlsState extends State<DrawingControls> {
           ),
       ],
     );
+  }
+
+  void _submitDrawing() async {
+    final String roomCode = Provider.of<GameState>(context, listen: false).currentRoomCode;
+    final gameRoom = Provider.of<GameRoom>(context, listen: false);
+    final drawingState = Provider.of<DrawingState>(context, listen: false);
+    final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
+
+    if (myDrawing.getPaths().isEmpty) {
+      /// TODO: Felmeddelande om man försöker lämna in en tom ritning
+      return;
+    }
+    final db = DatabaseService.instance;
+    drawingState.loadingHandIn = true;
+    var success = await db.handInDrawing(roomCode: roomCode, drawing: jsonEncode(myDrawing.toJson()));
+    assert(success, 'Could not hand in drawing!');
+
+    /// TODO: Felmeddelande om man det misslyckas...
+    drawingState.loadingHandIn = false;
+    if (success) {
+      /// Setting this property to null, since we don't want to use the drawing downloaded last anymore
+      Provider.of<OtherPlayerDrawing>(context, listen: false).drawing = null;
+      if (gameRoom.allMidDrawingsDone()) {
+        Navigator.of(context).pushReplacementNamed('/finishedScreen');
+      } else {
+        myDrawing.clearDrawing();
+        Navigator.of(context).pushReplacementNamed('/getReadyScreen');
+      }
+    }
   }
 }
 
