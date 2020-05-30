@@ -13,7 +13,6 @@ import 'package:exquisitecorpse/components/color_picker.dart';
 import 'package:exquisitecorpse/components/brush_size_slider.dart';
 import 'package:exquisitecorpse/components/modal_message.dart';
 
-/// This widget is messy by design, it's temporary and will be redesigned later on
 class DrawingControls extends StatefulWidget {
   DrawingControls({Key key}) : super(key: key);
 
@@ -49,49 +48,57 @@ class _DrawingControlsState extends State<DrawingControls> {
                         onPressed: () => drawingState.showButtons = !drawingState.showButtons,
                         controlsVisible: drawingState.showButtons,
                       ),
-                      if (drawingState.showButtons) ...[
-                        Container(height: 10),
-                        BrushButton(
-                          onPressed: () => drawingState.showBrushSettings = !drawingState.showBrushSettings,
+                      Visibility(
+                        visible: drawingState.showButtons,
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        child: Column(
+                          children: <Widget>[
+                            Container(height: 10),
+                            BrushButton(
+                              onPressed: () => drawingState.showBrushSettings = !drawingState.showBrushSettings,
+                            ),
+                            Container(height: 10),
+                            UndoButton(
+                              onPressed: () => myDrawing.undoLastPath(),
+                            ),
+                            Container(height: 10),
+                            RedoButton(
+                              onPressed: () => myDrawing.redoLastUndonePath(),
+                            ),
+                            Container(height: 10),
+                            DeleteButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => ClearDrawingGameModal(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      myDrawing.clearDrawing();
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            Container(height: 10),
+                            DoneButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => DoneDrawingGameModal(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      _submitDrawing();
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            Container(height: 10),
+                          ],
                         ),
-                        Container(height: 10),
-                        UndoButton(
-                          onPressed: () => myDrawing.undoLastPath(),
-                        ),
-                        Container(height: 10),
-                        RedoButton(
-                          onPressed: () => myDrawing.redoLastUndonePath(),
-                        ),
-                        Container(height: 10),
-                        DeleteButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => ClearDrawingGameModal(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  myDrawing.clearDrawing();
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                        Container(height: 10),
-                        DoneButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => DoneDrawingGameModal(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  _submitDrawing();
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                        Container(height: 10),
-                      ],
+                      ),
                     ],
                   ),
                 ),

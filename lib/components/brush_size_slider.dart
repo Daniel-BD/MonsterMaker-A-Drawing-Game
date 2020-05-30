@@ -12,22 +12,27 @@ class BrushSizeSlider extends StatefulWidget {
 }
 
 class _BrushSizeSliderState extends State<BrushSizeSlider> {
-  Color _lastColor = Colors.black;
+  Color _lastColor;
 
-  void _timerToHideDot(double valueWhenCalled) {
+  @override
+  void initState() {
+    final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
+    _lastColor = myDrawing.paint.color;
+    super.initState();
+  }
+
+  void _timerToHideDot(double valueWhenCalled, Color colorWhenCalled) {
     final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
     final drawingState = Provider.of<DrawingState>(context, listen: false);
 
     Future.delayed(Duration(milliseconds: 800)).then((_) {
-      if (num.parse(myDrawing.paint.strokeWidth.toStringAsFixed(4)) == valueWhenCalled) {
+      if (num.parse(myDrawing.paint.strokeWidth.toStringAsFixed(4)) == valueWhenCalled && myDrawing.paint.color == colorWhenCalled) {
         drawingState.showDot = false;
-        Future.delayed(Duration(milliseconds: 95)).then(
-          (_) {
-            if (num.parse(myDrawing.paint.strokeWidth.toStringAsFixed(4)) == valueWhenCalled) {
-              drawingState.transparentDot = true;
-            }
-          },
-        );
+        Future.delayed(Duration(milliseconds: 95)).then((_) {
+          if (num.parse(myDrawing.paint.strokeWidth.toStringAsFixed(4)) == valueWhenCalled && myDrawing.paint.color == colorWhenCalled) {
+            drawingState.transparentDot = true;
+          }
+        });
       }
     });
   }
@@ -39,7 +44,7 @@ class _BrushSizeSliderState extends State<BrushSizeSlider> {
 
     drawingState.onChangeStart();
     drawingState.timerOn = true;
-    _timerToHideDot(num.parse(myDrawing.paint.strokeWidth.toStringAsFixed(4)));
+    _timerToHideDot(num.parse(myDrawing.paint.strokeWidth.toStringAsFixed(4)), myDrawing.paint.color);
   }
 
   @override
@@ -120,7 +125,7 @@ class _BrushSizeSliderState extends State<BrushSizeSlider> {
                       },
                       onChangeEnd: (value) {
                         drawingState.timerOn = true;
-                        _timerToHideDot(num.parse(value.toStringAsFixed(4)));
+                        _timerToHideDot(num.parse(value.toStringAsFixed(4)), myDrawing.paint.color);
                       },
                     ),
                   ),
