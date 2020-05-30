@@ -7,7 +7,6 @@ import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/drawing_storage.dart';
 import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/db.dart';
-import 'package:exquisitecorpse/components/colors.dart';
 
 import 'package:exquisitecorpse/components/buttons.dart';
 import 'package:exquisitecorpse/components/color_picker.dart';
@@ -41,61 +40,63 @@ class _DrawingControlsState extends State<DrawingControls> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Column(
-                  mainAxisAlignment: drawingState.showButtons ? MainAxisAlignment.center : MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Container(height: 10),
-                    HideShowControlsButton(
-                      onPressed: () => drawingState.showButtons = !drawingState.showButtons,
-                      controlsVisible: drawingState.showButtons,
-                    ),
-                    if (drawingState.showButtons) ...[
+                FittedBox(
+                  child: Column(
+                    mainAxisAlignment: drawingState.showButtons ? MainAxisAlignment.center : MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
                       Container(height: 10),
-                      BrushButton(
-                        onPressed: () => drawingState.showBrushSettings = !drawingState.showBrushSettings,
+                      HideShowControlsButton(
+                        onPressed: () => drawingState.showButtons = !drawingState.showButtons,
+                        controlsVisible: drawingState.showButtons,
                       ),
-                      Container(height: 10),
-                      UndoButton(
-                        onPressed: () => myDrawing.undoLastPath(),
-                      ),
-                      Container(height: 10),
-                      RedoButton(
-                        onPressed: () => myDrawing.redoLastUndonePath(),
-                      ),
-                      Container(height: 10),
-                      DeleteButton(
-                        onPressed: () => myDrawing.clearDrawing(),
-                      ),
-                      Container(height: 10),
-                      DoneButton(
-                        onPressed: () async {
-                          if (myDrawing.getPaths().isEmpty) {
-                            /// TODO: Felmeddelande om man försöker lämna in en tom ritning
-                            return;
-                          }
-                          final db = DatabaseService.instance;
-                          drawingState.loadingHandIn = true;
-                          var success = await db.handInDrawing(roomCode: roomCode, drawing: jsonEncode(myDrawing.toJson()));
-                          assert(success, 'Could not hand in drawing!');
-
-                          /// TODO: Felmeddelande om man det misslyckas...
-                          drawingState.loadingHandIn = false;
-                          if (success) {
-                            /// Setting this property to null, since we don't want to use the drawing downloaded last anymore
-                            Provider.of<OtherPlayerDrawing>(context, listen: false).drawing = null;
-                            if (gameRoom.allMidDrawingsDone()) {
-                              Navigator.of(context).pushReplacementNamed('/finishedScreen');
-                            } else {
-                              myDrawing.clearDrawing();
-                              Navigator.of(context).pushReplacementNamed('/getReadyScreen');
+                      if (drawingState.showButtons) ...[
+                        Container(height: 10),
+                        BrushButton(
+                          onPressed: () => drawingState.showBrushSettings = !drawingState.showBrushSettings,
+                        ),
+                        Container(height: 10),
+                        UndoButton(
+                          onPressed: () => myDrawing.undoLastPath(),
+                        ),
+                        Container(height: 10),
+                        RedoButton(
+                          onPressed: () => myDrawing.redoLastUndonePath(),
+                        ),
+                        Container(height: 10),
+                        DeleteButton(
+                          onPressed: () => myDrawing.clearDrawing(),
+                        ),
+                        Container(height: 10),
+                        DoneButton(
+                          onPressed: () async {
+                            if (myDrawing.getPaths().isEmpty) {
+                              /// TODO: Felmeddelande om man försöker lämna in en tom ritning
+                              return;
                             }
-                          }
-                        },
-                      ),
-                      Container(height: 10),
+                            final db = DatabaseService.instance;
+                            drawingState.loadingHandIn = true;
+                            var success = await db.handInDrawing(roomCode: roomCode, drawing: jsonEncode(myDrawing.toJson()));
+                            assert(success, 'Could not hand in drawing!');
+
+                            /// TODO: Felmeddelande om man det misslyckas...
+                            drawingState.loadingHandIn = false;
+                            if (success) {
+                              /// Setting this property to null, since we don't want to use the drawing downloaded last anymore
+                              Provider.of<OtherPlayerDrawing>(context, listen: false).drawing = null;
+                              if (gameRoom.allMidDrawingsDone()) {
+                                Navigator.of(context).pushReplacementNamed('/finishedScreen');
+                              } else {
+                                myDrawing.clearDrawing();
+                                Navigator.of(context).pushReplacementNamed('/getReadyScreen');
+                              }
+                            }
+                          },
+                        ),
+                        Container(height: 10),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
                 if (drawingState.showBrushSettings) BrushControls(),
               ],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:exquisitecorpse/drawing_storage.dart';
+import 'package:exquisitecorpse/game_state.dart';
 import 'colors.dart';
 
 class BrushSizeSlider extends StatefulWidget {
@@ -11,33 +12,46 @@ class BrushSizeSlider extends StatefulWidget {
 }
 
 class _BrushSizeSliderState extends State<BrushSizeSlider> {
-  bool showDot = false;
-  bool transparentDot = true;
-  bool timerOn = false;
+  Color _lastColor = Colors.black;
 
-  void _timerToHideDot(double valueWhenCalled, BuildContext context) {
+  void _timerToHideDot(double valueWhenCalled) {
     final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
+    final drawingState = Provider.of<DrawingState>(context, listen: false);
 
     Future.delayed(Duration(milliseconds: 800)).then((_) {
-      if (myDrawing.paint.strokeWidth == valueWhenCalled) {
-        setState(() {
-          showDot = false;
-        });
-        Future.delayed(Duration(milliseconds: 95)).then((_) {
-          if (myDrawing.paint.strokeWidth == valueWhenCalled) {
-            setState(() {
-              transparentDot = true;
-            });
-          }
-        });
+      if (num.parse(myDrawing.paint.strokeWidth.toStringAsFixed(4)) == valueWhenCalled) {
+        drawingState.showDot = false;
+        Future.delayed(Duration(milliseconds: 95)).then(
+          (_) {
+            if (num.parse(myDrawing.paint.strokeWidth.toStringAsFixed(4)) == valueWhenCalled) {
+              drawingState.transparentDot = true;
+            }
+          },
+        );
       }
     });
+  }
+
+  void _colorChange() async {
+    await Future.delayed(Duration(milliseconds: 10));
+    final drawingState = Provider.of<DrawingState>(context, listen: false);
+    final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
+
+    drawingState.onChangeStart();
+    drawingState.timerOn = true;
+    _timerToHideDot(num.parse(myDrawing.paint.strokeWidth.toStringAsFixed(4)));
   }
 
   @override
   Widget build(BuildContext context) {
     final myDrawing = Provider.of<DrawingStorage>(context);
+    final drawingState = Provider.of<DrawingState>(context);
     double paintSize = myDrawing.paint.strokeWidth;
+
+    if (_lastColor != myDrawing.paint.color) {
+      _lastColor = myDrawing.paint.color;
+      _colorChange();
+    }
 
     return Container(
       height: 200,
@@ -59,13 +73,14 @@ class _BrushSizeSliderState extends State<BrushSizeSlider> {
               alignment: Alignment.bottomRight,
               child: AnimatedPadding(
                 duration: Duration(milliseconds: 100),
-                padding: EdgeInsets.only(bottom: showDot ? 100 : 0, right: 24 + ((paintSize - 10) * 4.3)),
+                padding: EdgeInsets.only(bottom: drawingState.showDot ? 100 : 0, right: 55 + ((paintSize - 10) * 2.9)),
                 child: Container(
                   height: paintSize,
                   width: paintSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: transparentDot ? Colors.transparent : myDrawing.paint.color,
+                    color: drawingState.transparentDot ? Colors.transparent : myDrawing.paint.color,
+                    border: (!drawingState.transparentDot && myDrawing.paint.color == paper) ? Border.all(color: Colors.black) : null,
                   ),
                 ),
               ),
@@ -73,7 +88,7 @@ class _BrushSizeSliderState extends State<BrushSizeSlider> {
             RotatedBox(
               quarterTurns: 2,
               child: Padding(
-                padding: const EdgeInsets.only(left: 22),
+                padding: const EdgeInsets.only(left: 40),
                 child: Container(
                   height: 20,
                   width: 164,
@@ -81,33 +96,31 @@ class _BrushSizeSliderState extends State<BrushSizeSlider> {
                     data: SliderThemeData(
                       trackHeight: 0,
                       overlayShape: RoundSliderOverlayShape(overlayRadius: 0.0),
-                      thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10.0),
+                      thumbShape: RoundSliderThumbShape(enabledThumbRadius: 20.0),
                       thumbColor: Colors.black,
                     ),
                     child: Slider(
-                      min: 10,
+                      min: 5,
                       max: 40,
-                      onChanged: (val) {
-                        setState(() {
-                          myDrawing.paint = Paint()
-                            ..color = myDrawing.paint.color
-                            ..strokeWidth = val
-                            ..strokeCap = myDrawing.paint.strokeCap
-                            ..strokeJoin = myDrawing.paint.strokeJoin
-                            ..style = myDrawing.paint.style;
-                        });
+                      onChanged: (value) {
+                        setState(
+                          () {
+                            myDrawing.paint = Paint()
+                              ..color = myDrawing.paint.color
+                              ..strokeWidth = num.parse(value.toStringAsFixed(4))
+                              ..strokeCap = myDrawing.paint.strokeCap
+                              ..strokeJoin = myDrawing.paint.strokeJoin
+                              ..style = myDrawing.paint.style;
+                          },
+                        );
                       },
                       value: myDrawing.paint.strokeWidth,
                       onChangeStart: (_) {
-                        setState(() {
-                          transparentDot = false;
-                          timerOn = false;
-                          showDot = true;
-                        });
+                        drawingState.onChangeStart();
                       },
                       onChangeEnd: (value) {
-                        timerOn = true;
-                        _timerToHideDot(value, context);
+                        drawingState.timerOn = true;
+                        _timerToHideDot(num.parse(value.toStringAsFixed(4)));
                       },
                     ),
                   ),
