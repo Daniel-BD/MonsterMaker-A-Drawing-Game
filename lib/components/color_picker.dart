@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 import 'colors.dart';
 
@@ -9,21 +10,18 @@ class GameColorPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20, top: 10),
-      child: Wrap(
-        runSpacing: 10,
-        children: <Widget>[
-          for (final color in brushColors)
-            Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: _ColorGameButton(
-                color: color,
-                onTap: () => onTap(color),
-              ),
+    return Wrap(
+      runSpacing: 10,
+      children: <Widget>[
+        for (final color in brushColors)
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: _ColorGameButton(
+              color: color,
+              onTap: () => onTap(color),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
@@ -41,8 +39,8 @@ class _ColorGameButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: (size.height - 70) / 6,
-        width: (size.height - 70) / 6,
+        height: min(((size.height - 70) / 6), 80),
+        width: min(((size.height - 70) / 6), 80),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: color,

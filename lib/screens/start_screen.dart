@@ -59,6 +59,7 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
                 onPressed: () {
                   setState(() {
                     _inputtingRoomCode = false;
+                    _roomCodeController.clear();
                   });
                 },
               )

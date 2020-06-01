@@ -68,7 +68,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
               return Provider<GameRoom>.value(
                 value: room,
                 child: Stack(
-                  alignment: AlignmentDirectional.bottomStart,
+                  alignment: AlignmentDirectional.topStart,
                   children: <Widget>[
                     Align(
                       alignment: Alignment.centerRight,
@@ -167,7 +167,8 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
               OverlapDashedLines(),
               if (otherPlayerDrawing != null)
                 Positioned(
-                  top: -size.height * (5 / 6),
+                  top: -(myDrawing.height *
+                      (5 / 6)), //myDrawing.height < size.height ? -(myDrawing.height * (5 / 6)) : -size.height * (5 / 6),
                   child: Container(
                     width: size.width,
                     child: ClipRect(

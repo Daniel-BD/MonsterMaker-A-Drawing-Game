@@ -62,6 +62,7 @@ class _GameTextFieldState extends State<GameTextField> {
         ),
       ),
       child: TextField(
+        autocorrect: false,
         focusNode: focus,
         controller: widget.controller,
         textAlign: TextAlign.center,

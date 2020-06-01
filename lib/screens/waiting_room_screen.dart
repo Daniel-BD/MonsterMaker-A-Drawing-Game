@@ -52,52 +52,46 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
         child: StreamBuilder<GameRoom>(
           stream: _db.streamWaitingRoom(roomCode: roomCode),
           builder: (context, snapshot) {
-            if (snapshot.data == null) {
+            if (snapshot.data == null || _loading) {
               return Center(
                 child: CircularProgressIndicator(),
               );
             }
 
-            return _loading
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            return Column(
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    LeaveGameButton(
+                      onPressed: () {
+                        _db.leaveRoom(roomCode: snapshot.data.roomCode).then((value) {
+                          if (value) {
+                            Navigator.of(context).pushReplacementNamed('/');
+                          }
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: <Widget>[
-                              LeaveGameButton(
-                                onPressed: () {
-                                  _db.leaveRoom(roomCode: snapshot.data.roomCode).then((value) {
-                                    if (value) {
-                                      Navigator.of(context).pushReplacementNamed('/');
-                                    }
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12, bottom: 30),
-                            child: RoomCodeInfo(roomCode: snapshot.data.roomCode),
-                          ),
-                          WaitingRoomText(playersReady: snapshot.data.activePlayers, isHost: snapshot.data.isHost),
-                        ],
-                      ),
+                      RoomCodeInfo(roomCode: snapshot.data.roomCode),
+                      WaitingRoomText(playersReady: snapshot.data.activePlayers, isHost: snapshot.data.isHost),
                       if (snapshot.data.isHost && startGame(snapshot) != null)
                         Padding(
-                          padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 4),
+                          padding: EdgeInsets.only(top: 20),
                           child: GreenGameButton(
                             label: "START GAME",
                             onPressed: startGame(snapshot),
                           ),
                         ),
                     ],
-                  );
+                  ),
+                ),
+              ],
+            );
           },
         ),
       ),

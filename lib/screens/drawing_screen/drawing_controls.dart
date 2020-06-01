@@ -143,13 +143,13 @@ class _DrawingControlsState extends State<DrawingControls> {
 class BrushControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
     final myDrawing = Provider.of<DrawingStorage>(context);
 
-    return Expanded(
+    return Padding(
+      padding: EdgeInsets.only(left: 20, top: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           GameColorPicker(
             onTap: (color) {
@@ -161,10 +161,8 @@ class BrushControls extends StatelessWidget {
                 ..style = myDrawing.paint.style;
             },
           ),
-          Padding(
-            padding: EdgeInsets.only(left: 20 + ((size.height - 70) / 6) / 4),
-            child: BrushSizeSlider(),
-          ),
+          Container(height: 20),
+          BrushSizeSlider(),
         ],
       ),
     );

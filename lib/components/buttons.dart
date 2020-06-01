@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'dart:math';
 
 import 'colors.dart';
 
@@ -473,7 +474,7 @@ class _RoundGameButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final double luminance = buttonColor.computeLuminance();
     final Size size = MediaQuery.of(context).size;
-    final double diameter = isMonsterControl ? 50 : (size.height - 70) / 6;
+    final double diameter = isMonsterControl ? 50 : min(((size.height - 70) / 6), 80);
 
     return _GameButton(
       onPressed: onPressed,
@@ -484,7 +485,7 @@ class _RoundGameButton extends StatelessWidget {
       shadowHeight: 2,
       child: Icon(
         icon,
-        size: 30,
+        size: diameter * 0.7,
         color: luminance < 0.5 ? brightIcon : darkIcon,
       ),
     );
