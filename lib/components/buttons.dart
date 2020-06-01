@@ -175,7 +175,7 @@ class AnimateOrderButton extends StatelessWidget {
   final style = TextStyle(
     fontFamily: 'Gaegu',
     color: textColor,
-    fontSize: 16,
+    fontSize: 100,
   );
 
   AnimateOrderButton({
@@ -186,11 +186,14 @@ class AnimateOrderButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width / 3;
+
     return _GameButton(
       onPressed: onPressed,
       color: blue,
-      height: 50,
-      width: 150,
+      height: width / 3,
+      width: width,
       child: FittedBox(
         child: Column(
           children: <Widget>[
@@ -474,7 +477,7 @@ class _RoundGameButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final double luminance = buttonColor.computeLuminance();
     final Size size = MediaQuery.of(context).size;
-    final double diameter = isMonsterControl ? 50 : min(((size.height - 70) / 6), 80);
+    final double diameter = isMonsterControl ? size.width / 8 : min(((size.height - 70) / 6), 50); //isMonsterControl ? 50 :
 
     return _GameButton(
       onPressed: onPressed,

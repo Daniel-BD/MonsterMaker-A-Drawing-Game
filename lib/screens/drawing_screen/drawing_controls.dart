@@ -33,13 +33,13 @@ class _DrawingControlsState extends State<DrawingControls> {
             child: CircularProgressIndicator(),
           ),
         if (!drawingState.loadingHandIn)
-          Padding(
-            padding: const EdgeInsets.only(left: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                FittedBox(
-                  child: Column(
+          FittedBox(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Column(
                     mainAxisAlignment: drawingState.showButtons ? MainAxisAlignment.center : MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -101,9 +101,9 @@ class _DrawingControlsState extends State<DrawingControls> {
                       ),
                     ],
                   ),
-                ),
-                if (drawingState.showBrushSettings) BrushControls(),
-              ],
+                  if (drawingState.showBrushSettings) BrushControls(),
+                ],
+              ),
             ),
           ),
       ],
