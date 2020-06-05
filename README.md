@@ -5,7 +5,9 @@
 
 Inspired by the classic game of [exquisite corpse](https://en.wikipedia.org/wiki/Exquisite_corpse), where one person begins drawing and another one continues until a monster has been created!
 
-[![MonsterMaker](https://yt-embed.herokuapp.com/embed?v=LtWeEh5C52g)](https://yt-embed.herokuapp.com/embed?v=LtWeEh5C52g "MonsterMaker")
+
+Video demo of gameplay:
+[![MonsterMaker](https://yt-embed.herokuapp.com/embed?v=LtWeEh5C52g)](https://www.youtube.com/watch?v=LtWeEh5C52g "MonsterMaker")
 
 
 ## Contact
