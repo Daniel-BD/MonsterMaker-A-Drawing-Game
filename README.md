@@ -3,7 +3,7 @@
 
 # MonsterMaker - A Drawing Game
 
-Inspired by the classic game of [exquisite corpse] (https://en.wikipedia.org/wiki/Exquisite_corpse), where one person begins drawing and another one continues until a monster has been created!
+Inspired by the classic game of [exquisite corpse](https://en.wikipedia.org/wiki/Exquisite_corpse), where one person begins drawing and another one continues until a monster has been created!
 
 
 ## Contact
