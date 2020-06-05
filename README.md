@@ -7,6 +7,7 @@ Inspired by the classic game of [exquisite corpse](https://en.wikipedia.org/wiki
 
 
 Video demo of gameplay:
+
 [![MonsterMaker](https://yt-embed.herokuapp.com/embed?v=LtWeEh5C52g)](https://www.youtube.com/watch?v=LtWeEh5C52g "MonsterMaker")
 
 
