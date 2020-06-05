@@ -10,9 +10,10 @@ class MonsterMakerLogo extends StatelessWidget {
       child: Text(
         'MonsterMaker',
         style: TextStyle(
-          fontFamily: 'CraftyGirls',
+          fontFamily: 'Gaegu',
+          fontWeight: FontWeight.w700,
           color: textColor,
-          fontSize: 40,
+          fontSize: 100,
         ),
       ),
     );
