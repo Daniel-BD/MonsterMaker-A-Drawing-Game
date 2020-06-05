@@ -32,11 +32,18 @@ dependencies:
   after_layout: ^1.0.7+2
   home_indicator: ^1.1.5
   flutter_dash: ^0.0.1
-  #animated_button: ^0.1.2
+  flutter_launcher_icons: ^0.7.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+flutter_icons:
+  image_path: "assets/images/app_icon.png"
+  android: true
+  ios: true
+  adaptive_icon_background: "assets/images/background.png"
+  adaptive_icon_foreground: "assets/images/foreground.png"
 
 
 flutter:
