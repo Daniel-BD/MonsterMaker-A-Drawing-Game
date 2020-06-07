@@ -36,7 +36,7 @@ class DatabaseService {
     assert(_deviceID != null || _deviceID is String);
   }
 
-  Stream<GameRoom> streamWaitingRoom({@required String roomCode}) {
+  Stream<GameRoom> streamGameRoom({@required String roomCode}) {
     assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is not null or empty');
     return _db.collection(_home).document(_roomsDoc).collection(roomCode).snapshots().map((room) {
       bool startedGame;
@@ -76,10 +76,13 @@ class DatabaseService {
       assert(midDrawings != null, 'midDrawings null');
       assert(topDrawings != null, 'topDrawings null');
       assert(startedGame != null, 'startedGame is null');
-      assert(isHost != null, 'isHost is null');
-      assert(player != null, 'player is null');
 
-      return GameRoom(
+      if (isHost == null || player == null) {
+        print('returning null');
+        return null;
+      }
+
+      var gameRoom = GameRoom(
         roomCode: roomCode,
         activePlayers: room.documents.length - 1,
         startedGame: startedGame,
@@ -92,6 +95,9 @@ class DatabaseService {
         midDrawings: midDrawings,
         bottomDrawings: bottomDrawings,
       );
+
+      print(gameRoom.toString());
+      return gameRoom;
     });
   }
 
@@ -251,7 +257,7 @@ class DatabaseService {
   }
 
   Future<bool> handInDrawing({@required String roomCode, @required String drawing}) async {
-    GameRoom room = await streamWaitingRoom(roomCode: roomCode).first;
+    GameRoom room = await streamGameRoom(roomCode: roomCode).first;
     bool result = false;
     String position;
 

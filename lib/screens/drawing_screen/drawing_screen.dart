@@ -47,7 +47,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
             Provider<OtherPlayerDrawing>(create: (_) => OtherPlayerDrawing()),
           ],
           child: StreamBuilder<GameRoom>(
-            stream: _db.streamWaitingRoom(roomCode: gameState.currentRoomCode),
+            stream: _db.streamGameRoom(roomCode: gameState.currentRoomCode),
             builder: (context, snapshot) {
               final otherPlayerDrawing = Provider.of<OtherPlayerDrawing>(context, listen: false);
 

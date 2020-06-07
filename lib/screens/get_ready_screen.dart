@@ -34,7 +34,7 @@ class _GetReadyScreenState extends State<GetReadyScreen> {
       backgroundColor: paper,
       body: SafeArea(
         child: StreamBuilder<GameRoom>(
-          stream: _db.streamWaitingRoom(roomCode: gameState.currentRoomCode),
+          stream: _db.streamGameRoom(roomCode: gameState.currentRoomCode),
           builder: (context, snapshot) {
             if (snapshot.data == null) {
               return Center(child: CircularProgressIndicator());

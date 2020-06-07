@@ -29,8 +29,8 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    _stream = _db.streamWaitingRoom(roomCode: Provider.of<GameState>(context, listen: false).currentRoomCode).listen((room) {
-      if (room.startedGame) {
+    _stream = _db.streamGameRoom(roomCode: Provider.of<GameState>(context, listen: false).currentRoomCode).listen((room) {
+      if (room != null && room.startedGame) {
         Navigator.of(context).pushReplacementNamed('/getReadyScreen');
       }
     });
@@ -50,8 +50,8 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
       backgroundColor: paper,
       body: SafeArea(
         child: StreamBuilder<GameRoom>(
-          stream: _db.streamWaitingRoom(roomCode: roomCode),
-          builder: (context, snapshot) {
+          stream: _db.streamGameRoom(roomCode: roomCode),
+          builder: (context2, snapshot) {
             if (snapshot.data == null || _loading) {
               return Center(
                 child: CircularProgressIndicator(),
@@ -64,7 +64,10 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                   children: <Widget>[
                     LeaveGameButton(
                       onPressed: () {
-                        _db.leaveRoom(roomCode: snapshot.data.roomCode).then((value) {
+                        setState(() {
+                          _loading = true;
+                        });
+                        _db.leaveRoom(roomCode: roomCode).then((value) {
                           if (value) {
                             Navigator.of(context).pushReplacementNamed('/');
                           }
@@ -107,8 +110,8 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
         _loading = true;
       });
       bool result = await _db.startGame(room: snapshot.data);
-      if (result) {
-        Navigator.of(context).pushReplacementNamed('/getReadyScreen');
+      if (!result) {
+        ///TODO: Indicate that something went wrong? Or try again maybe?
       }
       setState(() {
         _loading = false;
