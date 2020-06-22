@@ -40,6 +40,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
       backgroundColor: textFieldBackground,
       body: SafeArea(
         bottom: false,
+        top: false,
         child: MultiProvider(
           providers: [
             ChangeNotifierProvider<DrawingState>(create: (_) => DrawingState()),
