@@ -52,32 +52,4 @@ class DrawingState extends ChangeNotifier {
     _loadingHandIn = value;
     notifyListeners();
   }
-
-  bool _showDot = false;
-  get showDot => _showDot;
-  set showDot(bool value) {
-    _showDot = value;
-    notifyListeners();
-  }
-
-  bool _transparentDot = false;
-  get transparentDot => _transparentDot;
-  set transparentDot(bool value) {
-    _transparentDot = value;
-    notifyListeners();
-  }
-
-  bool _timerOn = false;
-  get timerOn => _timerOn;
-  set timerOn(bool value) {
-    _timerOn = value;
-    notifyListeners();
-  }
-
-  void onChangeStart() {
-    _transparentDot = false;
-    _timerOn = false;
-    _showDot = true;
-    notifyListeners();
-  }
 }

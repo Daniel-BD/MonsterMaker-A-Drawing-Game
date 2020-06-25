@@ -95,8 +95,6 @@ class DatabaseService {
         midDrawings: midDrawings,
         bottomDrawings: bottomDrawings,
       );
-
-      print(gameRoom.toString());
       return gameRoom;
     });
   }

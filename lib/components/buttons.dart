@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'dart:math';
 
+import 'package:flutter_icons/flutter_icons.dart';
+
 import 'colors.dart';
 
 /// CANVAS CONTROL BUTTONS
@@ -95,7 +97,7 @@ class BrushButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return _RoundGameButton(
       onPressed: onPressed,
-      icon: Icons.brush,
+      icon: color != paper ? Icons.brush : MaterialCommunityIcons.eraser,
       buttonColor: color,
     );
   }

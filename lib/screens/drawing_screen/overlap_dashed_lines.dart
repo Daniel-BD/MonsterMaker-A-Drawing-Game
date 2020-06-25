@@ -21,14 +21,8 @@ class OverlapDashedLines extends StatelessWidget {
     }
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
-        if (!gameRoom.allTopDrawingsDone()) Container(),
-        if (gameRoom.allTopDrawingsDone())
-          Padding(
-            padding: EdgeInsets.only(top: MediaQuery.of(context).size.height / 6),
-            child: _Dash(),
-          ),
         if (!gameRoom.allMidDrawingsDone())
           Padding(
             padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 6),

@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:exquisitecorpse/components/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:math';
 
 import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/drawing_storage.dart';
@@ -22,6 +24,19 @@ class DrawingControls extends StatefulWidget {
 
 class _DrawingControlsState extends State<DrawingControls> {
   @override
+  void initState() {
+    super.initState();
+    final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
+    final i = Random().nextInt(brushColors.length);
+    myDrawing.paint = Paint()
+      ..color = brushColors[i]
+      ..strokeWidth = myDrawing.paint.strokeWidth
+      ..strokeCap = myDrawing.paint.strokeCap
+      ..strokeJoin = myDrawing.paint.strokeJoin
+      ..style = myDrawing.paint.style;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final drawingState = Provider.of<DrawingState>(context);
     final myDrawing = Provider.of<DrawingStorage>(context);
@@ -33,77 +48,79 @@ class _DrawingControlsState extends State<DrawingControls> {
             child: CircularProgressIndicator(),
           ),
         if (!drawingState.loadingHandIn)
-          FittedBox(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Column(
-                    mainAxisAlignment: drawingState.showButtons ? MainAxisAlignment.center : MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Container(height: 10),
-                      HideShowControlsButton(
-                        onPressed: () => drawingState.showButtons = !drawingState.showButtons,
-                        controlsVisible: drawingState.showButtons,
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Column(
+                  mainAxisAlignment: drawingState.showButtons ? MainAxisAlignment.center : MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Container(height: 10),
+                    HideShowControlsButton(
+                      onPressed: () => drawingState.showButtons = !drawingState.showButtons,
+                      controlsVisible: drawingState.showButtons,
+                    ),
+                    Visibility(
+                      visible: drawingState.showButtons,
+                      maintainSize: true,
+                      maintainAnimation: true,
+                      maintainState: true,
+                      child: Column(
+                        children: <Widget>[
+                          Container(height: 10),
+                          BrushButton(
+                            onPressed: () => drawingState.showBrushSettings = !drawingState.showBrushSettings,
+                            color: myDrawing.paint.color,
+                          ),
+                          Container(height: 10),
+                          UndoButton(
+                            onPressed: () => myDrawing.undoLastPath(),
+                          ),
+                          Container(height: 10),
+                          RedoButton(
+                            onPressed: () => myDrawing.redoLastUndonePath(),
+                          ),
+                          Container(height: 10),
+                          DeleteButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => ClearDrawingGameModal(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    myDrawing.clearDrawing();
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                          Container(height: 10),
+                          DoneButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => DoneDrawingGameModal(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    _submitDrawing();
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                          Container(height: 10),
+                        ],
                       ),
-                      Visibility(
-                        visible: drawingState.showButtons,
-                        maintainSize: true,
-                        maintainAnimation: true,
-                        maintainState: true,
-                        child: Column(
-                          children: <Widget>[
-                            Container(height: 10),
-                            BrushButton(
-                              onPressed: () => drawingState.showBrushSettings = !drawingState.showBrushSettings,
-                            ),
-                            Container(height: 10),
-                            UndoButton(
-                              onPressed: () => myDrawing.undoLastPath(),
-                            ),
-                            Container(height: 10),
-                            RedoButton(
-                              onPressed: () => myDrawing.redoLastUndonePath(),
-                            ),
-                            Container(height: 10),
-                            DeleteButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => ClearDrawingGameModal(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      myDrawing.clearDrawing();
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
-                            Container(height: 10),
-                            DoneButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => DoneDrawingGameModal(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      _submitDrawing();
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
-                            Container(height: 10),
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
+                  ],
+                ),
+                if (drawingState.showBrushSettings)
+                  Expanded(
+                    child: BrushControls(),
                   ),
-                  if (drawingState.showBrushSettings) BrushControls(),
-                ],
-              ),
+              ],
             ),
           ),
       ],
@@ -123,6 +140,18 @@ class _DrawingControlsState extends State<DrawingControls> {
     final db = DatabaseService.instance;
     drawingState.loadingHandIn = true;
     var success = await db.handInDrawing(roomCode: roomCode, drawing: jsonEncode(myDrawing.toJson()));
+    var retries = 0;
+
+    /// Doing 10 retries when handing in drawing fails
+    while (!success) {
+      if (retries > 10) {
+        break;
+      }
+      await Future.delayed(Duration(milliseconds: 400));
+      success = await db.handInDrawing(roomCode: roomCode, drawing: jsonEncode(myDrawing.toJson()));
+      retries++;
+    }
+    print("TRIES: $retries");
     assert(success, 'Could not hand in drawing!');
 
     /// TODO: Felmeddelande om man det misslyckas...
@@ -149,7 +178,6 @@ class BrushControls extends StatelessWidget {
       padding: EdgeInsets.only(left: 20, top: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           GameColorPicker(
             onTap: (color) {
@@ -162,7 +190,11 @@ class BrushControls extends StatelessWidget {
             },
           ),
           Container(height: 20),
-          BrushSizeSlider(),
+          Row(
+            children: <Widget>[
+              BrushSizeSlider(),
+            ],
+          ),
         ],
       ),
     );

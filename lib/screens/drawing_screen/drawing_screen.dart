@@ -4,6 +4,8 @@ import 'package:after_layout/after_layout.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 
+import 'package:home_indicator/home_indicator.dart';
+
 import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/painters.dart';
 import 'package:exquisitecorpse/drawing_storage.dart';
@@ -26,6 +28,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
   @override
   initState() {
     super.initState();
+    HomeIndicator.deferScreenEdges([ScreenEdge.bottom, ScreenEdge.top, ScreenEdge.left, ScreenEdge.right]);
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
@@ -33,11 +36,17 @@ class _DrawingScreenState extends State<DrawingScreen> {
   }
 
   @override
+  void dispose() {
+    HomeIndicator.deferScreenEdges([]);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final GameState gameState = Provider.of<GameState>(context);
 
     return Scaffold(
-      backgroundColor: textFieldBackground,
+      backgroundColor: Colors.grey[800],
       body: SafeArea(
         bottom: false,
         top: false,

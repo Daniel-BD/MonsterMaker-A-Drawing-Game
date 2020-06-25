@@ -149,6 +149,13 @@
             </list>
           </value>
         </entry>
+        <entry key="flutter_icons">
+          <value>
+            <list>
+              <option value="/Library/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_icons-1.1.0/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="flutter_launcher_icons">
           <value>
             <list>
@@ -417,6 +424,7 @@
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_core_platform_interface-1.0.4/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_core_web-0.1.1+2/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_dash-0.0.1/lib" />
+      <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_icons-1.1.0/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_launcher_icons-0.7.5/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/home_indicator-1.1.5/lib" />
       <root url="file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/http-0.12.1/lib" />

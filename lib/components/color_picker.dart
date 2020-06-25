@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
+import 'package:flutter_icons/flutter_icons.dart';
+
 import 'colors.dart';
 
 class GameColorPicker extends StatelessWidget {
@@ -13,6 +15,14 @@ class GameColorPicker extends StatelessWidget {
     return Wrap(
       runSpacing: 10,
       children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.only(right: 10),
+          child: _ColorGameButton(
+            color: paper,
+            icon: MaterialCommunityIcons.eraser,
+            onTap: () => onTap(paper),
+          ),
+        ),
         for (final color in brushColors)
           Padding(
             padding: const EdgeInsets.only(right: 10),
@@ -29,18 +39,21 @@ class GameColorPicker extends StatelessWidget {
 class _ColorGameButton extends StatelessWidget {
   final Color color;
   final GestureTapCallback onTap;
+  final IconData icon;
 
-  const _ColorGameButton({Key key, this.color, this.onTap}) : super(key: key);
+  const _ColorGameButton({Key key, @required this.color, @required this.onTap, this.icon}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
+    final diamameter = min(((size.height - 70) / 6), 80);
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: min(((size.height - 70) / 6), 80),
-        width: min(((size.height - 70) / 6), 80),
+        child: icon != null ? Icon(icon, size: diamameter * 0.7) : null,
+        height: diamameter,
+        width: diamameter,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: color,
@@ -50,16 +63,3 @@ class _ColorGameButton extends StatelessWidget {
     );
   }
 }
-
-List<Color> brushColors = [
-  paper,
-  Colors.black,
-  const Color(0xFF0085FF),
-  const Color(0xFF22F300),
-  const Color(0xFFFFD600),
-  const Color(0xFF8F4500),
-  const Color(0xFFFD7900),
-  const Color(0xFFF30000),
-  const Color(0xFFE40189),
-  const Color(0xFFFFB6EF),
-];
