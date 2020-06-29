@@ -46,14 +46,14 @@ class _ColorGameButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
-    final diamameter = min(((size.height - 70) / 6), 80);
+    final diameter = min(((size.height - 70) / 6), 48.0);
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        child: icon != null ? Icon(icon, size: diamameter * 0.7) : null,
-        height: diamameter,
-        width: diamameter,
+        child: icon != null ? Icon(icon, size: diameter * 0.7) : null,
+        height: diameter,
+        width: diameter,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: color,

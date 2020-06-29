@@ -29,6 +29,7 @@ class OtherPlayerDrawing {
 }
 
 class DrawingState extends ChangeNotifier {
+  /// Whether to show or hide the drawing controls
   bool _showButtons = true;
   get showButtons => _showButtons;
   set showButtons(bool value) {
@@ -39,6 +40,7 @@ class DrawingState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Whether to show or hide the brush controls (color + size)
   bool _showBrushSettings = false;
   get showBrushSettings => _showBrushSettings;
   set showBrushSettings(bool value) {

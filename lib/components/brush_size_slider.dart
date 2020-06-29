@@ -26,13 +26,13 @@ class _BrushSizeSliderState extends State<BrushSizeSlider> {
         ),
         child: Row(
           children: <Widget>[
-            Container(width: 20),
+            Container(width: 30),
             SliderTheme(
               data: SliderThemeData(
                 activeTrackColor: Colors.white,
                 inactiveTrackColor: Colors.white.withOpacity(0.25),
                 overlayShape: RoundSliderOverlayShape(overlayRadius: 0.0),
-                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10.0),
+                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 16.0),
                 thumbColor: Colors.white,
               ),
               child: Slider(

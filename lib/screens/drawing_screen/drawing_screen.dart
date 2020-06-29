@@ -133,11 +133,14 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
   final canvasKey = GlobalKey();
   bool _lastPointOutOfBounds = false;
   bool _ignorePath = false;
+  bool _controlsWasShownBefore = false;
+  bool _brushControlsWasShownBefore = false;
 
   @override
   Widget build(BuildContext context) {
     final myDrawing = Provider.of<DrawingStorage>(context);
     final DrawingStorage otherPlayerDrawing = Provider.of<OtherPlayerDrawing>(context, listen: false).drawing;
+    final DrawingState controlsState = Provider.of<DrawingState>(context, listen: false);
     final Size size = MediaQuery.of(context).size;
 
     return AspectRatio(
@@ -152,6 +155,11 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
               _ignorePath = true;
               return;
             }
+
+            _controlsWasShownBefore = controlsState.showButtons;
+            _brushControlsWasShownBefore = controlsState.showBrushSettings;
+            controlsState.showButtons = false;
+
             myDrawing.startNewPath(details.localPosition.dx, details.localPosition.dy, myDrawing.paint, false);
             _lastPointOutOfBounds = false;
           },
@@ -160,6 +168,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
               _lastPointOutOfBounds = true;
               return;
             }
+
             myDrawing.addPoint(details.localPosition.dx, details.localPosition.dy, _lastPointOutOfBounds, false);
             _lastPointOutOfBounds = false;
           },
@@ -167,6 +176,14 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
             if (_ignorePath) {
               return;
             }
+
+            if (_controlsWasShownBefore) {
+              Future.delayed(Duration(milliseconds: 400)).then((value) {
+                controlsState.showButtons = true;
+                controlsState.showBrushSettings = _brushControlsWasShownBefore;
+              });
+            }
+
             myDrawing.endPath();
           },
           child: Stack(

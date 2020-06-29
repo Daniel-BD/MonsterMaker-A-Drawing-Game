@@ -179,17 +179,19 @@ class BrushControls extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          GameColorPicker(
-            onTap: (color) {
-              myDrawing.paint = Paint()
-                ..color = color
-                ..strokeWidth = myDrawing.paint.strokeWidth
-                ..strokeCap = myDrawing.paint.strokeCap
-                ..strokeJoin = myDrawing.paint.strokeJoin
-                ..style = myDrawing.paint.style;
-            },
+          Padding(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: GameColorPicker(
+              onTap: (color) {
+                myDrawing.paint = Paint()
+                  ..color = color
+                  ..strokeWidth = myDrawing.paint.strokeWidth
+                  ..strokeCap = myDrawing.paint.strokeCap
+                  ..strokeJoin = myDrawing.paint.strokeJoin
+                  ..style = myDrawing.paint.style;
+              },
+            ),
           ),
-          Container(height: 20),
           Row(
             children: <Widget>[
               BrushSizeSlider(),
