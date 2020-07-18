@@ -99,9 +99,7 @@ class _DrawingScreenState extends State<DrawingScreen> {
 int _drawingIndex(GameRoom room) {
   int index;
 
-  /// Fetch the top or middle drawing of another player
-  /// TODO: You could change so that player 1 fetches from player 2 etc, this could be randomly chosen at the start of the game maybe?
-  /// So that, if you join in the same order in a new game, you might not get to continue drawing the same persons drawing again...
+  // Fetch the top or middle drawing of another player
   if (room.allTopDrawingsDone()) {
     switch (room.player) {
       case 1:
@@ -133,7 +131,6 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
   final canvasKey = GlobalKey();
   bool _lastPointOutOfBounds = false;
   bool _ignorePath = false;
-  bool _controlsWasShownBefore = false;
   bool _brushControlsWasShownBefore = false;
 
   @override
@@ -156,9 +153,8 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
               return;
             }
 
-            _controlsWasShownBefore = controlsState.showButtons;
             _brushControlsWasShownBefore = controlsState.showBrushSettings;
-            controlsState.showButtons = false;
+            controlsState.showBrushSettings = false;
 
             myDrawing.startNewPath(details.localPosition.dx, details.localPosition.dy, myDrawing.paint, false);
             _lastPointOutOfBounds = false;
@@ -177,9 +173,8 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
               return;
             }
 
-            if (_controlsWasShownBefore) {
-              Future.delayed(Duration(milliseconds: 400)).then((value) {
-                controlsState.showButtons = true;
+            if (_brushControlsWasShownBefore) {
+              Future.delayed(Duration(milliseconds: 300)).then((value) {
                 controlsState.showBrushSettings = _brushControlsWasShownBefore;
               });
             }

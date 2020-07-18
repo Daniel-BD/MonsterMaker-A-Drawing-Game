@@ -151,7 +151,6 @@ class _DrawingControlsState extends State<DrawingControls> {
       success = await db.handInDrawing(roomCode: roomCode, drawing: jsonEncode(myDrawing.toJson()));
       retries++;
     }
-    print("TRIES: $retries");
     assert(success, 'Could not hand in drawing!');
 
     /// TODO: Felmeddelande om man det misslyckas...

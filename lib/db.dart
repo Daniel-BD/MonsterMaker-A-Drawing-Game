@@ -1,8 +1,7 @@
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:random_string/random_string.dart';
-import 'package:device_info/device_info.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:exquisitecorpse/models.dart';
@@ -22,22 +21,63 @@ const String _monsterIndex = 'monsterIndex';
 const String _animateAllAtOnce = 'animateAllAtOnce';
 
 class DatabaseService {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final Firestore _db = Firestore.instance;
-  var _deviceID;
+  String _lastUserUID;
 
   DatabaseService._privateConstructor() {
-    init();
+    _init();
   }
   static final DatabaseService _instance = DatabaseService._privateConstructor();
   static DatabaseService get instance => _instance;
 
-  void init() async {
-    _deviceID = await _getDeviceUID();
-    assert(_deviceID != null || _deviceID is String);
+  void _init() async {
+    _auth.onAuthStateChanged.listen((event) {
+      _onAuthStateChanged(event);
+    });
+  }
+
+  /// Asserts that the current session is authenticated - which is needed to access the Firestore database.
+  void _assertAuthenticated() async {
+    String uid = await _getUserUID();
+    assert(uid == _lastUserUID, "Current session is not authenticated against Firebase");
+  }
+
+  /// If not already signed in, anonymously signs the user in to Firebase. Needed to access the database.
+  /// If successful, sets [_lastUserUID] to the UID of the [FirebaseUser] and returns true.
+  Future<bool> _signInAnon() async {
+    String uid = await _getUserUID();
+    if (uid == null || uid != _lastUserUID) {
+      try {
+        await _auth.signInAnonymously();
+        _lastUserUID = await _getUserUID();
+        return true;
+      } catch (e) {
+        print(e);
+        return false;
+      }
+    } else if (uid == _lastUserUID) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Returns the UID of the current [FirebaseUser]. If there is no current user, returns null instead.
+  Future<String> _getUserUID() async {
+    _lastUserUID = (await _auth.currentUser())?.uid;
+    return _lastUserUID;
+  }
+
+  /// Fires when auth state changes. Currently not used for anything.
+  void _onAuthStateChanged(FirebaseUser user) {
+    //print("Firebase User: ${user?.uid} ${user.toString()}");
   }
 
   Stream<GameRoom> streamGameRoom({@required String roomCode}) {
-    assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is not null or empty');
+    _assertAuthenticated();
+    assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
+
     return _db.collection(_home).document(_roomsDoc).collection(roomCode).snapshots().map((room) {
       bool startedGame;
       bool isHost;
@@ -51,7 +91,7 @@ class DatabaseService {
       Map<int, String> bottomDrawings = {};
 
       room.documents.forEach((doc) {
-        if (doc.documentID == _deviceID) {
+        if (doc.documentID == _lastUserUID) {
           isHost = doc.data[_isHost];
           player = doc.data[_player];
         } else if (doc.documentID == _gameData) {
@@ -72,13 +112,12 @@ class DatabaseService {
         }
       });
 
-      assert(topDrawings != null, 'topdrawing null');
+      assert(topDrawings != null, 'topDrawing null');
       assert(midDrawings != null, 'midDrawings null');
       assert(topDrawings != null, 'topDrawings null');
       assert(startedGame != null, 'startedGame is null');
 
       if (isHost == null || player == null) {
-        print('returning null');
         return null;
       }
 
@@ -101,18 +140,34 @@ class DatabaseService {
 
   /// Creates a new room to play in.
   /// Item1 indicates if successful or not, item2 is the room code.
-  Future<Tuple2<bool, String>> createNewRoom() async {
-    String roomCode = randomAlpha(4).toUpperCase();
-    Tuple2<bool, String> result = Tuple2(false, roomCode);
+  Future<Tuple2<bool, String>> createNewRoom({bool randomRoomCodeAlreadyExisted}) async {
+    bool loggedIn = await _signInAnon();
+    if (!loggedIn) {
+      return Tuple2(false, "");
+    }
+    _assertAuthenticated();
 
-    var docs = await _db.collection(_home).document(_roomsDoc).collection(roomCode).getDocuments();
+    QuerySnapshot docs;
 
+    Future<String> generateRoomCode() async {
+      String roomCode = randomAlpha(4).toUpperCase();
+      docs = await _db.collection(_home).document(_roomsDoc).collection(roomCode).getDocuments();
+      if (docs.documents.length > 0) {
+        return generateRoomCode();
+      }
+      return roomCode;
+    }
+
+    String roomCode = await generateRoomCode();
+    Tuple2<bool, String> result = Tuple2(false, "");
+
+    assert(docs?.documents?.length == 0, "RoomCode already exists even though we just checked if it already exists!");
     if (docs.documents.length == 0) {
       await _db
           .collection(_home)
           .document(_roomsDoc)
           .collection(roomCode)
-          .document(_deviceID)
+          .document(_lastUserUID)
           .setData({_active: true, _isHost: true, _player: 1}).catchError((Object error) {
         print('ERROR creating new game room, $error');
       }).whenComplete(() async {
@@ -121,7 +176,7 @@ class DatabaseService {
             .document(_roomsDoc)
             .collection(roomCode)
             .document(_gameData)
-            .setData({_startedGame: false}).catchError((Object error) {
+            .setData({_startedGame: false, "createdAt": DateTime.now()}).catchError((Object error) {
           print('ERROR creating new game room, $error');
         }).whenComplete(() {
           result = Tuple2(true, roomCode);
@@ -220,7 +275,15 @@ class DatabaseService {
     return result;
   }
 
+  /// Joins a [GameRoom] with the given [roomCode].
+  /// Returns true if successful.
   Future<bool> joinRoom({@required String roomCode}) async {
+    bool loggedIn = await _signInAnon();
+    if (!loggedIn) {
+      return false;
+    }
+    _assertAuthenticated();
+
     bool result = false;
 
     if (roomCode.length != 4) {
@@ -236,7 +299,7 @@ class DatabaseService {
           .collection(_home)
           .document(_roomsDoc)
           .collection(roomCode)
-          .document(_deviceID)
+          .document(_lastUserUID)
           .setData({_active: true, _isHost: false, _player: 2});
       result = true;
     } else if (docs.documents.length == 3) {
@@ -244,7 +307,7 @@ class DatabaseService {
           .collection(_home)
           .document(_roomsDoc)
           .collection(roomCode)
-          .document(_deviceID)
+          .document(_lastUserUID)
           .setData({_active: true, _isHost: false, _player: 3});
       result = true;
     } else if (docs.documents.length > 3) {
@@ -285,30 +348,24 @@ class DatabaseService {
     return result;
   }
 
+  /// Leaves the [GameRoom] with the given [roomCode].
+  /// Returns true if successful.
   Future<bool> leaveRoom({@required String roomCode}) async {
+    String uid = await _getUserUID();
+    if (uid == null) {
+      assert(false, "This method should never be able to be called when the user is not signed into Firebase");
+      return false;
+    }
+    _assertAuthenticated();
+
     bool result = false;
 
-    await _db.collection(_home).document(_roomsDoc).collection(roomCode).document(_deviceID).delete().catchError((Object error) {
+    await _db.collection(_home).document(_roomsDoc).collection(roomCode).document(uid).delete().catchError((Object error) {
       print('ERROR leaving room, $error');
     }).whenComplete(() async {
       result = true;
     });
 
     return result;
-  }
-
-  Future<String> _getDeviceUID() async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-
-    if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-      return iosInfo.identifierForVendor;
-    } else if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      return androidInfo.androidId;
-    } else {
-      assert(false, 'Failed to find UID for device');
-      return 'FAILED_TO_FIND_UID';
-    }
   }
 }

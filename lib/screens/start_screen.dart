@@ -77,7 +77,7 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
                     children: [
                       if (!_inputtingRoomCode)
                         GreenGameButton(
-                          onPressed: () => _createNewGame(),
+                          onPressed: () => _createNewGame(context),
                           label: "NEW GAME",
                         ),
                       if (_inputtingRoomCode)
@@ -100,21 +100,22 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
     );
   }
 
-  void _createNewGame() async {
-    setState(() {
-      _loading = true;
-    });
+  void _createNewGame(BuildContext context) async {
+    setState(() => _loading = true);
 
-    Tuple2<bool, String> result = await _db.createNewRoom();
+    Tuple2<bool, String> result = await _db.createNewRoom().timeout(Duration(seconds: 10), onTimeout: () => null);
 
-    if (result.item1) {
+    if (result?.item1 == true) {
       Provider.of<GameState>(context, listen: false).currentRoomCode = result.item2;
       Navigator.of(context).pushReplacementNamed('/waitingRoom');
     } else {
       assert(false, 'creating new room failed');
-      setState(() {
-        _loading = false;
-      });
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Something went wrong... Check your internet connection or try again later"),
+        ),
+      );
+      setState(() => _loading = false);
     }
   }
 
@@ -131,15 +132,16 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
       });
 
       String roomCode = _roomCodeController.text.toUpperCase();
-      var success = await _db.joinRoom(roomCode: roomCode);
+      bool success = await _db.joinRoom(roomCode: roomCode).timeout(Duration(seconds: 10), onTimeout: () => null);
 
-      if (success) {
+      if (success == true) {
         Provider.of<GameState>(context, listen: false).currentRoomCode = roomCode;
         Navigator.of(context).pushReplacementNamed('/waitingRoom');
       } else {
+        assert(false, 'join room failed');
         Scaffold.of(context).showSnackBar(
           SnackBar(
-            content: Text("Something went wrong, perhaps the room code doesn't exist"),
+            content: Text("Something went wrong... Check if the room code is correct and you have internet connection"),
           ),
         );
       }

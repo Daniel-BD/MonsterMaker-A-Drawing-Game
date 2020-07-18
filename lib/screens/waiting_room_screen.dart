@@ -111,6 +111,8 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
       });
       bool result = await _db.startGame(room: snapshot.data);
       if (!result) {
+        assert(false, 'startGame failed!');
+
         ///TODO: Indicate that something went wrong? Or try again maybe?
       }
       setState(() {

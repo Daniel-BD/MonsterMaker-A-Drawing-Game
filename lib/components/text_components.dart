@@ -100,7 +100,7 @@ class WaitingForOtherPlayersToDrawText extends StatelessWidget {
 
 class FirstInstructionText extends StatelessWidget {
   final _firstInstruction =
-      'Turn your phone this way!\n\nEveryone will make 3 drawings (top, middle, bottom).\nThese will be stitched together to become monsters!\n\nThe dashed lines indicates what part of your drawing will be visible to the next person when they continue the drawing.';
+      'Turn your phone this way!\n\nEach player will make 3 drawings (top, middle, bottom).\nThese will be stitched together to become monsters!\n\nThe dashed lines indicates where the next player will continue.';
 
   @override
   Widget build(BuildContext context) {
