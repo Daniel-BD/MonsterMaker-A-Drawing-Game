@@ -6,9 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/game_state.dart';
-import 'package:exquisitecorpse/components/buttons.dart';
-import 'package:exquisitecorpse/components/text_components.dart';
-import 'package:exquisitecorpse/components/colors.dart';
+import 'package:exquisitecorpse/widgets/buttons.dart';
+import 'package:exquisitecorpse/widgets/text_components.dart';
+import 'package:exquisitecorpse/widgets/colors.dart';
 
 class WaitingRoomScreen extends StatefulWidget {
   WaitingRoomScreen({Key key}) : super(key: key);

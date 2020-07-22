@@ -1,4 +1,4 @@
-import 'package:exquisitecorpse/components/modal_message.dart';
+import 'package:exquisitecorpse/widgets/modal_message.dart';
 import 'package:exquisitecorpse/drawing_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,9 +9,9 @@ import 'package:drawing_animation/drawing_animation.dart';
 import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/db.dart';
-import 'package:exquisitecorpse/components/buttons.dart';
-import 'package:exquisitecorpse/components/text_components.dart';
-import 'package:exquisitecorpse/components/colors.dart';
+import 'package:exquisitecorpse/widgets/buttons.dart';
+import 'package:exquisitecorpse/widgets/text_components.dart';
+import 'package:exquisitecorpse/widgets/colors.dart';
 
 class FinishedScreen extends StatefulWidget {
   @override

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:exquisitecorpse/components/colors.dart';
+import 'package:exquisitecorpse/widgets/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
@@ -10,10 +10,10 @@ import 'package:exquisitecorpse/drawing_storage.dart';
 import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/db.dart';
 
-import 'package:exquisitecorpse/components/buttons.dart';
-import 'package:exquisitecorpse/components/color_picker.dart';
-import 'package:exquisitecorpse/components/brush_size_slider.dart';
-import 'package:exquisitecorpse/components/modal_message.dart';
+import 'package:exquisitecorpse/widgets/buttons.dart';
+import 'package:exquisitecorpse/widgets/color_picker.dart';
+import 'package:exquisitecorpse/widgets/brush_size_slider.dart';
+import 'package:exquisitecorpse/widgets/modal_message.dart';
 
 class DrawingControls extends StatefulWidget {
   DrawingControls({Key key}) : super(key: key);

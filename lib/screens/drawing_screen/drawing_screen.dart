@@ -13,7 +13,7 @@ import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/screens/drawing_screen/drawing_controls.dart';
 import 'package:exquisitecorpse/screens/drawing_screen/overlap_dashed_lines.dart';
-import 'package:exquisitecorpse/components/colors.dart';
+import 'package:exquisitecorpse/widgets/colors.dart';
 
 class DrawingScreen extends StatefulWidget {
   DrawingScreen({Key key}) : super(key: key);

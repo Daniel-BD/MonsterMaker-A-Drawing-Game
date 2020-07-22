@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_dash/flutter_dash.dart';
 import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/models.dart';
-import 'package:exquisitecorpse/components/colors.dart';
+import 'package:exquisitecorpse/widgets/colors.dart';
 
 class OverlapDashedLines extends StatelessWidget {
   @override
