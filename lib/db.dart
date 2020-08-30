@@ -1,8 +1,8 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:random_string/random_string.dart';
-import 'package:tuple/tuple.dart';
 
 import 'package:exquisitecorpse/models.dart';
 
@@ -21,9 +21,9 @@ const String _monsterIndex = 'monsterIndex';
 const String _animateAllAtOnce = 'animateAllAtOnce';
 
 class DatabaseService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final Firestore _db = Firestore.instance;
-  String _lastUserUID;
+  FirebaseAuth _auth;
+  FirebaseFirestore _db;
+  String _userUID() => _auth.currentUser?.uid;
 
   DatabaseService._privateConstructor() {
     _init();
@@ -32,45 +32,39 @@ class DatabaseService {
   static DatabaseService get instance => _instance;
 
   void _init() async {
-    _auth.onAuthStateChanged.listen((event) {
+    await Firebase.initializeApp();
+    _auth = FirebaseAuth.instance;
+    _db = FirebaseFirestore.instance;
+
+    _auth.authStateChanges().listen((event) {
       _onAuthStateChanged(event);
     });
   }
 
   /// Asserts that the current session is authenticated - which is needed to access the Firestore database.
   void _assertAuthenticated() async {
-    String uid = await _getUserUID();
-    assert(uid == _lastUserUID, "Current session is not authenticated against Firebase");
+    assert(_userUID() != null, "Current session is not authenticated against Firebase");
   }
 
   /// If not already signed in, anonymously signs the user in to Firebase. Needed to access the database.
-  /// If successful, sets [_lastUserUID] to the UID of the [FirebaseUser] and returns true.
+  /// If successful, sets [_userUID] to the UID of the [User] and returns true.
   Future<bool> _signInAnon() async {
-    String uid = await _getUserUID();
-    if (uid == null || uid != _lastUserUID) {
+    if (_userUID() == null) {
       try {
         await _auth.signInAnonymously();
-        _lastUserUID = await _getUserUID();
+        //TODO: Kolla om det gick bra genom att kolla _userUID() != null kanske?
         return true;
       } catch (e) {
         print(e);
         return false;
       }
-    } else if (uid == _lastUserUID) {
-      return true;
     }
 
-    return false;
-  }
-
-  /// Returns the UID of the current [FirebaseUser]. If there is no current user, returns null instead.
-  Future<String> _getUserUID() async {
-    _lastUserUID = (await _auth.currentUser())?.uid;
-    return _lastUserUID;
+    return true;
   }
 
   /// Fires when auth state changes. Currently not used for anything.
-  void _onAuthStateChanged(FirebaseUser user) {
+  void _onAuthStateChanged(User user) {
     //print("Firebase User: ${user?.uid} ${user.toString()}");
   }
 
@@ -78,7 +72,7 @@ class DatabaseService {
     _assertAuthenticated();
     assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
 
-    return _db.collection(_home).document(_roomsDoc).collection(roomCode).snapshots().map((room) {
+    return _db.collection(_home).doc(_roomsDoc).collection(roomCode).snapshots().map((room) {
       bool startedGame;
       bool isHost;
       int player;
@@ -90,24 +84,26 @@ class DatabaseService {
       Map<int, String> midDrawings = {};
       Map<int, String> bottomDrawings = {};
 
-      room.documents.forEach((doc) {
-        if (doc.documentID == _lastUserUID) {
-          isHost = doc.data[_isHost];
-          player = doc.data[_player];
-        } else if (doc.documentID == _gameData) {
-          startedGame = doc.data[_startedGame];
-          startAnimation = doc.data[_startAnimation];
-          monsterIndex = doc.data[_monsterIndex];
-          animateAllAtOnce = doc.data[_animateAllAtOnce];
+      room.docs.forEach((doc) {
+        if (doc.id == _userUID()) {
+          isHost = doc.get(_isHost);
+          player = doc.get(_player);
+        } else if (doc.id == _gameData) {
+          var gameData = doc.data();
 
-          if (doc.data[_top] != null) {
-            topDrawings = Map<String, String>.from(doc.data[_top]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
+          startedGame = gameData[_startedGame];
+          startAnimation = gameData[_startAnimation];
+          monsterIndex = gameData[_monsterIndex];
+          animateAllAtOnce = gameData[_animateAllAtOnce];
+
+          if (gameData[_top] != null) {
+            topDrawings = Map<String, String>.from(gameData[_top]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
           }
-          if (doc.data[_mid] != null) {
-            midDrawings = Map<String, String>.from(doc.data[_mid]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
+          if (gameData[_mid] != null) {
+            midDrawings = Map<String, String>.from(gameData[_mid]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
           }
-          if (doc.data[_bottom] != null) {
-            bottomDrawings = Map<String, String>.from(doc.data[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
+          if (gameData[_bottom] != null) {
+            bottomDrawings = Map<String, String>.from(gameData[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
           }
         }
       });
@@ -123,7 +119,7 @@ class DatabaseService {
 
       var gameRoom = GameRoom(
         roomCode: roomCode,
-        activePlayers: room.documents.length - 1,
+        activePlayers: room.docs.length - 1,
         startedGame: startedGame,
         isHost: isHost,
         player: player,
@@ -139,52 +135,54 @@ class DatabaseService {
   }
 
   /// Creates a new room to play in.
-  /// Item1 indicates if successful or not, item2 is the room code.
-  Future<Tuple2<bool, String>> createNewRoom({bool randomRoomCodeAlreadyExisted}) async {
+  /// Returns a string of the room code if successful, null otherwise
+  Future<String> createNewRoom({bool randomRoomCodeAlreadyExisted}) async {
     bool loggedIn = await _signInAnon();
     if (!loggedIn) {
-      return Tuple2(false, "");
+      return null;
     }
     _assertAuthenticated();
 
-    QuerySnapshot docs;
+    QuerySnapshot roomSnapshot;
 
     Future<String> generateRoomCode() async {
       String roomCode = randomAlpha(4).toUpperCase();
-      docs = await _db.collection(_home).document(_roomsDoc).collection(roomCode).getDocuments();
-      if (docs.documents.length > 0) {
+      roomSnapshot = await _db.collection(_home).doc(_roomsDoc).collection(roomCode).get();
+      if (roomSnapshot.docs.length > 0) {
+        assert(false, "The room code already exists...");
         return generateRoomCode();
       }
       return roomCode;
     }
 
     String roomCode = await generateRoomCode();
-    Tuple2<bool, String> result = Tuple2(false, "");
 
-    assert(docs?.documents?.length == 0, "RoomCode already exists even though we just checked if it already exists!");
-    if (docs.documents.length == 0) {
+    assert(roomSnapshot?.docs?.length == 0, 'RoomCode already exists even though we just checked if it already exists!');
+    if (roomSnapshot.docs.length == 0) {
       await _db
           .collection(_home)
-          .document(_roomsDoc)
+          .doc(_roomsDoc)
           .collection(roomCode)
-          .document(_lastUserUID)
-          .setData({_active: true, _isHost: true, _player: 1}).catchError((Object error) {
-        print('ERROR creating new game room, $error');
+          .doc(_userUID())
+          .set({_active: true, _isHost: true, _player: 1}).catchError((Object error) {
+        roomCode = null;
+        assert(false, 'failed to create new room');
       }).whenComplete(() async {
         await _db
             .collection(_home)
-            .document(_roomsDoc)
+            .doc(_roomsDoc)
             .collection(roomCode)
-            .document(_gameData)
-            .setData({_startedGame: false, "createdAt": DateTime.now()}).catchError((Object error) {
-          print('ERROR creating new game room, $error');
+            .doc(_gameData)
+            .set({_startedGame: false, "createdAt": DateTime.now()}).catchError((Object error) {
+          roomCode = null;
+          assert(false, 'failed to create new room');
         }).whenComplete(() {
-          result = Tuple2(true, roomCode);
+          return roomCode;
         });
       });
     }
 
-    return result;
+    return roomCode;
   }
 
   Future<bool> startGame({@required GameRoom room}) async {
@@ -196,11 +194,11 @@ class DatabaseService {
 
     await _db
         .collection(_home)
-        .document(_roomsDoc)
+        .doc(_roomsDoc)
         .collection(room.roomCode)
-        .document(_gameData)
-        .setData({_startedGame: true}).catchError((Object error) {
-      print('ERROR starting game, $error');
+        .doc(_gameData)
+        .set({_startedGame: true}).catchError((Object error) {
+      assert(false, 'ERROR starting game, $error');
     }).whenComplete(() {
       result = true;
     });
@@ -212,17 +210,17 @@ class DatabaseService {
     bool result = false;
 
     if (!room.isHost) {
-      assert(true, 'non-host is trying to control finished screen...');
+      assert(false, 'non-host is trying to control finished screen...');
       return result;
     }
 
     await _db
         .collection(_home)
-        .document(_roomsDoc)
+        .doc(_roomsDoc)
         .collection(room.roomCode)
-        .document(_gameData)
-        .setData({_startAnimation: value}, merge: true).catchError((Object error) {
-      print('ERROR setting animation value, $error');
+        .doc(_gameData)
+        .set({_startAnimation: value}, SetOptions(merge: true)).catchError((Object error) {
+      assert(false, 'ERROR setting animation value, $error');
     }).whenComplete(() {
       result = true;
     });
@@ -234,17 +232,17 @@ class DatabaseService {
     bool result = false;
 
     if (!room.isHost) {
-      assert(true, 'non-host is trying to control finished screen...');
+      assert(false, 'non-host is trying to control finished screen...');
       return result;
     }
 
     await _db
         .collection(_home)
-        .document(_roomsDoc)
+        .doc(_roomsDoc)
         .collection(room.roomCode)
-        .document(_gameData)
-        .setData({_animateAllAtOnce: value}, merge: true).catchError((Object error) {
-      print('ERROR setting animateAllAtOnce value, $error');
+        .doc(_gameData)
+        .set({_animateAllAtOnce: value}, SetOptions(merge: true)).catchError((Object error) {
+      assert(false, 'ERROR setting animationAllAtOnce value, $error');
     }).whenComplete(() {
       result = true;
     });
@@ -257,16 +255,16 @@ class DatabaseService {
     bool result = false;
 
     if (!room.isHost) {
-      assert(true, 'non-host is trying to control finished screen...');
+      assert(false, 'non-host is trying to control finished screen...');
       return result;
     }
 
     await _db
         .collection(_home)
-        .document(_roomsDoc)
+        .doc(_roomsDoc)
         .collection(room.roomCode)
-        .document(_gameData)
-        .setData({_monsterIndex: value}, merge: true).catchError((Object error) {
+        .doc(_gameData)
+        .set({_monsterIndex: value}, SetOptions(merge: true)).catchError((Object error) {
       print('ERROR setting monster index, $error');
     }).whenComplete(() {
       result = true;
@@ -290,27 +288,17 @@ class DatabaseService {
       return result;
     }
 
-    var docs = await _db.collection(_home).document(_roomsDoc).collection(roomCode).getDocuments();
+    var roomData = await _db.collection(_home).doc(_roomsDoc).collection(roomCode).get();
 
-    if (docs.documents.length < 2) {
+    if (roomData.docs.length < 2) {
       print('No room with that code!');
-    } else if (docs.documents.length == 2) {
-      _db
-          .collection(_home)
-          .document(_roomsDoc)
-          .collection(roomCode)
-          .document(_lastUserUID)
-          .setData({_active: true, _isHost: false, _player: 2});
+    } else if (roomData.docs.length == 2) {
+      _db.collection(_home).doc(_roomsDoc).collection(roomCode).doc(_userUID()).set({_active: true, _isHost: false, _player: 2});
       result = true;
-    } else if (docs.documents.length == 3) {
-      _db
-          .collection(_home)
-          .document(_roomsDoc)
-          .collection(roomCode)
-          .document(_lastUserUID)
-          .setData({_active: true, _isHost: false, _player: 3});
+    } else if (roomData.docs.length == 3) {
+      _db.collection(_home).doc(_roomsDoc).collection(roomCode).doc(_userUID()).set({_active: true, _isHost: false, _player: 3});
       result = true;
-    } else if (docs.documents.length > 3) {
+    } else if (roomData.docs.length > 3) {
       print('The room is full!');
     }
 
@@ -337,9 +325,9 @@ class DatabaseService {
       return false;
     }
 
-    await _db.collection(_home).document(_roomsDoc).collection(room.roomCode).document(_gameData).setData({
+    await _db.collection(_home).doc(_roomsDoc).collection(room.roomCode).doc(_gameData).set({
       position: {'${room.player}': drawing}
-    }, merge: true).catchError((Object error) {
+    }, SetOptions(merge: true)).catchError((Object error) {
       print('ERROR handing in drawing, $error');
     }).whenComplete(() {
       result = true;
@@ -351,8 +339,7 @@ class DatabaseService {
   /// Leaves the [GameRoom] with the given [roomCode].
   /// Returns true if successful.
   Future<bool> leaveRoom({@required String roomCode}) async {
-    String uid = await _getUserUID();
-    if (uid == null) {
+    if (_userUID() == null) {
       assert(false, "This method should never be able to be called when the user is not signed into Firebase");
       return false;
     }
@@ -360,7 +347,7 @@ class DatabaseService {
 
     bool result = false;
 
-    await _db.collection(_home).document(_roomsDoc).collection(roomCode).document(uid).delete().catchError((Object error) {
+    await _db.collection(_home).doc(_roomsDoc).collection(roomCode).doc(_userUID()).delete().catchError((Object error) {
       print('ERROR leaving room, $error');
     }).whenComplete(() async {
       result = true;

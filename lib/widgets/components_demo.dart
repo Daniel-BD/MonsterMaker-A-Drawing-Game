@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'colors.dart';
 import 'game_text_field.dart';
-import 'modal_message.dart';
-import 'brush_size_slider.dart';
-import 'color_picker.dart';
-import 'buttons.dart';
+//import 'modal_message.dart';
+//import 'brush_size_slider.dart';
+//import 'color_picker.dart';
+//import 'buttons.dart';
 
 class Components extends StatelessWidget {
   @override

@@ -11,7 +11,7 @@ class OverlapDashedLines extends StatelessWidget {
   Widget build(BuildContext context) {
     final gameRoom = Provider.of<GameRoom>(context);
 
-    /// I think I should listen to gameState changes to know that this will rebuild after canvasHeigt/Width is not null anymore
+    /// TODO: I think I should listen to gameState changes to know that this will rebuild after canvasHeigt/Width is not null anymore
     /// Right now I think it's just by chance that this works, because it rebuilds this widget when navigating in because
     /// of the animation in navigation?
     //final gameState = Provider.of<GameState>(context);

@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
 
 import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/game_state.dart';
@@ -103,13 +102,13 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
   void _createNewGame(BuildContext context) async {
     setState(() => _loading = true);
 
-    Tuple2<bool, String> result = await _db.createNewRoom().timeout(Duration(seconds: 10), onTimeout: () => null);
+    String roomCode = await _db.createNewRoom().timeout(Duration(seconds: 10), onTimeout: () => null);
 
-    if (result?.item1 == true) {
-      Provider.of<GameState>(context, listen: false).currentRoomCode = result.item2;
+    if (roomCode != null) {
+      Provider.of<GameState>(context, listen: false).currentRoomCode = roomCode;
       Navigator.of(context).pushReplacementNamed('/waitingRoom');
     } else {
-      assert(false, 'creating new room failed');
+      assert(false, 'creating new room failed...');
       Scaffold.of(context).showSnackBar(
         SnackBar(
           content: Text("Something went wrong... Check your internet connection or try again later"),
