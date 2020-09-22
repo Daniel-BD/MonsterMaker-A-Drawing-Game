@@ -157,6 +157,9 @@ class DrawingStorage extends ChangeNotifier {
   }
 
   List<Path> getScaledPaths({@required double inputHeight, @required inputWidth, @required outputHeight, @required outputWidth}) {
+    print(
+        "getScaledPaths: inputHeight: ${inputHeight}, outputHeight: ${outputHeight}, inputWidth: ${inputWidth}, outputWidth: ${outputWidth}");
+
     List<Path> scaledPaths = [];
 
     List<List<Path>> tempPaths = [];
@@ -271,7 +274,7 @@ class DrawingStorage extends ChangeNotifier {
 
       for (var paint in paintList.split(':')) {
         List<String> values = paint.split(',');
-        assert(double.parse(values[0]).runtimeType == double);
+        assert(double.parse(values[0]).runtimeType == double || double.parse(values[0]).runtimeType == int);
         assert(int.parse(values[1]).runtimeType == int);
 
         tempPaintList.add(Paint()

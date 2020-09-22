@@ -31,7 +31,7 @@ class DatabaseService {
   static final DatabaseService _instance = DatabaseService._privateConstructor();
   static DatabaseService get instance => _instance;
 
-  void _init() async {
+  Future<void> _init() async {
     await Firebase.initializeApp();
     _auth = FirebaseAuth.instance;
     _db = FirebaseFirestore.instance;
@@ -39,6 +39,8 @@ class DatabaseService {
     _auth.authStateChanges().listen((event) {
       _onAuthStateChanged(event);
     });
+
+    return;
   }
 
   /// Asserts that the current session is authenticated - which is needed to access the Firestore database.
@@ -66,6 +68,135 @@ class DatabaseService {
   /// Fires when auth state changes. Currently not used for anything.
   void _onAuthStateChanged(User user) {
     //print("Firebase User: ${user?.uid} ${user.toString()}");
+  }
+
+  Future<void> initDB() async {
+    await _init();
+    return;
+  }
+
+  Future<List<String>> gameRoomsToReview() async {
+    var rooms = await _db.collection(_home).doc('').get();
+
+    var newRooms = await _db.collection(_home).doc('').get();
+
+    List<String> roomCodes = rooms.data()['roomCodes'].cast<String>();
+
+    List<String> newRoomCodes = newRooms.data()['roomCodes'].cast<String>();
+
+    newRoomCodes.removeWhere((element) => roomCodes.contains(element));
+
+    print(newRoomCodes);
+
+    return newRoomCodes;
+  }
+
+  void deleteIncompleteRooms() async {
+    await _init();
+    var rooms = await _db.collection(_home).doc('I597f0FtLSmGdVfxrjbd').get();
+
+    List<dynamic> roomCodes = rooms.data()['roomCodes'];
+
+    roomCodes.forEach((roomCode) async {
+      print('RoomCode: $roomCode');
+
+      var roomData = await _db.collection(_home).doc(_roomsDoc).collection(roomCode).get();
+
+      bool shouldDelete = false;
+
+      if (roomData.size > 3) {
+        roomData.docs.forEach((document) {
+          if (document.id == 'gameData') {
+            var gameData = document.data();
+            if (gameData != null) {
+              print("Bottom: ${gameData['bottom'].runtimeType}");
+
+              Map<int, String> bottom = {};
+              if (gameData['bottom'] != null) {
+                print('bottom is not null for room: ${roomCode}');
+                bottom = Map<String, String>.from(gameData[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
+              } else {
+                print('bottom is NULL for room: ${roomCode}');
+              }
+
+              if (bottom == null || bottom.length < 3) {
+                print("DELETE room: $roomCode");
+                shouldDelete = true;
+
+                roomData.docs.forEach((documentToDelete) {
+                  documentToDelete.reference.delete();
+                });
+              }
+            }
+          }
+        });
+      } else {
+        print("room to delete: ${roomCode}");
+        roomData.docs.forEach((documentToDelete) {
+          documentToDelete.reference.delete();
+        });
+      }
+    });
+
+/*
+print('delete room: $roomCode');
+        roomData.docs.forEach((documentToDelete) {
+          documentToDelete.reference.delete();
+        });
+ */
+
+    //print("rooms: ${rooms.docs}, ${rooms.metadata}, ${rooms.size}");
+    //var roomsData = rooms.data();
+    /*print("roomsData: $roomsData");
+    roomsData.forEach((key, value) {
+      print('KEY: $key, VALUE: $value');
+    });*/
+  }
+
+  Stream<GameRoom> roomToReviewFromCode({@required String roomCode}) {
+    assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
+
+    return _db.collection(_home).doc(_roomsDoc).collection(roomCode).snapshots().map((room) {
+      Map<int, String> topDrawings = {};
+      Map<int, String> midDrawings = {};
+      Map<int, String> bottomDrawings = {};
+
+      room.docs.forEach((doc) {
+        if (doc.id == _userUID()) {
+        } else if (doc.id == _gameData) {
+          var gameData = doc.data();
+
+          if (gameData[_top] != null) {
+            topDrawings = Map<String, String>.from(gameData[_top]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
+          }
+          if (gameData[_mid] != null) {
+            midDrawings = Map<String, String>.from(gameData[_mid]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
+          }
+          if (gameData[_bottom] != null) {
+            bottomDrawings = Map<String, String>.from(gameData[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
+          }
+        }
+      });
+
+      assert(topDrawings != null, 'topDrawing null');
+      assert(midDrawings != null, 'midDrawings null');
+      assert(topDrawings != null, 'topDrawings null');
+
+      var gameRoom = GameRoom(
+        roomCode: roomCode,
+        activePlayers: room.docs.length - 1,
+        startedGame: true,
+        isHost: true,
+        player: 1,
+        startAnimation: true,
+        monsterIndex: 1,
+        animateAllAtOnce: true,
+        topDrawings: topDrawings,
+        midDrawings: midDrawings,
+        bottomDrawings: bottomDrawings,
+      );
+      return gameRoom;
+    });
   }
 
   Stream<GameRoom> streamGameRoom({@required String roomCode}) {
@@ -197,7 +328,7 @@ class DatabaseService {
         .doc(_roomsDoc)
         .collection(room.roomCode)
         .doc(_gameData)
-        .set({_startedGame: true}).catchError((Object error) {
+        .set({_startedGame: true}, SetOptions(merge: true)).catchError((Object error) {
       assert(false, 'ERROR starting game, $error');
     }).whenComplete(() {
       result = true;

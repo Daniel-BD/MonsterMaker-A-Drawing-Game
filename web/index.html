@@ -28,8 +28,36 @@
       });
     }
   </script>
+
+  <!-- The core Firebase JS SDK is always required and must be listed first -->
+  <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-app.js"></script>
+
+  <!-- TODO: Add SDKs for Firebase products that you want to use
+       https://firebase.google.com/docs/web/setup#available-libraries -->
+
+  <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-functions.js"></script>
+
+  <!-- Firebase Configuration -->
+  <script>
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    apiKey: "AIzaSyB01lgF4BRvciJ8xFom4FYB4aOMdWO9xXA",
+    authDomain: "exquisite-corpse-game.firebaseapp.com",
+    databaseURL: "https://exquisite-corpse-game.firebaseio.com",
+    projectId: "exquisite-corpse-game",
+    storageBucket: "exquisite-corpse-game.appspot.com",
+    messagingSenderId: "1025058943304",
+    appId: "1:1025058943304:web:e960d0ff03b4316310837d",
+    measurementId: "G-HJ1Z371RSF"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+  </script>
+
   <script src="main.dart.js" type="application/javascript"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.14.4/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.14.4/firebase-firestore.js"></script>
 </body>
 </html>
