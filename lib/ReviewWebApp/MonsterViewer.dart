@@ -330,11 +330,11 @@ class _MonsterViewerState extends State<MonsterViewer> {
     _clearCanvas = false;
     _runTopAnimation = true;
     if (_room.animateAllAtOnce) {
-      _duration = Duration(seconds: 1);
+      _duration = Duration(milliseconds: 100);
       _runMidAnimation = true;
       _runBottomAnimation = true;
     } else {
-      _duration = Duration(seconds: 1);
+      _duration = Duration(milliseconds: 100);
       _runMidAnimation = false;
       _runBottomAnimation = false;
     }

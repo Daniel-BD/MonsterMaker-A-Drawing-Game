@@ -76,9 +76,9 @@ class DatabaseService {
   }
 
   Future<List<String>> gameRoomsToReview() async {
-    var rooms = await _db.collection(_home).doc('').get();
+    var rooms = await _db.collection(_home).doc('Yf4VulohxCPurlc2uILn').get();
 
-    var newRooms = await _db.collection(_home).doc('').get();
+    var newRooms = await _db.collection(_home).doc('aA1G9SB63DDqP1jRcQTp').get();
 
     List<String> roomCodes = rooms.data()['roomCodes'].cast<String>();
 
@@ -93,7 +93,7 @@ class DatabaseService {
 
   void deleteIncompleteRooms() async {
     await _init();
-    var rooms = await _db.collection(_home).doc('I597f0FtLSmGdVfxrjbd').get();
+    var rooms = await _db.collection(_home).doc('Eeg5IoszWif88lwfiAIi').get();
 
     List<dynamic> roomCodes = rooms.data()['roomCodes'];
 

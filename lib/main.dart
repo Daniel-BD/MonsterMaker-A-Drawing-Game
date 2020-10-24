@@ -10,6 +10,7 @@ import 'package:exquisitecorpse/ReviewWebApp/WebHome.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIOverlays([]);
+  //runApp(WebApp());
   runApp(MyApp());
 }
 
