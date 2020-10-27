@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'colors.dart';
 
@@ -16,18 +19,30 @@ class GameTextField extends StatefulWidget {
 class _GameTextFieldState extends State<GameTextField> {
   final focus = FocusNode();
 
-  final style = TextStyle(
+  final style = GoogleFonts.sniglet(
+    color: monsterTextColor,
+    fontSize: 40,
+    fontWeight: FontWeight.w600,
+  );
+
+  /*TextStyle(
     fontFamily: 'Gaegu',
     color: monsterTextColor,
     fontSize: 40,
     fontWeight: FontWeight.w700,
+  );*/
+
+  final hintStyle = GoogleFonts.sniglet(
+    color: monsterTextColor,
+    fontSize: 22,
+    //fontWeight: FontWeight.w700,
   );
 
-  final hintStyle = TextStyle(
+  /*TextStyle(
     fontFamily: 'Gaegu',
     color: monsterTextColor,
     fontSize: 22,
-  );
+  );*/
 
   final unFocusedBorder = OutlineInputBorder(
     borderRadius: const BorderRadius.all(
@@ -53,7 +68,7 @@ class _GameTextFieldState extends State<GameTextField> {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       height: 60,
-      width: 200,
+      width: min(300.0, MediaQuery.of(context).size.width * 0.8),
       duration: Duration(milliseconds: 150),
       decoration: BoxDecoration(
         color: textFieldBackground,

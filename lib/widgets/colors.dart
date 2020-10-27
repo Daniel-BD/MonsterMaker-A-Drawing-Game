@@ -11,6 +11,7 @@ const Color warning = Color.fromRGBO(252, 78, 55, 1);
 const Color onWarning = Colors.white;
 const Color textFieldBackground = Colors.white;
 const Color blue = Color.fromRGBO(80, 219, 238, 1);
+const Color blueButton = Color(0xFF50DBFF);
 const Color dashes = Color.fromRGBO(0, 0, 0, 0.25);
 const Color disabled = Color.fromRGBO(233, 233, 233, 1);
 const Color disabledText = Color.fromRGBO(98, 98, 98, 1);

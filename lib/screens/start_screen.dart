@@ -50,27 +50,6 @@ class _StartScreenState extends State<StartScreen> /*with WidgetsBindingObserver
 
     return Scaffold(
       backgroundColor: paper,
-      /*appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0.0,
-        title: _inputtingRoomCode ? null : FittedBox(child: MonsterMakerLogo()),
-        leading: _inputtingRoomCode
-            ? IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  color: textColor,
-                  size: 32,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _inputtingRoomCode = false;
-                    _roomCodeController.clear();
-                  });
-                },
-              )
-            : null,
-      ),*/
       resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Builder(
@@ -93,7 +72,7 @@ class _StartScreenState extends State<StartScreen> /*with WidgetsBindingObserver
                             label: 'PLAY',
                             color: playButtonColor,
                             onPressed: () {
-                              //TODO
+                              Navigator.of(context).pushNamed('/playModesScreen');
                             },
                           ),
                           SizedBox(height: 30),
@@ -124,78 +103,6 @@ class _StartScreenState extends State<StartScreen> /*with WidgetsBindingObserver
         ),
       ),
     );
-  }
-
-  /*
-
-                      if (!_inputtingRoomCode)
-                        GreenGameButton(
-                          onPressed: () => _createNewGame(context),
-                          label: "NEW GAME",
-                        ),
-                      if (_inputtingRoomCode)
-                        GameTextField(
-                          controller: _roomCodeController,
-                          onSubmitted: (str) => _joinRoom(context),
-                        ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: _overlap, top: _inputtingRoomCode ? 30 : 40),
-                        child: BlueGameButton(
-                          label: "JOIN GAME",
-                          onPressed: () => _joinRoom(context),
-                        ),
-                      ),
-   */
-
-  void _createNewGame(BuildContext context) async {
-    setState(() => _loading = true);
-
-    String roomCode = await _db.createNewRoom().timeout(Duration(seconds: 10), onTimeout: () => null);
-
-    if (roomCode != null) {
-      Provider.of<GameState>(context, listen: false).currentRoomCode = roomCode;
-      Navigator.of(context).pushReplacementNamed('/waitingRoom');
-    } else {
-      assert(false, 'creating new room failed...');
-      Scaffold.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Something went wrong... Check your internet connection or try again later"),
-        ),
-      );
-      setState(() => _loading = false);
-    }
-  }
-
-  void _joinRoom(BuildContext context) async {
-    FocusScope.of(context).unfocus();
-
-    if (!_inputtingRoomCode) {
-      setState(() {
-        _inputtingRoomCode = true;
-      });
-    } else {
-      setState(() {
-        _loading = true;
-      });
-
-      String roomCode = _roomCodeController.text.toUpperCase();
-      bool success = await _db.joinRoom(roomCode: roomCode).timeout(Duration(seconds: 10), onTimeout: () => null);
-
-      if (success == true) {
-        Provider.of<GameState>(context, listen: false).currentRoomCode = roomCode;
-        Navigator.of(context).pushReplacementNamed('/waitingRoom');
-      } else {
-        assert(false, 'join room failed');
-        Scaffold.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Something went wrong... Check if the room code is correct and you have internet connection"),
-          ),
-        );
-      }
-      setState(() {
-        _loading = false;
-      });
-    }
   }
 }
 

@@ -284,7 +284,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
           children: <Widget>[
             Container(width: edgePadding),
             PlayButton(
-              onPressed: () {
+              onPressed: () async {
+                await _db.setAnimation(false, room: _room);
                 _db.setAnimation(true, room: _room);
               },
             ),

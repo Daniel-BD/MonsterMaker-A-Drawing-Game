@@ -323,6 +323,42 @@ class LeaveGameButton extends StatelessWidget {
   }
 }
 
+class BackGameButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  BackGameButton({@required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return _GameButton(
+      onPressed: onPressed,
+      height: 50,
+      width: 110,
+      color: monsterTextColor,
+      borderRadius: BorderRadius.horizontal(
+        right: Radius.circular(16),
+      ),
+      child: Row(
+        children: [
+          SizedBox(width: 8),
+          Icon(
+            Icons.arrow_back,
+            color: onWarning,
+          ),
+          SizedBox(width: 4),
+          Text(
+            "BACK",
+            style: GoogleFonts.sniglet(
+              color: onWarning,
+              fontSize: 20,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// MODAL MESSAGE BUTTONS
 
 class ModalBackGameButton extends StatelessWidget {

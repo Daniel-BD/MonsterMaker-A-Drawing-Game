@@ -5,12 +5,15 @@ import 'package:exquisitecorpse/screens/waiting_room_screen.dart';
 import 'package:exquisitecorpse/screens/drawing_screen/drawing_screen.dart';
 import 'package:exquisitecorpse/screens/get_ready_screen.dart';
 import 'package:exquisitecorpse/screens/finished_screen.dart';
+import 'package:exquisitecorpse/screens/play_modes_screen.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(builder: (_) => StartScreen());
+      case '/playModesScreen':
+        return MaterialPageRoute(builder: (_) => PlayModesScreen());
       case '/waitingRoom':
         return MaterialPageRoute(builder: (_) => WaitingRoomScreen());
       case '/getReadyScreen':
