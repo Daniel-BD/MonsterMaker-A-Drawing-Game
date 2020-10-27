@@ -6,12 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:exquisitecorpse/route_generator.dart';
 import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/ReviewWebApp/WebHome.dart';
+import 'test_app.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIOverlays([]);
   //runApp(WebApp());
   runApp(MyApp());
+  //runApp(TestApp());
 }
 
 class MyApp extends StatelessWidget {

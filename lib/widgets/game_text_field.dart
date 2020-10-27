@@ -18,14 +18,14 @@ class _GameTextFieldState extends State<GameTextField> {
 
   final style = TextStyle(
     fontFamily: 'Gaegu',
-    color: textColor,
+    color: monsterTextColor,
     fontSize: 40,
     fontWeight: FontWeight.w700,
   );
 
   final hintStyle = TextStyle(
     fontFamily: 'Gaegu',
-    color: textColor,
+    color: monsterTextColor,
     fontSize: 22,
   );
 
@@ -35,7 +35,7 @@ class _GameTextFieldState extends State<GameTextField> {
     ),
     borderSide: BorderSide(
       width: 2.0,
-      color: textColor,
+      color: monsterTextColor,
     ),
   );
 

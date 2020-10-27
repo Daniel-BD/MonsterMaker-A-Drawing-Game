@@ -1,7 +1,10 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/game_state.dart';
@@ -9,13 +12,15 @@ import 'package:exquisitecorpse/widgets/buttons.dart';
 import 'package:exquisitecorpse/widgets/game_text_field.dart';
 import 'package:exquisitecorpse/widgets/text_components.dart';
 import 'package:exquisitecorpse/widgets/colors.dart';
+import 'package:exquisitecorpse/painters.dart';
+import '../models.dart';
 
 class StartScreen extends StatefulWidget {
   @override
   _StartScreenState createState() => _StartScreenState();
 }
 
-class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
+class _StartScreenState extends State<StartScreen> /*with WidgetsBindingObserver*/ {
   @override
   void initState() {
     super.initState();
@@ -23,14 +28,14 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    WidgetsBinding.instance.addObserver(this);
+    //WidgetsBinding.instance.addObserver(this);
   }
 
-  @override
+  /*@override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
+  }*/
 
   final _db = DatabaseService.instance;
   var _loading = false;
@@ -41,9 +46,11 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final logoWidth = min(300.0, MediaQuery.of(context).size.width);
+
     return Scaffold(
       backgroundColor: paper,
-      appBar: AppBar(
+      /*appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0.0,
@@ -63,17 +70,64 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
                 },
               )
             : null,
-      ),
+      ),*/
       resizeToAvoidBottomInset: false,
-      body: Builder(
-        builder: (context) => _loading
-            ? Center(child: CircularProgressIndicator())
-            : SafeArea(
-                child: Center(
+      body: SafeArea(
+        child: Builder(
+          builder: (context) => _loading
+              ? Center(child: CircularProgressIndicator())
+              : Center(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      SizedBox(
+                        width: logoWidth,
+                        child: FittedBox(
+                          child: MonsterMakerLogo(),
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          BigGameButton(
+                            label: 'PLAY',
+                            color: playButtonColor,
+                            onPressed: () {
+                              //TODO
+                            },
+                          ),
+                          SizedBox(height: 30),
+                          BigGameButton(
+                            label: 'MONSTER GALLERY',
+                            color: galleryButtonColor,
+                            onPressed: () {
+                              //TODO
+                            },
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          Text(
+                            'New Monsters',
+                            style: GoogleFonts.sniglet(
+                              fontSize: 30,
+                              color: monsterTextColor,
+                            ),
+                          ),
+                          MonsterCarousel(),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  /*
+
                       if (!_inputtingRoomCode)
                         GreenGameButton(
                           onPressed: () => _createNewGame(context),
@@ -91,13 +145,7 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
                           onPressed: () => _joinRoom(context),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-      ),
-    );
-  }
+   */
 
   void _createNewGame(BuildContext context) async {
     setState(() => _loading = true);
@@ -149,38 +197,191 @@ class _StartScreenState extends State<StartScreen> with WidgetsBindingObserver {
       });
     }
   }
+}
+
+class MonsterCarousel extends StatefulWidget {
+  @override
+  _MonsterCarouselState createState() => _MonsterCarouselState();
+}
+
+class _MonsterCarouselState extends State<MonsterCarousel> {
+  final _db = DatabaseService.instance;
+  final borderWidth = 5.0;
+  MonsterDrawing drawing;
 
   @override
-  void didChangeMetrics() {
-    if (_joinGameKey.currentContext == null) {
-      return;
-    }
+  void initState() {
+    super.initState();
+    _db.getMonsterFromRoomCode('BQCZ', 1).then((value) {
+      drawing = value;
+      setState(() {});
+    });
+  }
 
-    final _lowestPixel = MediaQuery.of(context).size.height - _joinGameKey.globalPaintBounds.bottom;
-    final keyboardTopPixels = window.physicalSize.height - window.viewInsets.bottom;
-    final keyboardTopPoints = MediaQuery.of(context).size.height - (keyboardTopPixels / window.devicePixelRatio);
-    final overlap = keyboardTopPoints - _lowestPixel;
+  @override
+  Widget build(BuildContext context) {
+    if (drawing == null) return CircularProgressIndicator();
 
-    if (overlap > 0) {
-      setState(() {
-        _overlap = overlap * 2;
-      });
-    } else {
-      setState(() {
-        _overlap = 0;
-      });
-    }
+    final frameWidth = min(300.0, MediaQuery.of(context).size.width * 0.45);
+    final frameHeight = frameWidth * 1.5;
+
+    return CarouselSlider(
+      options: CarouselOptions(
+        autoPlay: true,
+        height: frameHeight + 7.5 * borderWidth + 28,
+        enlargeCenterPage: true,
+        enlargeStrategy: CenterPageEnlargeStrategy.scale,
+        viewportFraction: 0.5,
+      ),
+      items: [
+        for (var monster in ['Surf Dog', 'VeggieMonster', 'Coolio', 'Doggo'])
+          FittedBox(
+            child: MonsterFrame(
+              monsterName: monster,
+              drawing: drawing,
+            ),
+          ),
+      ],
+    );
   }
 }
 
-extension GlobalKeyEx on GlobalKey {
-  Rect get globalPaintBounds {
-    final renderObject = currentContext?.findRenderObject();
-    var translation = renderObject?.getTransformTo(null)?.getTranslation();
-    if (translation != null && renderObject.paintBounds != null) {
-      return renderObject.paintBounds.shift(Offset(translation.x, translation.y));
-    } else {
-      return null;
-    }
+class MonsterFrame extends StatelessWidget {
+  final MonsterDrawing drawing;
+  final borderWidth = 5.0;
+  final monsterName;
+
+  const MonsterFrame({Key key, this.monsterName = 'Monster Name', @required this.drawing}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final frameWidth = min(200.0, MediaQuery.of(context).size.width * 0.4);
+    final frameHeight = frameWidth * 1.5;
+
+    return Container(
+      height: frameHeight + 7.5 * borderWidth + 28,
+      color: Colors.black,
+      child: Container(
+        margin: EdgeInsets.all(borderWidth),
+        color: const Color(0xFF764700),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: EdgeInsets.only(
+                left: borderWidth * 1.5,
+                right: borderWidth * 1.5,
+                top: borderWidth * 1.5,
+              ),
+              color: Colors.black,
+              child: Container(
+                margin: EdgeInsets.all(borderWidth),
+                color: paper,
+                height: frameHeight,
+                width: frameWidth,
+                child: MonsterDrawingWidget(drawing: drawing),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(
+                top: borderWidth,
+                bottom: borderWidth,
+              ),
+              color: Colors.black,
+              child: Container(
+                margin: EdgeInsets.all(2),
+                color: Colors.yellow,
+                height: 24,
+                width: frameWidth + borderWidth - 1,
+                child: Padding(
+                  padding: const EdgeInsets.all(1.0),
+                  child: Center(
+                    child: FittedBox(
+                      child: Text(
+                        monsterName,
+                        style: GoogleFonts.forum(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 40,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MonsterDrawingWidget extends StatelessWidget {
+  final MonsterDrawing drawing;
+
+  const MonsterDrawingWidget({Key key, @required this.drawing}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final frameWidth = min(200.0, MediaQuery.of(context).size.width * 0.4);
+    final frameHeight = frameWidth * 1.5;
+
+    drawing.top.height = frameHeight / 3;
+
+    return Stack(
+      children: <Widget>[
+        Container(
+          foregroundDecoration: BoxDecoration(color: Colors.blue),
+          child: CustomPaint(
+            painter: MyPainter(
+              drawing.top.getScaledPaths(
+                inputHeight: drawing.top.height,
+                outputHeight: frameHeight / 3,
+                inputWidth: drawing.top.width,
+                outputWidth: frameWidth,
+              ),
+              drawing.top.getScaledPaints(
+                inputHeight: drawing.top.height,
+                outputHeight: frameHeight / 3,
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: (frameHeight / 3) * (5 / 6),
+          child: CustomPaint(
+            painter: MyPainter(
+              drawing.middle.getScaledPaths(
+                inputHeight: drawing.middle.height,
+                outputHeight: frameHeight / 3,
+                inputWidth: drawing.middle.width,
+                outputWidth: frameWidth,
+              ),
+              drawing.middle.getScaledPaints(
+                inputHeight: drawing.middle.height,
+                outputHeight: frameHeight / 3,
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 2 * (frameHeight / 3) * (5 / 6),
+          child: CustomPaint(
+            painter: MyPainter(
+              drawing.bottom.getScaledPaths(
+                inputHeight: drawing.bottom.height,
+                outputHeight: frameHeight / 3,
+                inputWidth: drawing.bottom.width,
+                outputWidth: frameWidth,
+              ),
+              drawing.bottom.getScaledPaints(
+                inputHeight: drawing.bottom.height,
+                outputHeight: frameHeight / 3,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

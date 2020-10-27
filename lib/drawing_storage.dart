@@ -106,6 +106,9 @@ class DrawingStorage extends ChangeNotifier {
     var lastDy = _superDeconstructedPaths.last.last.last.item2;
 
     /// Ignore new points if they're closer than 0.5 from the last point.
+    /// TODO: Testa utan detta, vet inte varför jag gjorde såhär...
+    /// Misstänker att det hade att göra med att det blev konstiga streck förut utan detta, men det gäller inte längre.
+    /// Det gör ju så man får lite mindre data att hantera, vilket kanske är bra för performance?
     if (!isDot) {
       if ((dx.abs() - lastDx.abs()).abs() < 0.5 || (dy.abs() - lastDy.abs()).abs() < 0.5) {
         return;
@@ -157,8 +160,8 @@ class DrawingStorage extends ChangeNotifier {
   }
 
   List<Path> getScaledPaths({@required double inputHeight, @required inputWidth, @required outputHeight, @required outputWidth}) {
-    print(
-        "getScaledPaths: inputHeight: ${inputHeight}, outputHeight: ${outputHeight}, inputWidth: ${inputWidth}, outputWidth: ${outputWidth}");
+    /*print(
+        "getScaledPaths: inputHeight: ${inputHeight}, outputHeight: ${outputHeight}, inputWidth: ${inputWidth}, outputWidth: ${outputWidth}");*/
 
     List<Path> scaledPaths = [];
 
@@ -177,6 +180,11 @@ class DrawingStorage extends ChangeNotifier {
           tempList.last.lineTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath[i].item1),
               _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath[i].item2));
         }
+
+        /*
+        if (tempList.last.computeMetrics().length == 0) {
+          tempList.last.relativeLineTo(0.0001, 0.0001);
+        }*/
       });
 
       tempPaths.add(tempList);
@@ -231,9 +239,9 @@ class DrawingStorage extends ChangeNotifier {
 
   DrawingStorage();
 
-  DrawingStorage.fromJson(Map<String, dynamic> json, bool doScale) {
-    this.height = GameState.canvasHeight;
-    this.width = GameState.canvasWidth;
+  DrawingStorage.fromJson(Map<String, dynamic> json, bool doScale, {double outputHeight, double outputWidth}) {
+    this.height = outputHeight ?? GameState.canvasHeight;
+    this.width = outputWidth ?? GameState.canvasWidth;
 
     List<List<List<Tuple2<double, double>>>> listOfListsOfPaths = [];
     List<List<Paint>> listOfListsOfPaints = [];
@@ -247,23 +255,27 @@ class DrawingStorage extends ChangeNotifier {
     for (var pathList in listOfPathListStrings) {
       List<List<Tuple2<double, double>>> tempPathList = [];
 
-      for (var path in pathList.split(':')) {
-        List<Tuple2<double, double>> pathCoordinates = [];
-        List<String> pathCoordinatesString = path.split(',');
+      List<Tuple2<double, double>> pathCoordinates = [];
+      List<String> pathCoordinatesString = pathList.split(',');
 
-        for (var i = 0; i < pathCoordinatesString.length; i += 2) {
-          double X = doScale
-              ? _scaleNumbers(inputScale: originalHeight, outputScale: height, number: double.parse(pathCoordinatesString[i]))
-              : double.parse(pathCoordinatesString[i]);
-          double Y = doScale
-              ? _scaleNumbers(inputScale: originalHeight, outputScale: height, number: double.parse(pathCoordinatesString[i + 1]))
-              : double.parse(pathCoordinatesString[i + 1]);
+      for (var i = 0; i < pathCoordinatesString.length; i += 2) {
+        double X = doScale
+            ? _scaleNumbers(inputScale: originalHeight, outputScale: height, number: double.parse(pathCoordinatesString[i]))
+            : double.parse(pathCoordinatesString[i]);
+        double Y = doScale
+            ? _scaleNumbers(inputScale: originalHeight, outputScale: height, number: double.parse(pathCoordinatesString[i + 1]))
+            : double.parse(pathCoordinatesString[i + 1]);
 
-          pathCoordinates.add(Tuple2(X, Y));
-        }
-
-        tempPathList.add(pathCoordinates);
+        pathCoordinates.add(Tuple2(X, Y));
       }
+
+      /// If there's only one coordinate in this path, add a second one right next to it.
+      /// This is to prevent dots (path with one coordinate) not rendering in the animation library.
+      if (pathCoordinates.length == 1) {
+        pathCoordinates.add(Tuple2(pathCoordinates.last.item1 + 0.001, pathCoordinates.last.item2 + 0.001));
+      }
+
+      tempPathList.add(pathCoordinates);
 
       listOfListsOfPaths.add(tempPathList);
     }
@@ -316,6 +328,13 @@ class DrawingStorage extends ChangeNotifier {
           /// Don't write a comma after the last coordinate
           if (k < _superDeconstructedPaths[i][j].length - 1) {
             pathsString.write(',');
+          }
+
+          /// If there's only one coordinate in this path, add a second one right next to it.
+          /// This is to prevent dots (path with one coordinate) not rendering in the animation library.
+          if (_superDeconstructedPaths[i][j].length == 1) {
+            pathsString.write(',');
+            pathsString.write('${_superDeconstructedPaths[i][j][k].item1 + 0.001},${_superDeconstructedPaths[i][j][k].item2 + 0.001}');
           }
         }
 

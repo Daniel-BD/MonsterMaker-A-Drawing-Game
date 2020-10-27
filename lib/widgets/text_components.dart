@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'colors.dart';
 
@@ -9,12 +10,15 @@ class MonsterMakerLogo extends StatelessWidget {
       padding: const EdgeInsets.only(top: 12.0),
       child: Text(
         'MonsterMaker',
-        style: TextStyle(
+        style: GoogleFonts.sniglet(
+          color: monsterTextColor,
+          fontSize: 100,
+        ), /*TextStyle(
           fontFamily: 'Gaegu',
           fontWeight: FontWeight.w700,
           color: textColor,
           fontSize: 100,
-        ),
+        ),*/
       ),
     );
   }
@@ -25,7 +29,7 @@ class RoomCodeInfo extends StatelessWidget {
 
   final smallStyle = TextStyle(
     fontFamily: 'Gaegu',
-    color: textColor,
+    color: monsterTextColor,
     fontSize: 24,
   );
   final bigStyle = TextStyle(
@@ -60,7 +64,7 @@ class WaitingRoomText extends StatelessWidget {
 
   final smallStyle = TextStyle(
     fontFamily: 'Gaegu',
-    color: textColor,
+    color: monsterTextColor,
     fontSize: 24,
   );
 
@@ -74,7 +78,9 @@ class WaitingRoomText extends StatelessWidget {
     return Text(
       playersReady != 3
           ? '$playersReady ' + playersAre + ' ready! \n Invite ${3 - playersReady} more ' + friend + ' to start...'
-          : isHost == true ? 'All 3 players are ready!' : 'All 3 players are ready! \n Waiting for the host to start...',
+          : isHost == true
+              ? 'All 3 players are ready!'
+              : 'All 3 players are ready! \n Waiting for the host to start...',
       textAlign: TextAlign.center,
       style: smallStyle,
     );
@@ -83,7 +89,7 @@ class WaitingRoomText extends StatelessWidget {
 
 final _instructionStyle = TextStyle(
   fontFamily: 'Gaegu',
-  color: textColor,
+  color: monsterTextColor,
   fontSize: 20,
 );
 
@@ -149,7 +155,7 @@ class GameHostControlsWhatYouSeeText extends StatelessWidget {
       textAlign: TextAlign.center,
       style: TextStyle(
         fontFamily: 'Gaegu',
-        color: textColor,
+        color: monsterTextColor,
         fontSize: 16,
       ),
     );
@@ -168,7 +174,7 @@ class MonsterNumberText extends StatelessWidget {
       textAlign: TextAlign.center,
       style: TextStyle(
         fontFamily: 'Gaegu',
-        color: textColor,
+        color: monsterTextColor,
         fontSize: 30,
       ),
     );
@@ -185,7 +191,7 @@ class LastWaitingScreen extends StatelessWidget {
         textAlign: TextAlign.center,
         style: TextStyle(
           fontFamily: 'Gaegu',
-          color: textColor,
+          color: monsterTextColor,
           fontSize: 24,
         ),
       ),

@@ -1,5 +1,15 @@
 import 'package:flutter/material.dart';
 
+import 'drawing_storage.dart';
+
+class MonsterDrawing {
+  MonsterDrawing(this.top, this.middle, this.bottom);
+
+  final DrawingStorage top;
+  final DrawingStorage middle;
+  final DrawingStorage bottom;
+}
+
 class GameRoom {
   GameRoom({
     @required this.roomCode,

@@ -98,7 +98,7 @@ class _GameModal extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Gaegu',
-                    color: textColor,
+                    color: monsterTextColor,
                     fontSize: 26,
                   ),
                 ),

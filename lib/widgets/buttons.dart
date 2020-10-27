@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'dart:math';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:flutter_icons/flutter_icons.dart';
 
@@ -176,7 +178,7 @@ class AnimateOrderButton extends StatelessWidget {
   final bool animatingOneByOne;
   final style = TextStyle(
     fontFamily: 'Gaegu',
-    color: textColor,
+    color: monsterTextColor,
     fontSize: 100,
   );
 
@@ -227,11 +229,11 @@ class GreenGameButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _BigGameButton(
+    return BigGameButton(
       onPressed: onPressed,
       label: label,
       color: onPressed != null ? green : disabled,
-      textColor: onPressed != null ? textColor : disabledText,
+      textColor: onPressed != null ? monsterTextColor : disabledText,
     );
   }
 }
@@ -247,11 +249,11 @@ class BlueGameButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _BigGameButton(
+    return BigGameButton(
       onPressed: onPressed,
       label: label,
       color: onPressed != null ? blue : disabled,
-      textColor: onPressed != null ? textColor : disabledText,
+      textColor: onPressed != null ? monsterTextColor : disabledText,
     );
   }
 }
@@ -268,7 +270,7 @@ class ShareButton extends StatelessWidget {
     return _BottomCornerGameButton(
       onPressed: onPressed,
       color: blue,
-      textColor: textColor,
+      textColor: monsterTextColor,
       leftAligned: false,
       label: "SHARE",
     );
@@ -334,7 +336,7 @@ class ModalBackGameButton extends StatelessWidget {
       onPressed: onPressed,
       label: "BACK",
       color: blue,
-      textColor: textColor,
+      textColor: monsterTextColor,
     );
   }
 }
@@ -366,7 +368,7 @@ class ModalDoneGameButton extends StatelessWidget {
       onPressed: onPressed,
       label: "DONE",
       color: green,
-      textColor: textColor,
+      textColor: monsterTextColor,
     );
   }
 }
@@ -497,34 +499,39 @@ class _RoundGameButton extends StatelessWidget {
   }
 }
 
-class _BigGameButton extends StatelessWidget {
+class BigGameButton extends StatelessWidget {
   final String label;
   final Color color;
   final Color textColor;
   final GestureTapCallback onPressed;
 
-  const _BigGameButton({
+  const BigGameButton({
     Key key,
-    this.label,
-    this.color,
-    this.textColor,
-    this.onPressed,
+    @required this.label,
+    @required this.color,
+    this.textColor = monsterTextColor,
+    @required this.onPressed,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final buttonWidth = min(300.0, MediaQuery.of(context).size.width * 0.8);
+
     return _GameButton(
       onPressed: onPressed,
       color: color,
-      height: 50,
-      width: 200,
+      height: 60,
+      width: buttonWidth,
+      borderRadius: BorderRadius.circular(12.0),
       child: Text(
         label,
-        style: TextStyle(
+        style: GoogleFonts.sniglet(
+            color: textColor,
+            fontSize: 28), /*TextStyle(
           fontFamily: 'Gaegu',
           color: textColor,
           fontSize: 24,
-        ),
+        ),*/
       ),
     );
   }
@@ -592,7 +599,7 @@ class AnimatedButton extends StatefulWidget {
     this.height = 64,
     this.shadowDegree = ShadowDegree.light,
     this.width = 200,
-    this.duration = 70,
+    this.duration = 1,
     this.borderRadius,
     this.circular = false,
     this.shadowHeight = 4,

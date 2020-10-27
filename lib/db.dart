@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:exquisitecorpse/drawing_storage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -32,6 +35,9 @@ class DatabaseService {
   static DatabaseService get instance => _instance;
 
   Future<void> _init() async {
+    if (_auth != null) {
+      return;
+    }
     await Firebase.initializeApp();
     _auth = FirebaseAuth.instance;
     _db = FirebaseFirestore.instance;
@@ -137,20 +143,6 @@ class DatabaseService {
         });
       }
     });
-
-/*
-print('delete room: $roomCode');
-        roomData.docs.forEach((documentToDelete) {
-          documentToDelete.reference.delete();
-        });
- */
-
-    //print("rooms: ${rooms.docs}, ${rooms.metadata}, ${rooms.size}");
-    //var roomsData = rooms.data();
-    /*print("roomsData: $roomsData");
-    roomsData.forEach((key, value) {
-      print('KEY: $key, VALUE: $value');
-    });*/
   }
 
   Stream<GameRoom> roomToReviewFromCode({@required String roomCode}) {
@@ -199,6 +191,61 @@ print('delete room: $roomCode');
     });
   }
 
+  Future<MonsterDrawing> getMonsterFromRoomCode(String roomCode, int monsterIndex) async {
+    debugPrint('running getFromRoomCode');
+
+    assert(monsterIndex >= 1 && monsterIndex <= 3, 'MonsterIndex out of range');
+    await _init();
+    bool loggedIn = await _signInAnon();
+    if (!loggedIn) {
+      debugPrint('failed to login...');
+      return null;
+    }
+
+    int topIndex = monsterIndex;
+    int midIndex = (monsterIndex + 1) % 4;
+    int bottomIndex = (monsterIndex + 2) % 4;
+
+    midIndex = midIndex == 0 ? 1 : midIndex;
+    bottomIndex = bottomIndex == 0 ? 1 : bottomIndex;
+
+    debugPrint('monsterIndexes: $topIndex, $midIndex, $bottomIndex');
+
+    _assertAuthenticated();
+    assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
+
+    Map<int, String> topDrawings = {};
+    Map<int, String> midDrawings = {};
+    Map<int, String> bottomDrawings = {};
+
+    final gameDataDoc = await _db.collection(_home).doc(_roomsDoc).collection(roomCode).doc(_gameData).get();
+    final gameData = gameDataDoc.data();
+
+    if (gameData[_top] != null) {
+      topDrawings = Map<String, String>.from(gameData[_top]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
+    }
+    if (gameData[_mid] != null) {
+      midDrawings = Map<String, String>.from(gameData[_mid]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
+    }
+    if (gameData[_bottom] != null) {
+      bottomDrawings = Map<String, String>.from(gameData[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
+    }
+
+    debugPrint('debug 1');
+
+    assert(topDrawings != null, 'topDrawing null');
+    assert(midDrawings != null, 'midDrawings null');
+    assert(bottomDrawings != null, 'bottomDrawings null');
+
+    DrawingStorage top = DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]), true, outputHeight: 100.0, outputWidth: 200.0);
+    DrawingStorage mid = DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]), true, outputHeight: 100.0, outputWidth: 200.0);
+    DrawingStorage bottom = DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]), true, outputHeight: 100.0, outputWidth: 200.0);
+
+    debugPrint('done with getFromRoomCode');
+
+    return MonsterDrawing(top, mid, bottom);
+  }
+
   Stream<GameRoom> streamGameRoom({@required String roomCode}) {
     _assertAuthenticated();
     assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
@@ -241,7 +288,7 @@ print('delete room: $roomCode');
 
       assert(topDrawings != null, 'topDrawing null');
       assert(midDrawings != null, 'midDrawings null');
-      assert(topDrawings != null, 'topDrawings null');
+      assert(bottomDrawings != null, 'bottomDrawings null');
       assert(startedGame != null, 'startedGame is null');
 
       if (isHost == null || player == null) {
