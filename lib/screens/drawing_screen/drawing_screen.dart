@@ -183,10 +183,6 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
           },
           child: Stack(
             children: <Widget>[
-              CustomPaint(
-                painter: MyPainter(myDrawing.getPaths(), myDrawing.getPaints()),
-              ),
-              OverlapDashedLines(),
               if (otherPlayerDrawing != null)
                 Positioned(
                   top: -(myDrawing.height *
@@ -204,6 +200,10 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
                     ),
                   ),
                 ),
+              CustomPaint(
+                painter: MyPainter(myDrawing.getPaths(), myDrawing.getPaints()),
+              ),
+              OverlapDashedLines(),
             ],
           ),
         ),
