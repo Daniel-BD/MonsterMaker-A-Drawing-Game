@@ -172,7 +172,7 @@ class DatabaseService {
 
       assert(topDrawings != null, 'topDrawing null');
       assert(midDrawings != null, 'midDrawings null');
-      assert(topDrawings != null, 'topDrawings null');
+      assert(bottomDrawings != null, 'bottomDrawings null');
 
       var gameRoom = GameRoom(
         roomCode: roomCode,
@@ -182,7 +182,7 @@ class DatabaseService {
         player: 1,
         startAnimation: true,
         monsterIndex: 1,
-        animateAllAtOnce: true,
+        animateAllAtOnce: false,
         topDrawings: topDrawings,
         midDrawings: midDrawings,
         bottomDrawings: bottomDrawings,
@@ -203,11 +203,16 @@ class DatabaseService {
     }
 
     int topIndex = monsterIndex;
-    int midIndex = (monsterIndex + 1) % 4;
-    int bottomIndex = (monsterIndex + 2) % 4;
-
-    midIndex = midIndex == 0 ? 1 : midIndex;
-    bottomIndex = bottomIndex == 0 ? 1 : bottomIndex;
+    int midIndex = monsterIndex == 1
+        ? 2
+        : monsterIndex == 2
+            ? 3
+            : 1;
+    int bottomIndex = monsterIndex == 1
+        ? 3
+        : monsterIndex == 2
+            ? 1
+            : 2;
 
     debugPrint('monsterIndexes: $topIndex, $midIndex, $bottomIndex');
 
@@ -231,17 +236,13 @@ class DatabaseService {
       bottomDrawings = Map<String, String>.from(gameData[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
     }
 
-    debugPrint('debug 1');
-
     assert(topDrawings != null, 'topDrawing null');
     assert(midDrawings != null, 'midDrawings null');
     assert(bottomDrawings != null, 'bottomDrawings null');
 
-    DrawingStorage top = DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]), true, outputHeight: 100.0, outputWidth: 200.0);
-    DrawingStorage mid = DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]), true, outputHeight: 100.0, outputWidth: 200.0);
-    DrawingStorage bottom = DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]), true, outputHeight: 100.0, outputWidth: 200.0);
-
-    debugPrint('done with getFromRoomCode');
+    DrawingStorage top = DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]), true, outputHeight: 9.0, outputWidth: 16.0);
+    DrawingStorage mid = DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]), true, outputHeight: 9.0, outputWidth: 16.0);
+    DrawingStorage bottom = DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]), true, outputHeight: 9.0, outputWidth: 16.0);
 
     return MonsterDrawing(top, mid, bottom);
   }
@@ -295,6 +296,29 @@ class DatabaseService {
         return null;
       }
 
+      MonsterDrawing monsterDrawing;
+
+      int topIndex = monsterIndex;
+      int midIndex = monsterIndex == 1
+          ? 2
+          : monsterIndex == 2
+              ? 3
+              : 1;
+      int bottomIndex = monsterIndex == 1
+          ? 3
+          : monsterIndex == 2
+              ? 1
+              : 2;
+
+      if (topDrawings[topIndex] != null && midDrawings[midIndex] != null && bottomDrawings[bottomIndex] != null) {
+        DrawingStorage top = DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]), true, outputHeight: 100.0, outputWidth: 200.0);
+        DrawingStorage mid = DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]), true, outputHeight: 100.0, outputWidth: 200.0);
+        DrawingStorage bottom =
+            DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]), true, outputHeight: 100.0, outputWidth: 200.0);
+
+        monsterDrawing = MonsterDrawing(top, mid, bottom);
+      }
+
       var gameRoom = GameRoom(
         roomCode: roomCode,
         activePlayers: room.docs.length - 1,
@@ -303,10 +327,11 @@ class DatabaseService {
         player: player,
         startAnimation: startAnimation ?? false,
         monsterIndex: monsterIndex ?? 1,
-        animateAllAtOnce: animateAllAtOnce ?? true,
+        animateAllAtOnce: animateAllAtOnce ?? false,
         topDrawings: topDrawings,
         midDrawings: midDrawings,
         bottomDrawings: bottomDrawings,
+        monsterDrawing: monsterDrawing,
       );
       return gameRoom;
     });

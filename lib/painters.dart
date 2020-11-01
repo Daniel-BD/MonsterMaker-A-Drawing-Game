@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'drawing_storage.dart';
-
 class MyPainter extends CustomPainter {
   List<Path> paths;
   List<Paint> paints;
 
   MyPainter(this.paths, this.paints);
-
-  MyPainter.fromStorage(DrawingStorage pathStorage, this.paints) {
-    this.paths = pathStorage.getPaths();
-  }
 
   @override
   void paint(Canvas canvas, Size size) {

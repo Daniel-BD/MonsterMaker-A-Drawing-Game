@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:exquisitecorpse/screens/share_monster_screen.dart';
 import 'package:exquisitecorpse/screens/start_screen.dart';
 import 'package:exquisitecorpse/screens/waiting_room_screen.dart';
 import 'package:exquisitecorpse/screens/drawing_screen/drawing_screen.dart';
@@ -22,6 +23,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => DrawingScreen());
       case '/finishedScreen':
         return MaterialPageRoute(builder: (_) => FinishedScreen());
+      case '/shareMonsterScreen':
+        return MaterialPageRoute(builder: (_) => ShareMonsterScreen());
 
       default:
         return _errorRoute();

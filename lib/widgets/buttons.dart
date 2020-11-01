@@ -269,10 +269,11 @@ class ShareButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return _BottomCornerGameButton(
       onPressed: onPressed,
-      color: blue,
+      color: galleryYellow,
       textColor: monsterTextColor,
       leftAligned: false,
-      label: "SHARE",
+      label: "Share to\nMonster Gallery",
+      width: min(150.0, MediaQuery.of(context).size.width / 2),
     );
   }
 }
@@ -290,6 +291,7 @@ class QuitButton extends StatelessWidget {
       textColor: onWarning,
       leftAligned: true,
       label: "QUIT",
+      width: min(100.0, MediaQuery.of(context).size.width / 4),
     );
   }
 }
@@ -464,6 +466,7 @@ class _BottomCornerGameButton extends StatelessWidget {
   final Color color;
   final Color textColor;
   final GestureTapCallback onPressed;
+  final double width;
 
   /// If this is true, then the button is shaped to be placed at the left edge of the screen,
   /// if false it's shaped to be placed at the right edge of the screen.
@@ -475,6 +478,7 @@ class _BottomCornerGameButton extends StatelessWidget {
     @required this.color,
     @required this.textColor,
     @required this.leftAligned,
+    @required this.width,
   });
 
   @override
@@ -482,18 +486,23 @@ class _BottomCornerGameButton extends StatelessWidget {
     return _GameButton(
       onPressed: onPressed,
       height: 50,
-      width: 70,
+      width: width,
       color: color,
       borderRadius: BorderRadius.horizontal(
-        left: leftAligned ? Radius.zero : Radius.circular(16),
-        right: leftAligned ? Radius.circular(16) : Radius.zero,
+        left: leftAligned ? Radius.zero : Radius.circular(12),
+        right: leftAligned ? Radius.circular(12) : Radius.zero,
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontFamily: 'Gaegu',
-          color: textColor,
-          fontSize: 20,
+      child: FittedBox(
+        child: Padding(
+          padding: const EdgeInsets.all(2.0),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.sniglet(
+              color: textColor,
+              fontSize: 20,
+            ),
+          ),
         ),
       ),
     );

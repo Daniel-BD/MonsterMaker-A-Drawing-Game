@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 const Color green = Color.fromRGBO(80, 238, 174, 1);
 const Color playButtonColor = Color(0xFF52F5A5);
-const Color galleryButtonColor = Color(0xFFFFE600);
+const Color galleryYellow = Color(0xFFFFE600);
 const Color focused = Color.fromRGBO(150, 84, 161, 1);
 const Color paper = Color.fromRGBO(255, 247, 234, 1);
 const Color monsterTextColor = Color.fromRGBO(70, 77, 119, 1);

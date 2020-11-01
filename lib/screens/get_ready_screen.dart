@@ -40,13 +40,22 @@ class _GetReadyScreenState extends State<GetReadyScreen> {
               return Center(child: CircularProgressIndicator());
             }
             GameRoom room = snapshot.data;
+
+            debugPrint(room.player.toString());
+
             assert(!snapshot.data.allBottomDrawingsDone(), "Should not be on this screen if all drawings of the game are finised!");
 
             Widget instruction = !room.myTopDrawingDone()
                 ? FirstInstructionText()
-                : !room.myMidDrawingDone() ? SecondInstructionText() : ThirdInstructionText();
+                : !room.myMidDrawingDone()
+                    ? SecondInstructionText()
+                    : ThirdInstructionText();
 
-            String buttonLabel = !room.myTopDrawingDone() ? "DRAW TOP" : !room.myMidDrawingDone() ? "DRAW MIDDLE" : "DRAW BOTTOM";
+            String buttonLabel = !room.myTopDrawingDone()
+                ? "DRAW TOP"
+                : !room.myMidDrawingDone()
+                    ? "DRAW MIDDLE"
+                    : "DRAW BOTTOM";
 
             return Center(
               child: Column(

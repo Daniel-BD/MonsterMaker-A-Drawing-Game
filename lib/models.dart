@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 
 import 'drawing_storage.dart';
 
@@ -23,6 +24,7 @@ class GameRoom {
     @required this.topDrawings,
     @required this.midDrawings,
     @required this.bottomDrawings,
+    this.monsterDrawing,
   })  : assert(roomCode != null),
         assert(activePlayers != null),
         assert(isHost != null),
@@ -64,6 +66,9 @@ class GameRoom {
   final Map<int, String> midDrawings;
   final Map<int, String> bottomDrawings;
 
+  /// A [MonsterDrawing] representation of the drawing on the current [monsterIndex].
+  final MonsterDrawing monsterDrawing;
+
   bool allTopDrawingsDone() => topDrawings.length == 3;
   bool allMidDrawingsDone() => midDrawings.length == 3;
   bool allBottomDrawingsDone() => bottomDrawings.length == 3;
@@ -85,6 +90,27 @@ class GameRoom {
     }
 
     return true;
+  }
+
+  MonsterDrawing getMonsterDrawing(int monsterIndex) {
+    debugPrint('hello: return monsterDrawring');
+    return monsterDrawing;
+
+    /*debugPrint('MonsterIndex: $monsterIndex');
+    assert(monsterIndex <= 3 && monsterIndex >= 1, 'monsterIndex is not in range');
+
+    final topIndex = monsterIndex;
+    int midIndex = (monsterIndex + 1) % 4;
+    int bottomIndex = (monsterIndex + 2) % 4;
+
+    midIndex = midIndex == 0 ? 1 : midIndex;
+    bottomIndex = bottomIndex == 0 ? 1 : bottomIndex;
+
+    return MonsterDrawing(
+      DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]), false),
+      DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]), false),
+      DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]), false),
+    );*/
   }
 
   @override

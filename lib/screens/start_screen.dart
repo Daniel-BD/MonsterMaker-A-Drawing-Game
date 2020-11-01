@@ -13,6 +13,7 @@ import 'package:exquisitecorpse/widgets/game_text_field.dart';
 import 'package:exquisitecorpse/widgets/text_components.dart';
 import 'package:exquisitecorpse/widgets/colors.dart';
 import 'package:exquisitecorpse/painters.dart';
+import 'package:exquisitecorpse/widgets/MonsterFrameWidgets.dart';
 import '../models.dart';
 
 class StartScreen extends StatefulWidget {
@@ -78,7 +79,7 @@ class _StartScreenState extends State<StartScreen> /*with WidgetsBindingObserver
                           SizedBox(height: 30),
                           BigGameButton(
                             label: 'MONSTER GALLERY',
-                            color: galleryButtonColor,
+                            color: galleryYellow,
                             onPressed: () {
                               //TODO
                             },
@@ -119,7 +120,7 @@ class _MonsterCarouselState extends State<MonsterCarousel> {
   @override
   void initState() {
     super.initState();
-    _db.getMonsterFromRoomCode('BQCZ', 1).then((value) {
+    _db.getMonsterFromRoomCode('AFYU', 3).then((value) {
       drawing = value;
       setState(() {});
     });
@@ -148,146 +149,6 @@ class _MonsterCarouselState extends State<MonsterCarousel> {
               drawing: drawing,
             ),
           ),
-      ],
-    );
-  }
-}
-
-class MonsterFrame extends StatelessWidget {
-  final MonsterDrawing drawing;
-  final borderWidth = 5.0;
-  final monsterName;
-
-  const MonsterFrame({Key key, this.monsterName = 'Monster Name', @required this.drawing}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final frameWidth = min(200.0, MediaQuery.of(context).size.width * 0.4);
-    final frameHeight = frameWidth * 1.5;
-
-    return Container(
-      height: frameHeight + 7.5 * borderWidth + 28,
-      color: Colors.black,
-      child: Container(
-        margin: EdgeInsets.all(borderWidth),
-        color: const Color(0xFF764700),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              margin: EdgeInsets.only(
-                left: borderWidth * 1.5,
-                right: borderWidth * 1.5,
-                top: borderWidth * 1.5,
-              ),
-              color: Colors.black,
-              child: Container(
-                margin: EdgeInsets.all(borderWidth),
-                color: paper,
-                height: frameHeight,
-                width: frameWidth,
-                child: MonsterDrawingWidget(drawing: drawing),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.only(
-                top: borderWidth,
-                bottom: borderWidth,
-              ),
-              color: Colors.black,
-              child: Container(
-                margin: EdgeInsets.all(2),
-                color: Colors.yellow,
-                height: 24,
-                width: frameWidth + borderWidth - 1,
-                child: Padding(
-                  padding: const EdgeInsets.all(1.0),
-                  child: Center(
-                    child: FittedBox(
-                      child: Text(
-                        monsterName,
-                        style: GoogleFonts.forum(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 40,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class MonsterDrawingWidget extends StatelessWidget {
-  final MonsterDrawing drawing;
-
-  const MonsterDrawingWidget({Key key, @required this.drawing}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final frameWidth = min(200.0, MediaQuery.of(context).size.width * 0.4);
-    final frameHeight = frameWidth * 1.5;
-
-    drawing.top.height = frameHeight / 3;
-
-    return Stack(
-      children: <Widget>[
-        Container(
-          foregroundDecoration: BoxDecoration(color: Colors.blue),
-          child: CustomPaint(
-            painter: MyPainter(
-              drawing.top.getScaledPaths(
-                inputHeight: drawing.top.height,
-                outputHeight: frameHeight / 3,
-                inputWidth: drawing.top.width,
-                outputWidth: frameWidth,
-              ),
-              drawing.top.getScaledPaints(
-                inputHeight: drawing.top.height,
-                outputHeight: frameHeight / 3,
-              ),
-            ),
-          ),
-        ),
-        Positioned(
-          top: (frameHeight / 3) * (5 / 6),
-          child: CustomPaint(
-            painter: MyPainter(
-              drawing.middle.getScaledPaths(
-                inputHeight: drawing.middle.height,
-                outputHeight: frameHeight / 3,
-                inputWidth: drawing.middle.width,
-                outputWidth: frameWidth,
-              ),
-              drawing.middle.getScaledPaints(
-                inputHeight: drawing.middle.height,
-                outputHeight: frameHeight / 3,
-              ),
-            ),
-          ),
-        ),
-        Positioned(
-          top: 2 * (frameHeight / 3) * (5 / 6),
-          child: CustomPaint(
-            painter: MyPainter(
-              drawing.bottom.getScaledPaths(
-                inputHeight: drawing.bottom.height,
-                outputHeight: frameHeight / 3,
-                inputWidth: drawing.bottom.width,
-                outputWidth: frameWidth,
-              ),
-              drawing.bottom.getScaledPaints(
-                inputHeight: drawing.bottom.height,
-                outputHeight: frameHeight / 3,
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }

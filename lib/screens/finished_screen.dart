@@ -40,7 +40,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
   bool _runBottomAnimation = false;
 
   var _duration = Duration(seconds: 2);
-  PathOrder _pathOrder = PathOrders.topToBottom;
+  PathOrder _pathOrder = PathOrders.original;
 
   final monsterKey = GlobalKey();
   Size monsterSize;
@@ -98,7 +98,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
       backgroundColor: paper,
       body: SafeArea(
         child: StreamBuilder<GameRoom>(
-          stream: _db.streamGameRoom(roomCode: gameState.currentRoomCode),
+          stream: _db.streamGameRoom(roomCode: 'AFYU' /*gameState.currentRoomCode*/),
           builder: (context, snapshot) {
             if (snapshot.data == null) {
               return Center(child: CircularProgressIndicator());
@@ -144,30 +144,28 @@ class _FinishedScreenState extends State<FinishedScreen> {
                       children: <Widget>[MonsterNumberText(number: _index)],
                     ),
                     if (_clearCanvas || monsterSize == null) _calculateWidget(),
-                    if (!_clearCanvas && monsterSize != null) _monster(size)
+                    if (!_clearCanvas && monsterSize != null) _monster(size),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        QuitButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => QuitGameModal(
+                                onPressed: () {
+                                  Navigator.of(context).pushReplacementNamed('/');
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                        ShareButton(onPressed: () {
+                          Navigator.of(context).pushNamed('/shareMonsterScreen');
+                        }), //TODO: Implement share functionality
+                      ],
+                    ),
                   ],
-                ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      QuitButton(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => QuitGameModal(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                                Navigator.of(context).pushReplacementNamed('/');
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                      //ShareButton(onPressed: () {}), //TODO: Implement share functionality
-                    ],
-                  ),
                 ),
               ],
             );
@@ -311,13 +309,6 @@ class _FinishedScreenState extends State<FinishedScreen> {
                   _hostIndex++;
                   _db.setMonsterIndex(_hostIndex, room: _room);
                 }
-              },
-            ),
-            Container(width: padding),
-            AnimateOrderButton(
-              animatingOneByOne: !_room.animateAllAtOnce,
-              onPressed: () {
-                _db.setAnimateAllAtOnce(!_room.animateAllAtOnce, room: _room);
               },
             ),
             Container(width: edgePadding),
