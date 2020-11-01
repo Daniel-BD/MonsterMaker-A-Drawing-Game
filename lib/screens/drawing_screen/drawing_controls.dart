@@ -38,16 +38,17 @@ class _DrawingControlsState extends State<DrawingControls> {
 
   @override
   Widget build(BuildContext context) {
-    final drawingState = Provider.of<DrawingState>(context);
+    final drawingState = Provider.of<DrawingControlsState>(context);
     final myDrawing = Provider.of<DrawingStorage>(context);
+    final gameState = Provider.of<GameState>(context);
 
     return Stack(
       children: <Widget>[
-        if (drawingState.loadingHandIn)
+        if (gameState.loadingHandIn)
           Center(
             child: CircularProgressIndicator(),
           ),
-        if (!drawingState.loadingHandIn)
+        if (!gameState.loadingHandIn)
           Padding(
             padding: const EdgeInsets.only(left: 10),
             child: Row(
@@ -130,15 +131,15 @@ class _DrawingControlsState extends State<DrawingControls> {
   void _submitDrawing() async {
     final String roomCode = Provider.of<GameState>(context, listen: false).currentRoomCode;
     final gameRoom = Provider.of<GameRoom>(context, listen: false);
-    final drawingState = Provider.of<DrawingState>(context, listen: false);
+    final gameState = Provider.of<GameState>(context, listen: false);
     final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
 
-    if (myDrawing.getPaths().isEmpty) {
+    if (myDrawing.getOriginalPaths().isEmpty) {
       /// TODO: Felmeddelande om man försöker lämna in en tom ritning
       return;
     }
     final db = DatabaseService.instance;
-    drawingState.loadingHandIn = true;
+    gameState.loadingHandIn = true;
     var success = await db.handInDrawing(roomCode: roomCode, drawing: jsonEncode(myDrawing.toJson()));
     var retries = 0;
 
@@ -154,10 +155,8 @@ class _DrawingControlsState extends State<DrawingControls> {
     assert(success, 'Could not hand in drawing!');
 
     /// TODO: Felmeddelande om man det misslyckas...
-    drawingState.loadingHandIn = false;
+    gameState.loadingHandIn = false;
     if (success) {
-      /// Setting this property to null, since we don't want to use the drawing downloaded last anymore
-      Provider.of<OtherPlayerDrawing>(context, listen: false).drawing = null;
       if (gameRoom.allMidDrawingsDone()) {
         Navigator.of(context).pushReplacementNamed('/finishedScreen');
       } else {

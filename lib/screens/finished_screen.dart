@@ -24,9 +24,9 @@ class _FinishedScreenState extends State<FinishedScreen> {
 
   bool _clearCanvas = true;
 
-  DrawingStorage _top;
-  DrawingStorage _mid;
-  DrawingStorage _bottom;
+  //DrawingStorage _top;
+  //DrawingStorage _mid;
+  //DrawingStorage _bottom;
 
   int _hostIndex = 1;
   int _index = 1;
@@ -98,14 +98,14 @@ class _FinishedScreenState extends State<FinishedScreen> {
       backgroundColor: paper,
       body: SafeArea(
         child: StreamBuilder<GameRoom>(
-          stream: _db.streamGameRoom(roomCode: 'AFYU' /*gameState.currentRoomCode*/),
+          stream: _db.streamGameRoom(roomCode: gameState.currentRoomCode),
           builder: (context, snapshot) {
             if (snapshot.data == null) {
               return Center(child: CircularProgressIndicator());
             }
 
             GameRoom room = snapshot.data;
-            //TODO: Byt ut detta mot provider till controller osv...
+            //TODO: Byt ut detta mot provider eller liknande... skall inte vara en global variabel iaf
             _room = room;
 
             if (!room.allBottomDrawingsDone()) {
@@ -127,9 +127,9 @@ class _FinishedScreenState extends State<FinishedScreen> {
 
             indexHandler(room.monsterIndex);
 
-            _top = DrawingStorage.fromJson(jsonDecode(room.topDrawings[_topIndex]), true);
-            _mid = DrawingStorage.fromJson(jsonDecode(room.midDrawings[_midIndex]), true);
-            _bottom = DrawingStorage.fromJson(jsonDecode(room.bottomDrawings[_bottomIndex]), true);
+            //_top = DrawingStorage.fromJson(jsonDecode(room.topDrawings[_topIndex]), true);
+            //_mid = DrawingStorage.fromJson(jsonDecode(room.midDrawings[_midIndex]), true);
+            //_bottom = DrawingStorage.fromJson(jsonDecode(room.bottomDrawings[_bottomIndex]), true);
 
             return Stack(
               children: <Widget>[
@@ -194,16 +194,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
         child: Stack(
           children: <Widget>[
             AnimatedDrawing.paths(
-              _top.getScaledPaths(
-                inputHeight: _top.height,
-                outputHeight: _outputHeight,
-                inputWidth: _top.width,
-                outputWidth: _outputWidth,
-              ),
-              paints: _top.getScaledPaints(
-                inputHeight: _top.height,
-                outputHeight: _outputHeight,
-              ),
+              _room.monsterDrawing.top.getScaledPaths(outputHeight: _outputHeight),
+              paints: _room.monsterDrawing.top.getScaledPaints(outputHeight: _outputHeight),
               run: _runTopAnimation,
               animationOrder: _pathOrder,
               scaleToViewport: false,
@@ -218,16 +210,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
             Positioned(
               top: _outputHeight * (5 / 6),
               child: AnimatedDrawing.paths(
-                _mid.getScaledPaths(
-                  inputHeight: _mid.height,
-                  outputHeight: _outputHeight,
-                  inputWidth: _mid.width,
-                  outputWidth: _outputWidth,
-                ),
-                paints: _mid.getScaledPaints(
-                  inputHeight: _mid.height,
-                  outputHeight: _outputHeight,
-                ),
+                _room.monsterDrawing.middle.getScaledPaths(outputHeight: _outputHeight),
+                paints: _room.monsterDrawing.middle.getScaledPaints(outputHeight: _outputHeight),
                 run: _runMidAnimation,
                 animationOrder: _pathOrder,
                 scaleToViewport: false,
@@ -243,16 +227,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
             Positioned(
               top: 2 * _outputHeight * (5 / 6),
               child: AnimatedDrawing.paths(
-                _bottom.getScaledPaths(
-                  inputHeight: _bottom.height,
-                  outputHeight: _outputHeight,
-                  inputWidth: _bottom.width,
-                  outputWidth: _outputWidth,
-                ),
-                paints: _bottom.getScaledPaints(
-                  inputHeight: _bottom.height,
-                  outputHeight: _outputHeight,
-                ),
+                _room.monsterDrawing.bottom.getScaledPaths(outputHeight: _outputHeight),
+                paints: _room.monsterDrawing.bottom.getScaledPaints(outputHeight: _outputHeight),
                 run: _runBottomAnimation,
                 animationOrder: _pathOrder,
                 scaleToViewport: false,

@@ -1,18 +1,13 @@
 import 'dart:math';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 import 'package:exquisitecorpse/db.dart';
-import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/widgets/buttons.dart';
-import 'package:exquisitecorpse/widgets/game_text_field.dart';
 import 'package:exquisitecorpse/widgets/text_components.dart';
 import 'package:exquisitecorpse/widgets/colors.dart';
-import 'package:exquisitecorpse/painters.dart';
 import 'package:exquisitecorpse/widgets/MonsterFrameWidgets.dart';
 import '../models.dart';
 
@@ -21,7 +16,7 @@ class StartScreen extends StatefulWidget {
   _StartScreenState createState() => _StartScreenState();
 }
 
-class _StartScreenState extends State<StartScreen> /*with WidgetsBindingObserver*/ {
+class _StartScreenState extends State<StartScreen> {
   @override
   void initState() {
     super.initState();
@@ -29,21 +24,9 @@ class _StartScreenState extends State<StartScreen> /*with WidgetsBindingObserver
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    //WidgetsBinding.instance.addObserver(this);
   }
 
-  /*@override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }*/
-
-  final _db = DatabaseService.instance;
   var _loading = false;
-  var _inputtingRoomCode = false;
-  var _roomCodeController = TextEditingController();
-  var _joinGameKey = GlobalKey();
-  var _overlap = 0.0;
 
   @override
   Widget build(BuildContext context) {

@@ -1,13 +1,10 @@
-import 'package:exquisitecorpse/widgets/modal_message.dart';
 import 'package:exquisitecorpse/drawing_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
-import 'package:provider/provider.dart';
 import 'package:drawing_animation/drawing_animation.dart';
 
 import 'package:exquisitecorpse/models.dart';
-import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/widgets/buttons.dart';
 import 'package:exquisitecorpse/widgets/text_components.dart';
@@ -104,7 +101,7 @@ class _MonsterViewerState extends State<MonsterViewer> {
     }
   }
 
-  void _calculate(Size size) {
+  void _calculate() {
     if (monsterKey.currentContext != null) {
       RenderBox renderBox = monsterKey.currentContext.findRenderObject();
       monsterSize = renderBox.size;
@@ -123,8 +120,8 @@ class _MonsterViewerState extends State<MonsterViewer> {
 
   @override
   Widget build(BuildContext context) {
-    GameState.canvasHeight = MediaQuery.of(context).size.height / 2;
-    GameState.canvasWidth = MediaQuery.of(context).size.width / 2;
+    //GameState.canvasHeight = MediaQuery.of(context).size.height / 2;
+    //GameState.canvasWidth = MediaQuery.of(context).size.width / 2;
 
     final Size size = Size(300, 300); //MediaQuery.of(context).size;
     //final Size size = MediaQuery.of(context).size;
@@ -139,9 +136,9 @@ class _MonsterViewerState extends State<MonsterViewer> {
       );
     }
 
-    _top = DrawingStorage.fromJson(jsonDecode(_room.topDrawings[_topIndex]), true);
-    _mid = DrawingStorage.fromJson(jsonDecode(_room.midDrawings[_midIndex]), true);
-    _bottom = DrawingStorage.fromJson(jsonDecode(_room.bottomDrawings[_bottomIndex]), true);
+    _top = DrawingStorage.fromJson(jsonDecode(_room.topDrawings[_topIndex]));
+    _mid = DrawingStorage.fromJson(jsonDecode(_room.midDrawings[_midIndex]));
+    _bottom = DrawingStorage.fromJson(jsonDecode(_room.bottomDrawings[_bottomIndex]));
 
     return Scaffold(
       backgroundColor: paper,
@@ -178,8 +175,7 @@ class _MonsterViewerState extends State<MonsterViewer> {
   }
 
   Widget _calculateWidget() {
-    final Size size = MediaQuery.of(context).size;
-    _calculate(size);
+    _calculate();
 
     return Expanded(
       child: Container(
@@ -197,13 +193,9 @@ class _MonsterViewerState extends State<MonsterViewer> {
           children: <Widget>[
             AnimatedDrawing.paths(
               _top.getScaledPaths(
-                inputHeight: _top.height,
                 outputHeight: _outputHeight,
-                inputWidth: _top.width,
-                outputWidth: _outputWidth,
               ),
               paints: _top.getScaledPaints(
-                inputHeight: _top.height,
                 outputHeight: _outputHeight,
               ),
               run: _runTopAnimation,
@@ -221,13 +213,9 @@ class _MonsterViewerState extends State<MonsterViewer> {
               top: _outputHeight * (5 / 6),
               child: AnimatedDrawing.paths(
                 _mid.getScaledPaths(
-                  inputHeight: _mid.height,
                   outputHeight: _outputHeight,
-                  inputWidth: _mid.width,
-                  outputWidth: _outputWidth,
                 ),
                 paints: _mid.getScaledPaints(
-                  inputHeight: _mid.height,
                   outputHeight: _outputHeight,
                 ),
                 run: _runMidAnimation,
@@ -246,13 +234,9 @@ class _MonsterViewerState extends State<MonsterViewer> {
               top: 2 * _outputHeight * (5 / 6),
               child: AnimatedDrawing.paths(
                 _bottom.getScaledPaths(
-                  inputHeight: _bottom.height,
                   outputHeight: _outputHeight,
-                  inputWidth: _bottom.width,
-                  outputWidth: _outputWidth,
                 ),
                 paints: _bottom.getScaledPaints(
-                  inputHeight: _bottom.height,
                   outputHeight: _outputHeight,
                 ),
                 run: _runBottomAnimation,

@@ -10,7 +10,7 @@ void main() {
       activePlayers: 3,
       startedGame: true,
       isHost: true,
-      player: 1,
+      playerIndex: 1,
       startAnimation: false,
       animateAllAtOnce: false,
       monsterIndex: 1,

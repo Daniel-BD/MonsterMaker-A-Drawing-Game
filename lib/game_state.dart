@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'drawing_storage.dart';
 
 class GameState extends ChangeNotifier {
   String _currentRoomCode;
@@ -16,19 +15,23 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  static double canvasHeight;
-  static double canvasWidth;
+  bool _loadingHandIn = false;
+  get loadingHandIn => _loadingHandIn;
+  set loadingHandIn(bool value) {
+    _loadingHandIn = value;
+    notifyListeners();
+  }
 
   void notify() {
     notifyListeners();
   }
 }
 
-class OtherPlayerDrawing {
+/*class OtherPlayerDrawing {
   DrawingStorage drawing;
-}
+}*/
 
-class DrawingState extends ChangeNotifier {
+class DrawingControlsState extends ChangeNotifier {
   /// Whether to show or hide the drawing controls
   bool _showButtons = true;
   get showButtons => _showButtons;
@@ -45,13 +48,6 @@ class DrawingState extends ChangeNotifier {
   get showBrushSettings => _showBrushSettings;
   set showBrushSettings(bool value) {
     _showBrushSettings = value;
-    notifyListeners();
-  }
-
-  bool _loadingHandIn = false;
-  get loadingHandIn => _loadingHandIn;
-  set loadingHandIn(bool value) {
-    _loadingHandIn = value;
     notifyListeners();
   }
 }

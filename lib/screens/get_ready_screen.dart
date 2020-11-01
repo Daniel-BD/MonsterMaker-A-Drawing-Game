@@ -41,7 +41,7 @@ class _GetReadyScreenState extends State<GetReadyScreen> {
             }
             GameRoom room = snapshot.data;
 
-            debugPrint(room.player.toString());
+            debugPrint(room.playerIndex.toString());
 
             assert(!snapshot.data.allBottomDrawingsDone(), "Should not be on this screen if all drawings of the game are finised!");
 

@@ -119,10 +119,10 @@ class DatabaseService {
 
               Map<int, String> bottom = {};
               if (gameData['bottom'] != null) {
-                print('bottom is not null for room: ${roomCode}');
+                print('bottom is not null for room: $roomCode');
                 bottom = Map<String, String>.from(gameData[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
               } else {
-                print('bottom is NULL for room: ${roomCode}');
+                print('bottom is NULL for room: $roomCode');
               }
 
               if (bottom == null || bottom.length < 3) {
@@ -137,7 +137,7 @@ class DatabaseService {
           }
         });
       } else {
-        print("room to delete: ${roomCode}");
+        print("room to delete: $roomCode");
         roomData.docs.forEach((documentToDelete) {
           documentToDelete.reference.delete();
         });
@@ -179,7 +179,7 @@ class DatabaseService {
         activePlayers: room.docs.length - 1,
         startedGame: true,
         isHost: true,
-        player: 1,
+        playerIndex: 1,
         startAnimation: true,
         monsterIndex: 1,
         animateAllAtOnce: false,
@@ -240,9 +240,9 @@ class DatabaseService {
     assert(midDrawings != null, 'midDrawings null');
     assert(bottomDrawings != null, 'bottomDrawings null');
 
-    DrawingStorage top = DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]), true, outputHeight: 9.0, outputWidth: 16.0);
-    DrawingStorage mid = DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]), true, outputHeight: 9.0, outputWidth: 16.0);
-    DrawingStorage bottom = DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]), true, outputHeight: 9.0, outputWidth: 16.0);
+    DrawingStorage top = DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]));
+    DrawingStorage mid = DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]));
+    DrawingStorage bottom = DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]));
 
     return MonsterDrawing(top, mid, bottom);
   }
@@ -311,10 +311,9 @@ class DatabaseService {
               : 2;
 
       if (topDrawings[topIndex] != null && midDrawings[midIndex] != null && bottomDrawings[bottomIndex] != null) {
-        DrawingStorage top = DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]), true, outputHeight: 100.0, outputWidth: 200.0);
-        DrawingStorage mid = DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]), true, outputHeight: 100.0, outputWidth: 200.0);
-        DrawingStorage bottom =
-            DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]), true, outputHeight: 100.0, outputWidth: 200.0);
+        DrawingStorage top = DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]));
+        DrawingStorage mid = DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]));
+        DrawingStorage bottom = DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]));
 
         monsterDrawing = MonsterDrawing(top, mid, bottom);
       }
@@ -324,7 +323,7 @@ class DatabaseService {
         activePlayers: room.docs.length - 1,
         startedGame: startedGame,
         isHost: isHost,
-        player: player,
+        playerIndex: player,
         startAnimation: startAnimation ?? false,
         monsterIndex: monsterIndex ?? 1,
         animateAllAtOnce: animateAllAtOnce ?? false,
@@ -529,7 +528,7 @@ class DatabaseService {
     }
 
     await _db.collection(_home).doc(_roomsDoc).collection(room.roomCode).doc(_gameData).set({
-      position: {'${room.player}': drawing}
+      position: {'${room.playerIndex}': drawing}
     }, SetOptions(merge: true)).catchError((Object error) {
       print('ERROR handing in drawing, $error');
     }).whenComplete(() {

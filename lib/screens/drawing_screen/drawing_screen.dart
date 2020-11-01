@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:after_layout/after_layout.dart';
 import 'package:provider/provider.dart';
-import 'dart:convert';
 
 import 'package:home_indicator/home_indicator.dart';
 
@@ -52,15 +51,12 @@ class _DrawingScreenState extends State<DrawingScreen> {
         top: false,
         child: MultiProvider(
           providers: [
-            ChangeNotifierProvider<DrawingState>(create: (_) => DrawingState()),
+            ChangeNotifierProvider<DrawingControlsState>(create: (_) => DrawingControlsState()),
             ChangeNotifierProvider<DrawingStorage>(create: (_) => DrawingStorage()),
-            Provider<OtherPlayerDrawing>(create: (_) => OtherPlayerDrawing()),
           ],
           child: StreamBuilder<GameRoom>(
             stream: _db.streamGameRoom(roomCode: gameState.currentRoomCode),
             builder: (context, snapshot) {
-              final otherPlayerDrawing = Provider.of<OtherPlayerDrawing>(context, listen: false);
-
               if (snapshot.data == null) {
                 return Center(
                   child: CircularProgressIndicator(),
@@ -68,12 +64,6 @@ class _DrawingScreenState extends State<DrawingScreen> {
               }
 
               GameRoom room = snapshot.data;
-
-              if (room.allTopDrawingsDone() && !room.allMidDrawingsDone() && otherPlayerDrawing.drawing == null) {
-                otherPlayerDrawing.drawing = DrawingStorage.fromJson(jsonDecode(room.topDrawings[_drawingIndex(room)]), true);
-              } else if (room.allTopDrawingsDone() && room.allMidDrawingsDone() && otherPlayerDrawing.drawing == null) {
-                otherPlayerDrawing.drawing = DrawingStorage.fromJson(jsonDecode(room.midDrawings[_drawingIndex(room)]), true);
-              }
 
               return Provider<GameRoom>.value(
                 value: room,
@@ -96,30 +86,6 @@ class _DrawingScreenState extends State<DrawingScreen> {
   }
 }
 
-int _drawingIndex(GameRoom room) {
-  int index;
-
-  // Fetch the top or middle drawing of another player
-  if (room.allTopDrawingsDone()) {
-    switch (room.player) {
-      case 1:
-        index = 3;
-        break;
-      case 2:
-        index = 1;
-        break;
-      case 3:
-        index = 2;
-        break;
-      default:
-        assert(true, 'player was not 1,2 or 3...');
-    }
-  }
-
-  assert(index != null, 'index is null');
-  return index;
-}
-
 class DrawingCanvas extends StatefulWidget {
   DrawingCanvas({Key key}) : super(key: key);
 
@@ -136,9 +102,10 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
   @override
   Widget build(BuildContext context) {
     final myDrawing = Provider.of<DrawingStorage>(context);
-    final DrawingStorage otherPlayerDrawing = Provider.of<OtherPlayerDrawing>(context, listen: false).drawing;
-    final DrawingState controlsState = Provider.of<DrawingState>(context, listen: false);
+    final room = Provider.of<GameRoom>(context);
+    final DrawingControlsState controlsState = Provider.of<DrawingControlsState>(context, listen: false);
     final Size size = MediaQuery.of(context).size;
+    final drawingToContinueFrom = room.getDrawingToContinueFrom();
 
     return AspectRatio(
       key: canvasKey,
@@ -183,25 +150,28 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
           },
           child: Stack(
             children: <Widget>[
-              if (otherPlayerDrawing != null)
+              if (drawingToContinueFrom != null)
                 Positioned(
-                  top: -(myDrawing.height *
-                      (5 / 6)), //myDrawing.height < size.height ? -(myDrawing.height * (5 / 6)) : -size.height * (5 / 6),
+                  top: -(myDrawing.originalHeight * (5 / 6)),
+                  //myDrawing.height < size.height ? -(myDrawing.height * (5 / 6)) : -size.height * (5 / 6),
                   child: Container(
                     width: size.width,
                     child: ClipRect(
                       child: CustomPaint(
                         size: Size(size.width, size.height),
                         painter: MyPainter(
-                          otherPlayerDrawing.getPaths(),
-                          otherPlayerDrawing.getPaints(),
+                          drawingToContinueFrom.getScaledPaths(outputHeight: myDrawing.originalHeight),
+                          drawingToContinueFrom.getScaledPaints(outputHeight: myDrawing.originalHeight),
                         ),
                       ),
                     ),
                   ),
                 ),
               CustomPaint(
-                painter: MyPainter(myDrawing.getPaths(), myDrawing.getPaints()),
+                painter: MyPainter(
+                  myDrawing.getOriginalPaths(),
+                  myDrawing.getOriginalPaints(),
+                ),
               ),
               OverlapDashedLines(),
             ],
@@ -214,21 +184,16 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
   /// TODO: Flytta in i DrawingStorage?
   bool _pointOutsideCanvas(double dx) {
     final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
-    return (dx > myDrawing.width - (myDrawing.paint.strokeWidth / 2) || dx < (myDrawing.paint.strokeWidth / 2));
+    return (dx > myDrawing.originalWidth - (myDrawing.paint.strokeWidth / 2) || dx < (myDrawing.paint.strokeWidth / 2));
   }
 
   @override
   void afterFirstLayout(BuildContext context) {
     final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
-    final gameState = Provider.of<GameState>(context, listen: false);
-    if (canvasKey.currentContext != null && (GameState.canvasHeight == null || GameState.canvasWidth == null)) {
+    if (canvasKey.currentContext != null && (myDrawing.originalHeight == null || myDrawing.originalWidth == null)) {
       RenderBox renderBox = canvasKey.currentContext.findRenderObject();
-      GameState.canvasHeight = renderBox.size.height;
-      GameState.canvasWidth = renderBox.size.width;
-      var result = myDrawing.updateSize();
-      gameState.notify();
-      assert(result, 'update size failed');
-      assert(GameState.canvasHeight != null && GameState.canvasWidth != null);
+      myDrawing.updateOriginalSize(renderBox.size.height, renderBox.size.width);
+      assert(myDrawing.originalHeight != null && myDrawing.originalWidth != null);
     }
   }
 }

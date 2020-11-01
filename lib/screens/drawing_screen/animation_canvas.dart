@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:drawing_animation/drawing_animation.dart';
 import 'package:provider/provider.dart';
 
 import 'package:exquisitecorpse/drawing_storage.dart';
+*/
 
-class AnimationCanvas extends StatefulWidget {
+/*class AnimationCanvas extends StatefulWidget {
   AnimationCanvas({Key key}) : super(key: key);
 
   @override
@@ -23,8 +24,8 @@ class _AnimationCanvasState extends State<AnimationCanvas> {
       child: Container(
         color: Colors.grey[200],
         child: AnimatedDrawing.paths(
-          myDrawing.getPaths(),
-          paints: myDrawing.getPaints(),
+          myDrawing.getOriginalPaths(),
+          paints: myDrawing.getOriginalPaints(),
           run: this._runAnimation,
           scaleToViewport: false,
           duration: Duration(seconds: 1),
@@ -35,4 +36,4 @@ class _AnimationCanvasState extends State<AnimationCanvas> {
       ),
     );
   }
-}
+} */

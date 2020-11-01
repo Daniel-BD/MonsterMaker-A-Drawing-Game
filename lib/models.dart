@@ -17,7 +17,7 @@ class GameRoom {
     @required this.activePlayers,
     @required this.startedGame,
     @required this.isHost,
-    @required this.player,
+    @required this.playerIndex,
     @required this.startAnimation,
     @required this.animateAllAtOnce,
     @required this.monsterIndex,
@@ -29,7 +29,7 @@ class GameRoom {
         assert(activePlayers != null),
         assert(isHost != null),
         assert(startedGame != null),
-        assert(player != null),
+        assert(playerIndex != null),
         assert(startAnimation != null),
         assert(animateAllAtOnce != null),
         assert(monsterIndex == 1 || monsterIndex == 2 || monsterIndex == 3),
@@ -50,7 +50,7 @@ class GameRoom {
   final bool startedGame;
 
   /// The player number the current player has, where 1 means first player, 2 means second player etc
-  final int player;
+  final int playerIndex;
 
   /// Weather to start the animation of the monster on the finished screen. Controlled by the room host.
   final bool startAnimation;
@@ -73,9 +73,9 @@ class GameRoom {
   bool allMidDrawingsDone() => midDrawings.length == 3;
   bool allBottomDrawingsDone() => bottomDrawings.length == 3;
 
-  bool myTopDrawingDone() => topDrawings[player] != null;
-  bool myMidDrawingDone() => midDrawings[player] != null;
-  bool myBottomDrawingDone() => bottomDrawings[player] != null;
+  bool myTopDrawingDone() => topDrawings[playerIndex] != null;
+  bool myMidDrawingDone() => midDrawings[playerIndex] != null;
+  bool myBottomDrawingDone() => bottomDrawings[playerIndex] != null;
 
   /// Returns true if the current player has already submitted a drawing in the current phase (top, mid, bottom).
   /// [phase] is expected to be 0, 1 or 2 to represent top, mid, bottom respectively.
@@ -92,7 +92,20 @@ class GameRoom {
     return true;
   }
 
-  MonsterDrawing getMonsterDrawing(int monsterIndex) {
+  DrawingStorage getDrawingToContinueFrom() {
+    debugPrint('Running getDrawingToContinueFrom in GameRoom in models.dart');
+    //assert(allTopDrawingsDone(), 'All top drawings need to be done before this is accessed.');
+
+    if (allTopDrawingsDone() && !allMidDrawingsDone()) {
+      return DrawingStorage.fromJson(jsonDecode(topDrawings[_drawingIndex(playerIndex)]));
+    } else if (allTopDrawingsDone() && allMidDrawingsDone()) {
+      return DrawingStorage.fromJson(jsonDecode(midDrawings[_drawingIndex(playerIndex)]));
+    } else {
+      return null;
+    }
+  }
+
+  /*MonsterDrawing getMonsterDrawing(int monsterIndex) {
     debugPrint('hello: return monsterDrawring');
     return monsterDrawing;
 
@@ -111,10 +124,32 @@ class GameRoom {
       DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]), false),
       DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]), false),
     );*/
-  }
+  }*/
 
   @override
   String toString() {
-    return 'Room Code: $roomCode, active players: $activePlayers, game has started: $startedGame, current player is host: $isHost, player: $player, startAnimation: $startAnimation, animateAllAtOnce: $animateAllAtOnce, monsterIndex: $monsterIndex';
+    return 'Room Code: $roomCode, active players: $activePlayers, game has started: $startedGame, current player is host: $isHost, player: $playerIndex, startAnimation: $startAnimation, animateAllAtOnce: $animateAllAtOnce, monsterIndex: $monsterIndex';
   }
+}
+
+int _drawingIndex(int playerIndex) {
+  assert(playerIndex >= 1 && playerIndex <= 3);
+  int index;
+
+  switch (playerIndex) {
+    case 1:
+      index = 3;
+      break;
+    case 2:
+      index = 1;
+      break;
+    case 3:
+      index = 2;
+      break;
+    default:
+      assert(false, 'player was not 1, 2 or 3...');
+  }
+
+  assert(index != null, 'index is null');
+  return index;
 }

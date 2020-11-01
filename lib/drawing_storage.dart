@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
-import 'package:exquisitecorpse/game_state.dart';
-
 class DrawingStorage extends ChangeNotifier {
-  double height = GameState.canvasHeight;
-  double width = GameState.canvasWidth;
+  double _originalHeight;
+  double _originalWidth;
+
+  double get originalHeight => _originalHeight;
+  double get originalWidth => _originalWidth;
+
+  void updateOriginalSize(double height, double width) {
+    _originalHeight = height;
+    _originalWidth = width;
+    debugPrint('Original size of drawing set to: HEIGHT: $_originalHeight, WIDTH: $_originalWidth');
+    notifyListeners();
+  }
 
   Paint _paint = Paint()
     ..color = Colors.black
@@ -120,7 +128,7 @@ class DrawingStorage extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<Path> getPaths() {
+  List<Path> getOriginalPaths() {
     List<Path> paths = [];
     for (var pathList in _superPaths) {
       for (var path in pathList) {
@@ -131,7 +139,7 @@ class DrawingStorage extends ChangeNotifier {
     return paths;
   }
 
-  List<Paint> getPaints() {
+  List<Paint> getOriginalPaints() {
     List<Paint> paints = [];
     for (var paintList in _superPaints) {
       for (var paint in paintList) {
@@ -142,27 +150,9 @@ class DrawingStorage extends ChangeNotifier {
     return paints;
   }
 
-  List<Paint> getScaledPaints({@required double inputHeight, @required outputHeight}) {
-    List<Paint> paints = [];
-
-    for (var paintList in _superPaints) {
-      for (var paint in paintList) {
-        paints.add(Paint()
-          ..color = paint.color
-          ..strokeJoin = paint.strokeJoin
-          ..strokeCap = paint.strokeCap
-          ..style = paint.style
-          ..strokeWidth = _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: paint.strokeWidth));
-      }
-    }
-    assert(_assertLengths());
-    return paints;
-  }
-
-  List<Path> getScaledPaths({@required double inputHeight, @required inputWidth, @required outputHeight, @required outputWidth}) {
-    /*print(
-        "getScaledPaths: inputHeight: ${inputHeight}, outputHeight: ${outputHeight}, inputWidth: ${inputWidth}, outputWidth: ${outputWidth}");*/
-
+  List<Path> getScaledPaths({@required double outputHeight}) {
+    assert(originalHeight != null && originalWidth != null, 'Original size of drawing is null! Can not scale drawing without it');
+    assert(outputHeight != null, 'given output height is null, which is not allowed');
     List<Path> scaledPaths = [];
 
     List<List<Path>> tempPaths = [];
@@ -171,14 +161,14 @@ class DrawingStorage extends ChangeNotifier {
 
       pathList.forEach((fakePath) {
         tempList.add(Path()
-          ..moveTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath.first.item1),
-              _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath.first.item2))
-          ..lineTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath.first.item1),
-              _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath.first.item2)));
+          ..moveTo(_scaleNumber(inputScale: originalHeight, outputScale: outputHeight, number: fakePath.first.item1),
+              _scaleNumber(inputScale: originalHeight, outputScale: outputHeight, number: fakePath.first.item2))
+          ..lineTo(_scaleNumber(inputScale: originalHeight, outputScale: outputHeight, number: fakePath.first.item1),
+              _scaleNumber(inputScale: originalHeight, outputScale: outputHeight, number: fakePath.first.item2)));
 
         for (int i = 1; i < fakePath.length; i++) {
-          tempList.last.lineTo(_scaleNumbers(inputScale: inputWidth, outputScale: outputWidth, number: fakePath[i].item1),
-              _scaleNumbers(inputScale: inputHeight, outputScale: outputHeight, number: fakePath[i].item2));
+          tempList.last.lineTo(_scaleNumber(inputScale: originalHeight, outputScale: outputHeight, number: fakePath[i].item1),
+              _scaleNumber(inputScale: originalHeight, outputScale: outputHeight, number: fakePath[i].item2));
         }
 
         /*
@@ -197,6 +187,33 @@ class DrawingStorage extends ChangeNotifier {
     }
     return scaledPaths;
   }
+
+  List<Paint> getScaledPaints({@required double outputHeight}) {
+    assert(originalHeight != null && originalWidth != null, 'Original size of drawing is null! Can not scale drawing without it');
+    List<Paint> paints = [];
+
+    for (var paintList in _superPaints) {
+      for (var paint in paintList) {
+        paints.add(Paint()
+          ..color = paint.color
+          ..strokeJoin = paint.strokeJoin
+          ..strokeCap = paint.strokeCap
+          ..style = paint.style
+          ..strokeWidth = _scaleNumber(inputScale: originalHeight, outputScale: outputHeight, number: paint.strokeWidth));
+      }
+    }
+    assert(_assertLengths());
+    return paints;
+  }
+
+  double _scaleNumber({@required double inputScale, @required double outputScale, @required double number}) {
+    assert(inputScale != null, 'inputScale is null');
+    assert(outputScale != null, 'outputScale is null');
+    assert(number != null, 'number is null');
+    return number * (outputScale / inputScale);
+  }
+
+  DrawingStorage();
 
   List<List<Path>> _createPathsFromDeconstructed() {
     List<List<Path>> createdList = [];
@@ -220,36 +237,17 @@ class DrawingStorage extends ChangeNotifier {
     return createdList;
   }
 
-  double _scaleNumbers({@required double inputScale, @required double outputScale, @required double number}) {
-    assert(inputScale != null, 'inputScale is null');
-    assert(outputScale != null, 'outputScale is null');
-    assert(number != null, 'number is null');
-    return number * (outputScale / inputScale);
-  }
-
-  /// Makes sure this drawing storage has the latest drawing canvas sizes. Returns true if successful, false if any value is null.
-  bool updateSize() {
-    this.height = GameState.canvasHeight;
-    this.width = GameState.canvasWidth;
-
-    if (this.height != null && this.width != null) return true;
-
-    return false;
-  }
-
-  DrawingStorage();
-
-  DrawingStorage.fromJson(Map<String, dynamic> json, bool doScale, {double outputHeight, double outputWidth}) {
-    this.height = outputHeight ?? GameState.canvasHeight;
-    this.width = outputWidth ?? GameState.canvasWidth;
-
+  DrawingStorage.fromJson(
+    Map<String, dynamic> json,
+  ) {
     List<List<List<Tuple2<double, double>>>> listOfListsOfPaths = [];
     List<List<Paint>> listOfListsOfPaints = [];
     List<String> listOfPathListStrings = json['paths'].split('/');
     List<String> listOfPaintListStrings = json['paints'].split('/');
 
     /// Reading size
-    double originalHeight = double.parse(json['size'].toString().split(',').first);
+    final List<String> originalSize = json['size'].toString().split(',');
+    updateOriginalSize(double.parse(originalSize[0]), double.parse(originalSize[1]));
 
     /// Reading paths
     for (var pathList in listOfPathListStrings) {
@@ -259,12 +257,8 @@ class DrawingStorage extends ChangeNotifier {
       List<String> pathCoordinatesString = pathList.split(',');
 
       for (var i = 0; i < pathCoordinatesString.length; i += 2) {
-        double X = doScale
-            ? _scaleNumbers(inputScale: originalHeight, outputScale: height, number: double.parse(pathCoordinatesString[i]))
-            : double.parse(pathCoordinatesString[i]);
-        double Y = doScale
-            ? _scaleNumbers(inputScale: originalHeight, outputScale: height, number: double.parse(pathCoordinatesString[i + 1]))
-            : double.parse(pathCoordinatesString[i + 1]);
+        double X = double.parse(pathCoordinatesString[i]);
+        double Y = double.parse(pathCoordinatesString[i + 1]);
 
         pathCoordinates.add(Tuple2(X, Y));
       }
@@ -291,9 +285,7 @@ class DrawingStorage extends ChangeNotifier {
 
         tempPaintList.add(Paint()
           ..color = Color(int.parse(values[1]))
-          ..strokeWidth = doScale
-              ? _scaleNumbers(inputScale: originalHeight, outputScale: height, number: double.parse(values[0]))
-              : double.parse(values[0])
+          ..strokeWidth = double.parse(values[0])
           ..strokeCap = StrokeCap.round
           ..strokeJoin = StrokeJoin.round
           ..style = PaintingStyle.stroke);
@@ -371,7 +363,7 @@ class DrawingStorage extends ChangeNotifier {
 
     json['paths'] = pathsString.toString();
     json['paints'] = paintsString.toString();
-    json['size'] = '$height, $width';
+    json['size'] = '$originalHeight, $originalWidth';
 
     return json;
   }

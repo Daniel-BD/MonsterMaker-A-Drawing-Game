@@ -98,13 +98,9 @@ class MonsterDrawingWidget extends StatelessWidget {
           child: CustomPaint(
             painter: MyPainter(
               drawing.top.getScaledPaths(
-                inputHeight: drawing.top.height,
                 outputHeight: monsterPartHeight,
-                inputWidth: drawing.top.width,
-                outputWidth: frameWidth,
               ),
               drawing.top.getScaledPaints(
-                inputHeight: drawing.top.height,
                 outputHeight: monsterPartHeight,
               ),
             ),
@@ -115,13 +111,9 @@ class MonsterDrawingWidget extends StatelessWidget {
           child: CustomPaint(
             painter: MyPainter(
               drawing.middle.getScaledPaths(
-                inputHeight: drawing.middle.height,
                 outputHeight: frameWidth * (9 / 16),
-                inputWidth: drawing.middle.width,
-                outputWidth: frameWidth,
               ),
               drawing.middle.getScaledPaints(
-                inputHeight: drawing.middle.height,
                 outputHeight: frameWidth * (9 / 16),
               ),
             ),
@@ -132,13 +124,9 @@ class MonsterDrawingWidget extends StatelessWidget {
           child: CustomPaint(
             painter: MyPainter(
               drawing.bottom.getScaledPaths(
-                inputHeight: drawing.bottom.height,
                 outputHeight: frameWidth * (9 / 16),
-                inputWidth: drawing.bottom.width,
-                outputWidth: frameWidth,
               ),
               drawing.bottom.getScaledPaints(
-                inputHeight: drawing.bottom.height,
                 outputHeight: frameWidth * (9 / 16),
               ),
             ),

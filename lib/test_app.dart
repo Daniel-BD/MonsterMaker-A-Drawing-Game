@@ -5,16 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'db.dart';
-import 'models.dart';
 import 'game_state.dart';
-import 'route_generator.dart';
 import 'widgets/colors.dart';
 import 'drawing_storage.dart';
 import 'painters.dart';
 
 class StateHolder {
   static DrawingStorage myDrawing = DrawingStorage();
-  static final DrawingState controlsState = DrawingState();
+  static final DrawingControlsState controlsState = DrawingControlsState();
   static bool animate = false;
   static VoidCallback play;
 }
@@ -128,8 +126,7 @@ class _TestDrawingCanvasState extends State<TestDrawingCanvas> {
   @override
   Widget build(BuildContext context) {
     final DrawingStorage myDrawing = StateHolder.myDrawing;
-    final DrawingState controlsState = StateHolder.controlsState;
-    final screenWidth = MediaQuery.of(context).size.width / 2;
+    final DrawingControlsState controlsState = StateHolder.controlsState;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
@@ -168,13 +165,9 @@ class _TestDrawingCanvasState extends State<TestDrawingCanvas> {
             CustomPaint(
               painter: MyPainter(
                 myDrawing.getScaledPaths(
-                  inputHeight: screenHeight,
                   outputHeight: screenHeight,
-                  inputWidth: screenWidth,
-                  outputWidth: screenWidth,
                 ),
                 myDrawing.getScaledPaints(
-                  inputHeight: screenHeight,
                   outputHeight: screenHeight,
                 ),
               ),
@@ -301,7 +294,7 @@ class _DrawingControlsState extends State<DrawingControls> {
                       child: PreviousButton(
                         onPressed: () {
                           final jsonMonster = StateHolder.myDrawing.toJson();
-                          debugPrint('JsonMonster: ${jsonMonster}');
+                          debugPrint('JsonMonster: $jsonMonster');
                         },
                       ),
                     ),
@@ -448,18 +441,13 @@ class _TestAnimatedPathState extends State<TestAnimatedPath> {
   @override
   Widget build(BuildContext context) {
     final DrawingStorage myDrawing = StateHolder.myDrawing;
-    final screenWidth = MediaQuery.of(context).size.width / 2;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return AnimatedDrawing.paths(
       myDrawing.getScaledPaths(
-        inputHeight: screenHeight,
         outputHeight: screenHeight,
-        inputWidth: screenWidth,
-        outputWidth: screenWidth,
       ),
       paints: myDrawing.getScaledPaints(
-        inputHeight: screenHeight,
         outputHeight: screenHeight,
       ),
       run: StateHolder.animate,
