@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:exquisitecorpse/widgets/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
@@ -11,8 +14,8 @@ class DrawingStorage extends ChangeNotifier {
   void updateOriginalSize(double height, double width) {
     _originalHeight = height;
     _originalWidth = width;
-    debugPrint('Original size of drawing set to: HEIGHT: $_originalHeight, WIDTH: $_originalWidth');
-    notifyListeners();
+    //debugPrint('Original size of drawing set to: HEIGHT: $_originalHeight, WIDTH: $_originalWidth');
+    //notifyListeners();
   }
 
   Paint _paint = Paint()
@@ -26,6 +29,16 @@ class DrawingStorage extends ChangeNotifier {
   set paint(Paint value) {
     _paint = value;
     notifyListeners();
+  }
+
+  void _setInitialPaintWithRandomColor() {
+    final i = Random().nextInt(brushColors.length);
+    _paint = Paint()
+      ..color = brushColors[i]
+      ..strokeWidth = 12
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
   }
 
   /// This is essentially a list of paths, even though it may be hard to see. The inner list is a list of points (dx dy),
@@ -213,7 +226,9 @@ class DrawingStorage extends ChangeNotifier {
     return number * (outputScale / inputScale);
   }
 
-  DrawingStorage();
+  DrawingStorage() {
+    _setInitialPaintWithRandomColor();
+  }
 
   List<List<Path>> _createPathsFromDeconstructed() {
     List<List<Path>> createdList = [];
@@ -240,6 +255,7 @@ class DrawingStorage extends ChangeNotifier {
   DrawingStorage.fromJson(
     Map<String, dynamic> json,
   ) {
+    _setInitialPaintWithRandomColor();
     List<List<List<Tuple2<double, double>>>> listOfListsOfPaths = [];
     List<List<Paint>> listOfListsOfPaints = [];
     List<String> listOfPathListStrings = json['paths'].split('/');
@@ -253,23 +269,19 @@ class DrawingStorage extends ChangeNotifier {
     for (var pathList in listOfPathListStrings) {
       List<List<Tuple2<double, double>>> tempPathList = [];
 
-      List<Tuple2<double, double>> pathCoordinates = [];
-      List<String> pathCoordinatesString = pathList.split(',');
+      for (var path in pathList.split(':')) {
+        List<Tuple2<double, double>> pathCoordinates = [];
+        List<String> pathCoordinatesString = path.split(',');
 
-      for (var i = 0; i < pathCoordinatesString.length; i += 2) {
-        double X = double.parse(pathCoordinatesString[i]);
-        double Y = double.parse(pathCoordinatesString[i + 1]);
+        for (var i = 0; i < pathCoordinatesString.length; i += 2) {
+          double X = double.parse(pathCoordinatesString[i]);
+          double Y = double.parse(pathCoordinatesString[i + 1]);
 
-        pathCoordinates.add(Tuple2(X, Y));
+          pathCoordinates.add(Tuple2(X, Y));
+        }
+
+        tempPathList.add(pathCoordinates);
       }
-
-      /// If there's only one coordinate in this path, add a second one right next to it.
-      /// This is to prevent dots (path with one coordinate) not rendering in the animation library.
-      if (pathCoordinates.length == 1) {
-        pathCoordinates.add(Tuple2(pathCoordinates.last.item1 + 0.001, pathCoordinates.last.item2 + 0.001));
-      }
-
-      tempPathList.add(pathCoordinates);
 
       listOfListsOfPaths.add(tempPathList);
     }

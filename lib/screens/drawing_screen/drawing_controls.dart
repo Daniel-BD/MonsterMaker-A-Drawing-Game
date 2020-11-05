@@ -24,19 +24,6 @@ class DrawingControls extends StatefulWidget {
 
 class _DrawingControlsState extends State<DrawingControls> {
   @override
-  void initState() {
-    super.initState();
-    final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
-    final i = Random().nextInt(brushColors.length);
-    myDrawing.paint = Paint()
-      ..color = brushColors[i]
-      ..strokeWidth = myDrawing.paint.strokeWidth
-      ..strokeCap = myDrawing.paint.strokeCap
-      ..strokeJoin = myDrawing.paint.strokeJoin
-      ..style = myDrawing.paint.style;
-  }
-
-  @override
   Widget build(BuildContext context) {
     final drawingState = Provider.of<DrawingControlsState>(context);
     final myDrawing = Provider.of<DrawingStorage>(context);

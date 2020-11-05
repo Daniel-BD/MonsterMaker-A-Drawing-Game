@@ -191,6 +191,7 @@ class DatabaseService {
     });
   }
 
+  /// TODO: ta bort
   Future<MonsterDrawing> getMonsterFromRoomCode(String roomCode, int monsterIndex) async {
     debugPrint('running getFromRoomCode');
 
@@ -213,8 +214,6 @@ class DatabaseService {
         : monsterIndex == 2
             ? 1
             : 2;
-
-    debugPrint('monsterIndexes: $topIndex, $midIndex, $bottomIndex');
 
     _assertAuthenticated();
     assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
@@ -394,12 +393,12 @@ class DatabaseService {
       return result;
     }
 
-    await _db
-        .collection(_home)
-        .doc(_roomsDoc)
-        .collection(room.roomCode)
-        .doc(_gameData)
-        .set({_startedGame: true}, SetOptions(merge: true)).catchError((Object error) {
+    await _db.collection(_home).doc(_roomsDoc).collection(room.roomCode).doc(_gameData).set({
+      _startedGame: true,
+      _startAnimation: false,
+      _monsterIndex: 1,
+      _animateAllAtOnce: false,
+    }, SetOptions(merge: true)).catchError((Object error) {
       assert(false, 'ERROR starting game, $error');
     }).whenComplete(() {
       result = true;

@@ -93,8 +93,7 @@ class DrawingCanvas extends StatefulWidget {
   _DrawingCanvasState createState() => _DrawingCanvasState();
 }
 
-class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<DrawingCanvas> {
-  final canvasKey = GlobalKey();
+class _DrawingCanvasState extends State<DrawingCanvas> {
   bool _lastPointOutOfBounds = false;
   bool _ignorePath = false;
   bool _brushControlsWasShownBefore = false;
@@ -107,8 +106,18 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
     final Size size = MediaQuery.of(context).size;
     final drawingToContinueFrom = room.getDrawingToContinueFrom();
 
+    if (myDrawing.originalWidth == null || myDrawing.originalHeight == null) {
+      final screenWidth = size.width;
+      final screenHeight = size.height;
+
+      if (screenHeight * (16 / 9) <= screenWidth) {
+        myDrawing.updateOriginalSize(screenHeight, screenHeight * (16 / 9));
+      } else {
+        myDrawing.updateOriginalSize(screenWidth * (9 / 16), screenWidth);
+      }
+    }
+
     return AspectRatio(
-      key: canvasKey,
       aspectRatio: (16.0 / 9.0),
       child: Container(
         color: paper,
@@ -187,13 +196,17 @@ class _DrawingCanvasState extends State<DrawingCanvas> with AfterLayoutMixin<Dra
     return (dx > myDrawing.originalWidth - (myDrawing.paint.strokeWidth / 2) || dx < (myDrawing.paint.strokeWidth / 2));
   }
 
-  @override
+  /*@override
   void afterFirstLayout(BuildContext context) {
+    debugPrint('after first layout');
     final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
-    if (canvasKey.currentContext != null && (myDrawing.originalHeight == null || myDrawing.originalWidth == null)) {
-      RenderBox renderBox = canvasKey.currentContext.findRenderObject();
+    debugPrint(
+        'canvasKey: ${_canvasKey.currentContext} myDrawing.origHe: ${myDrawing.originalHeight} myDrawing.origWi: ${myDrawing.originalWidth}');
+    if (_canvasKey.currentContext != null && (myDrawing.originalHeight == null || myDrawing.originalWidth == null)) {
+      debugPrint('update drawing size');
+      RenderBox renderBox = _canvasKey.currentContext.findRenderObject();
       myDrawing.updateOriginalSize(renderBox.size.height, renderBox.size.width);
       assert(myDrawing.originalHeight != null && myDrawing.originalWidth != null);
     }
-  }
+  }*/
 }

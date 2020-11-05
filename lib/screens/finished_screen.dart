@@ -24,16 +24,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
 
   bool _clearCanvas = true;
 
-  //DrawingStorage _top;
-  //DrawingStorage _mid;
-  //DrawingStorage _bottom;
-
   int _hostIndex = 1;
   int _index = 1;
-
-  int _topIndex = 1;
-  int _midIndex = 2;
-  int _bottomIndex = 3;
 
   bool _runTopAnimation = false;
   bool _runMidAnimation = false;
@@ -80,7 +72,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
       monsterSize = renderBox.size;
 
       _outputWidth = size.width - 20;
-      _outputHeight = _outputWidth * (2 / 3);
+      _outputHeight = _outputWidth * (9 / 16);
 
       if (_outputHeight * (5 / 6) * 3 > monsterSize.height) {
         _outputHeight = monsterSize.height * (6 / 16);
@@ -127,10 +119,6 @@ class _FinishedScreenState extends State<FinishedScreen> {
 
             indexHandler(room.monsterIndex);
 
-            //_top = DrawingStorage.fromJson(jsonDecode(room.topDrawings[_topIndex]), true);
-            //_mid = DrawingStorage.fromJson(jsonDecode(room.midDrawings[_midIndex]), true);
-            //_bottom = DrawingStorage.fromJson(jsonDecode(room.bottomDrawings[_bottomIndex]), true);
-
             return Stack(
               children: <Widget>[
                 Column(
@@ -144,7 +132,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
                       children: <Widget>[MonsterNumberText(number: _index)],
                     ),
                     if (_clearCanvas || monsterSize == null) _calculateWidget(),
-                    if (!_clearCanvas && monsterSize != null) _monster(size),
+                    if (!_clearCanvas && monsterSize != null) _monster(monsterSize),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
@@ -162,7 +150,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
                         ),
                         ShareButton(onPressed: () {
                           Navigator.of(context).pushNamed('/shareMonsterScreen');
-                        }), //TODO: Implement share functionality
+                        }),
                       ],
                     ),
                   ],
@@ -187,59 +175,56 @@ class _FinishedScreenState extends State<FinishedScreen> {
   }
 
   Widget _monster(Size size) {
-    return Padding(
-      padding: EdgeInsets.only(left: (size.width - _outputWidth) / 2),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: monsterSize.width, maxHeight: monsterSize.height),
-        child: Stack(
-          children: <Widget>[
-            AnimatedDrawing.paths(
-              _room.monsterDrawing.top.getScaledPaths(outputHeight: _outputHeight),
-              paints: _room.monsterDrawing.top.getScaledPaints(outputHeight: _outputHeight),
-              run: _runTopAnimation,
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: monsterSize.width - 20, maxHeight: monsterSize.height),
+      child: Stack(
+        children: <Widget>[
+          AnimatedDrawing.paths(
+            _room.monsterDrawing.top.getScaledPaths(outputHeight: _outputHeight),
+            paints: _room.monsterDrawing.top.getScaledPaints(outputHeight: _outputHeight),
+            run: _runTopAnimation,
+            animationOrder: _pathOrder,
+            scaleToViewport: false,
+            duration: _duration,
+            onFinish: () => setState(() {
+              _runTopAnimation = false;
+              if (!_room.animateAllAtOnce) {
+                _runMidAnimation = true;
+              }
+            }),
+          ),
+          Positioned(
+            top: _outputHeight * (5 / 6),
+            child: AnimatedDrawing.paths(
+              _room.monsterDrawing.middle.getScaledPaths(outputHeight: _outputHeight),
+              paints: _room.monsterDrawing.middle.getScaledPaints(outputHeight: _outputHeight),
+              run: _runMidAnimation,
               animationOrder: _pathOrder,
               scaleToViewport: false,
               duration: _duration,
               onFinish: () => setState(() {
-                _runTopAnimation = false;
+                _runMidAnimation = false;
                 if (!_room.animateAllAtOnce) {
-                  _runMidAnimation = true;
+                  _runBottomAnimation = true;
                 }
               }),
             ),
-            Positioned(
-              top: _outputHeight * (5 / 6),
-              child: AnimatedDrawing.paths(
-                _room.monsterDrawing.middle.getScaledPaths(outputHeight: _outputHeight),
-                paints: _room.monsterDrawing.middle.getScaledPaints(outputHeight: _outputHeight),
-                run: _runMidAnimation,
-                animationOrder: _pathOrder,
-                scaleToViewport: false,
-                duration: _duration,
-                onFinish: () => setState(() {
-                  _runMidAnimation = false;
-                  if (!_room.animateAllAtOnce) {
-                    _runBottomAnimation = true;
-                  }
-                }),
-              ),
+          ),
+          Positioned(
+            top: 2 * _outputHeight * (5 / 6),
+            child: AnimatedDrawing.paths(
+              _room.monsterDrawing.bottom.getScaledPaths(outputHeight: _outputHeight),
+              paints: _room.monsterDrawing.bottom.getScaledPaints(outputHeight: _outputHeight),
+              run: _runBottomAnimation,
+              animationOrder: _pathOrder,
+              scaleToViewport: false,
+              duration: _duration,
+              onFinish: () => setState(() {
+                _runBottomAnimation = false;
+              }),
             ),
-            Positioned(
-              top: 2 * _outputHeight * (5 / 6),
-              child: AnimatedDrawing.paths(
-                _room.monsterDrawing.bottom.getScaledPaths(outputHeight: _outputHeight),
-                paints: _room.monsterDrawing.bottom.getScaledPaints(outputHeight: _outputHeight),
-                run: _runBottomAnimation,
-                animationOrder: _pathOrder,
-                scaleToViewport: false,
-                duration: _duration,
-                onFinish: () => setState(() {
-                  _runBottomAnimation = false;
-                }),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
