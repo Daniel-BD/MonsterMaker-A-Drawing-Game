@@ -1,8 +1,6 @@
 import 'package:exquisitecorpse/widgets/modal_message.dart';
-import 'package:exquisitecorpse/drawing_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:drawing_animation/drawing_animation.dart';
 
@@ -49,23 +47,6 @@ class _FinishedScreenState extends State<FinishedScreen> {
     ]);
   }
 
-  void indexHandler(int index) {
-    assert(index == 1 || index == 2 || index == 3, 'Index is not a valid number');
-    if (index == 1) {
-      _topIndex = index;
-      _midIndex = 2;
-      _bottomIndex = 3;
-    } else if (index == 2) {
-      _topIndex = index;
-      _midIndex = 3;
-      _bottomIndex = 1;
-    } else if (index == 3) {
-      _topIndex = index;
-      _midIndex = 1;
-      _bottomIndex = 2;
-    }
-  }
-
   void _calculate(Size size) {
     if (monsterKey.currentContext != null) {
       RenderBox renderBox = monsterKey.currentContext.findRenderObject();
@@ -83,7 +64,6 @@ class _FinishedScreenState extends State<FinishedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
     final GameState gameState = Provider.of<GameState>(context);
 
     return Scaffold(
@@ -116,8 +96,6 @@ class _FinishedScreenState extends State<FinishedScreen> {
               _index = room.monsterIndex;
               _readyNextMonster();
             }
-
-            indexHandler(room.monsterIndex);
 
             return Stack(
               children: <Widget>[

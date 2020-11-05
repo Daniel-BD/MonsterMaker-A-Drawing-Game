@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:after_layout/after_layout.dart';
 import 'package:provider/provider.dart';
 
 import 'package:home_indicator/home_indicator.dart';
@@ -162,7 +161,6 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
               if (drawingToContinueFrom != null)
                 Positioned(
                   top: -(myDrawing.originalHeight * (5 / 6)),
-                  //myDrawing.height < size.height ? -(myDrawing.height * (5 / 6)) : -size.height * (5 / 6),
                   child: Container(
                     width: size.width,
                     child: ClipRect(

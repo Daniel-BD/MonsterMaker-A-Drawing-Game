@@ -1,9 +1,7 @@
 import 'dart:convert';
 
-import 'package:exquisitecorpse/widgets/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:math';
 
 import 'package:exquisitecorpse/game_state.dart';
 import 'package:exquisitecorpse/drawing_storage.dart';

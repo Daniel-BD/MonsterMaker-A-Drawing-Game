@@ -108,7 +108,7 @@ class DatabaseService {
 
       var roomData = await _db.collection(_home).doc(_roomsDoc).collection(roomCode).get();
 
-      bool shouldDelete = false;
+      //bool shouldDelete = false;
 
       if (roomData.size > 3) {
         roomData.docs.forEach((document) {
@@ -127,7 +127,7 @@ class DatabaseService {
 
               if (bottom == null || bottom.length < 3) {
                 print("DELETE room: $roomCode");
-                shouldDelete = true;
+                //shouldDelete = true;
 
                 roomData.docs.forEach((documentToDelete) {
                   documentToDelete.reference.delete();
