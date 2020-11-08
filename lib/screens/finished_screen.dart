@@ -47,17 +47,17 @@ class _FinishedScreenState extends State<FinishedScreen> {
     ]);
   }
 
-  void _calculate(Size size) {
+  void _calculate() {
     if (monsterKey.currentContext != null) {
       RenderBox renderBox = monsterKey.currentContext.findRenderObject();
       monsterSize = renderBox.size;
 
-      _outputWidth = size.width - 20;
+      _outputWidth = monsterSize.width - 20;
       _outputHeight = _outputWidth * (9 / 16);
 
-      if (_outputHeight * (5 / 6) * 3 > monsterSize.height) {
+      if (_outputHeight * (16 / 6) > monsterSize.height) {
         _outputHeight = monsterSize.height * (6 / 16);
-        _outputWidth = monsterSize.height * (6 / 16) * (3 / 2);
+        _outputWidth = _outputHeight * (16 / 9);
       }
     }
   }
@@ -142,8 +142,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
   }
 
   Widget _calculateWidget() {
-    final Size size = MediaQuery.of(context).size;
-    _calculate(size);
+    _calculate();
 
     return Expanded(
       child: Container(
@@ -153,26 +152,35 @@ class _FinishedScreenState extends State<FinishedScreen> {
   }
 
   Widget _monster(Size size) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: monsterSize.width - 20, maxHeight: monsterSize.height),
+    final leftPosition = (monsterSize.width - _outputWidth - 20) / 2;
+
+    return SizedBox(
+      height: monsterSize.height,
+      width: monsterSize.width - 20,
       child: Stack(
+        alignment: AlignmentDirectional.center,
         children: <Widget>[
-          AnimatedDrawing.paths(
-            _room.monsterDrawing.top.getScaledPaths(outputHeight: _outputHeight),
-            paints: _room.monsterDrawing.top.getScaledPaints(outputHeight: _outputHeight),
-            run: _runTopAnimation,
-            animationOrder: _pathOrder,
-            scaleToViewport: false,
-            duration: _duration,
-            onFinish: () => setState(() {
-              _runTopAnimation = false;
-              if (!_room.animateAllAtOnce) {
-                _runMidAnimation = true;
-              }
-            }),
+          Positioned(
+            top: 0.0,
+            left: leftPosition,
+            child: AnimatedDrawing.paths(
+              _room.monsterDrawing.top.getScaledPaths(outputHeight: _outputHeight),
+              paints: _room.monsterDrawing.top.getScaledPaints(outputHeight: _outputHeight),
+              run: _runTopAnimation,
+              animationOrder: _pathOrder,
+              scaleToViewport: false,
+              duration: _duration,
+              onFinish: () => setState(() {
+                _runTopAnimation = false;
+                if (!_room.animateAllAtOnce) {
+                  _runMidAnimation = true;
+                }
+              }),
+            ),
           ),
           Positioned(
             top: _outputHeight * (5 / 6),
+            left: leftPosition,
             child: AnimatedDrawing.paths(
               _room.monsterDrawing.middle.getScaledPaths(outputHeight: _outputHeight),
               paints: _room.monsterDrawing.middle.getScaledPaints(outputHeight: _outputHeight),
@@ -190,6 +198,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
           ),
           Positioned(
             top: 2 * _outputHeight * (5 / 6),
+            left: leftPosition,
             child: AnimatedDrawing.paths(
               _room.monsterDrawing.bottom.getScaledPaths(outputHeight: _outputHeight),
               paints: _room.monsterDrawing.bottom.getScaledPaints(outputHeight: _outputHeight),

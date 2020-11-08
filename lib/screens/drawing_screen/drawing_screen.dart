@@ -123,7 +123,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onPanStart: (details) {
-            if (_pointOutsideCanvas(details.localPosition.dx)) {
+            if (_pointOutsideCanvas(details.localPosition.dx, details.localPosition.dy)) {
               _ignorePath = true;
               return;
             }
@@ -135,7 +135,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
             _lastPointOutOfBounds = false;
           },
           onPanUpdate: (details) {
-            if (_pointOutsideCanvas(details.localPosition.dx)) {
+            if (_pointOutsideCanvas(details.localPosition.dx, details.localPosition.dy)) {
               _lastPointOutOfBounds = true;
               return;
             }
@@ -189,9 +189,12 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
   }
 
   /// TODO: Flytta in i DrawingStorage?
-  bool _pointOutsideCanvas(double dx) {
+  bool _pointOutsideCanvas(double dx, double dy) {
     final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
-    return (dx > myDrawing.originalWidth - (myDrawing.paint.strokeWidth / 2) || dx < (myDrawing.paint.strokeWidth / 2));
+    return (dx > myDrawing.originalWidth - (myDrawing.paint.strokeWidth / 2) ||
+        dx < (myDrawing.paint.strokeWidth / 2) ||
+        dy > myDrawing.originalHeight - (myDrawing.paint.strokeWidth / 2) ||
+        dy < (myDrawing.paint.strokeWidth / 2));
   }
 
   /*@override

@@ -107,27 +107,27 @@ class MonsterDrawingWidget extends StatelessWidget {
           ),
         ),
         Positioned(
-          top: frameWidth * (9 / 16) * (5 / 6),
+          top: monsterPartHeight * (5 / 6),
           child: CustomPaint(
             painter: MyPainter(
               drawing.middle.getScaledPaths(
-                outputHeight: frameWidth * (9 / 16),
+                outputHeight: monsterPartHeight,
               ),
               drawing.middle.getScaledPaints(
-                outputHeight: frameWidth * (9 / 16),
+                outputHeight: monsterPartHeight,
               ),
             ),
           ),
         ),
         Positioned(
-          top: 2 * frameWidth * (9 / 16) * (5 / 6),
+          top: 2 * monsterPartHeight * (5 / 6),
           child: CustomPaint(
             painter: MyPainter(
               drawing.bottom.getScaledPaths(
-                outputHeight: frameWidth * (9 / 16),
+                outputHeight: monsterPartHeight,
               ),
               drawing.bottom.getScaledPaints(
-                outputHeight: frameWidth * (9 / 16),
+                outputHeight: monsterPartHeight,
               ),
             ),
           ),

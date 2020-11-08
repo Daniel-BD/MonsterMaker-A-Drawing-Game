@@ -313,12 +313,14 @@ class LeaveGameButton extends StatelessWidget {
       borderRadius: BorderRadius.horizontal(
         right: Radius.circular(16),
       ),
-      child: Text(
-        "LEAVE GAME",
-        style: TextStyle(
-          fontFamily: 'Gaegu',
-          color: onWarning,
-          fontSize: 20,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Text(
+          "LEAVE GAME",
+          style: TextStyle(
+            color: onWarning,
+            fontSize: 19,
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
@@ -24,6 +25,11 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<GameState>(create: (_) => GameState()),
       ],
       child: MaterialApp(
+        theme: ThemeData(
+          textTheme: GoogleFonts.snigletTextTheme(
+            Theme.of(context).textTheme,
+          ),
+        ),
         title: 'MonsterMaker',
         debugShowCheckedModeBanner: false,
         initialRoute: '/',

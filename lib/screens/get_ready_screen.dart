@@ -57,7 +57,7 @@ class _GetReadyScreenState extends State<GetReadyScreen> {
 
             return Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.only(left: 8, right: 8, bottom: 20),

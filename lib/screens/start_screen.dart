@@ -97,7 +97,6 @@ class MonsterCarousel extends StatefulWidget {
 
 class _MonsterCarouselState extends State<MonsterCarousel> {
   final _db = DatabaseService.instance;
-  final borderWidth = 5.0;
   MonsterDrawing drawing;
 
   @override
@@ -113,13 +112,12 @@ class _MonsterCarouselState extends State<MonsterCarousel> {
   Widget build(BuildContext context) {
     if (drawing == null) return CircularProgressIndicator();
 
-    final frameWidth = min(300.0, MediaQuery.of(context).size.width * 0.45);
-    final frameHeight = frameWidth * 1.5;
+    final frameHeight = min(300.0, MediaQuery.of(context).size.width * 0.45) * 1.5; //+ 7.5 * borderWidth + 28
 
     return CarouselSlider(
       options: CarouselOptions(
         autoPlay: true,
-        height: frameHeight + 7.5 * borderWidth + 28,
+        height: frameHeight,
         enlargeCenterPage: true,
         enlargeStrategy: CenterPageEnlargeStrategy.scale,
         viewportFraction: 0.5,
@@ -127,9 +125,12 @@ class _MonsterCarouselState extends State<MonsterCarousel> {
       items: [
         for (var monster in ['Surf Dog', 'VeggieMonster', 'Coolio', 'Doggo'])
           FittedBox(
-            child: MonsterFrame(
-              monsterName: monster,
-              drawing: drawing,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+              child: MonsterFrame(
+                monsterName: monster,
+                drawing: drawing,
+              ),
             ),
           ),
       ],

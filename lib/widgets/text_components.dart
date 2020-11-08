@@ -13,12 +13,7 @@ class MonsterMakerLogo extends StatelessWidget {
         style: GoogleFonts.sniglet(
           color: monsterTextColor,
           fontSize: 100,
-        ), /*TextStyle(
-          fontFamily: 'Gaegu',
-          fontWeight: FontWeight.w700,
-          color: textColor,
-          fontSize: 100,
-        ),*/
+        ),
       ),
     );
   }
@@ -28,12 +23,10 @@ class RoomCodeInfo extends StatelessWidget {
   final String roomCode;
 
   final smallStyle = TextStyle(
-    fontFamily: 'Gaegu',
     color: monsterTextColor,
     fontSize: 24,
   );
   final bigStyle = TextStyle(
-    fontFamily: 'Gaegu',
     color: textColorBlack,
     fontSize: 42,
   );
@@ -63,7 +56,6 @@ class WaitingRoomText extends StatelessWidget {
   final bool isHost;
 
   final smallStyle = TextStyle(
-    fontFamily: 'Gaegu',
     color: monsterTextColor,
     fontSize: 24,
   );
@@ -88,7 +80,6 @@ class WaitingRoomText extends StatelessWidget {
 }
 
 final _instructionStyle = TextStyle(
-  fontFamily: 'Gaegu',
   color: monsterTextColor,
   fontSize: 20,
 );
@@ -154,7 +145,6 @@ class GameHostControlsWhatYouSeeText extends StatelessWidget {
       'The game host controls what you see!',
       textAlign: TextAlign.center,
       style: TextStyle(
-        fontFamily: 'Gaegu',
         color: monsterTextColor,
         fontSize: 16,
       ),
@@ -173,7 +163,6 @@ class MonsterNumberText extends StatelessWidget {
       'Monster #$number',
       textAlign: TextAlign.center,
       style: TextStyle(
-        fontFamily: 'Gaegu',
         color: monsterTextColor,
         fontSize: 30,
       ),
@@ -190,7 +179,6 @@ class LastWaitingScreen extends StatelessWidget {
         'Turn your phone this way!\n\nYay! You finished all drawings!\n\nWaiting for the other players to finish',
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontFamily: 'Gaegu',
           color: monsterTextColor,
           fontSize: 24,
         ),

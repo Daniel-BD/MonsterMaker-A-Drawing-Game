@@ -50,6 +50,7 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
                     children: [
                       MonsterFrame(
                         drawing: room.monsterDrawing,
+                        //frameHeight: 200, //TODO: rätt storlek
                       ),
                     ],
                   ),

@@ -90,7 +90,7 @@ class _DrawingControlsState extends State<DrawingControls> {
                                 builder: (_) => DoneDrawingGameModal(
                                   onPressed: () {
                                     Navigator.of(context).pop();
-                                    _submitDrawing();
+                                    _submitDrawing(context);
                                   },
                                 ),
                               );
@@ -113,14 +113,23 @@ class _DrawingControlsState extends State<DrawingControls> {
     );
   }
 
-  void _submitDrawing() async {
+  void _submitDrawing(BuildContext context) async {
     final String roomCode = Provider.of<GameState>(context, listen: false).currentRoomCode;
     final gameRoom = Provider.of<GameRoom>(context, listen: false);
     final gameState = Provider.of<GameState>(context, listen: false);
     final myDrawing = Provider.of<DrawingStorage>(context, listen: false);
 
     if (myDrawing.getOriginalPaths().isEmpty) {
-      /// TODO: Felmeddelande om man försöker lämna in en tom ritning
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("You can't hand in an empty drawing"),
+            ],
+          ),
+        ),
+      );
       return;
     }
     final db = DatabaseService.instance;

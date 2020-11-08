@@ -78,18 +78,22 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                 ),
                 Expanded(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
                       RoomCodeInfo(roomCode: snapshot.data.roomCode),
-                      WaitingRoomText(playersReady: snapshot.data.activePlayers, isHost: snapshot.data.isHost),
-                      if (snapshot.data.isHost && startGame(snapshot) != null)
-                        Padding(
-                          padding: EdgeInsets.only(top: 20),
-                          child: GreenGameButton(
-                            label: "START GAME",
-                            onPressed: startGame(snapshot),
-                          ),
-                        ),
+                      Column(
+                        children: [
+                          WaitingRoomText(playersReady: snapshot.data.activePlayers, isHost: snapshot.data.isHost),
+                          if (snapshot.data.isHost && startGame(snapshot) != null)
+                            Padding(
+                              padding: EdgeInsets.only(top: 20),
+                              child: GreenGameButton(
+                                label: "START GAME",
+                                onPressed: startGame(snapshot),
+                              ),
+                            ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
