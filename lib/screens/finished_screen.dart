@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:exquisitecorpse/widgets/modal_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -103,14 +105,6 @@ class _FinishedScreenState extends State<FinishedScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    if (room.isHost) _controls(),
-                    if (!room.isHost) GameHostControlsWhatYouSeeText(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[MonsterNumberText(number: _index)],
-                    ),
-                    if (_clearCanvas || monsterSize == null) _calculateWidget(),
-                    if (!_clearCanvas && monsterSize != null) _monster(monsterSize),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
@@ -131,6 +125,14 @@ class _FinishedScreenState extends State<FinishedScreen> {
                         }),
                       ],
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[MonsterNumberText(number: _index)],
+                    ),
+                    if (_clearCanvas || monsterSize == null) _calculateWidget(),
+                    if (!_clearCanvas && monsterSize != null) _monster(monsterSize),
+                    if (room.isHost) _controls(context),
+                    if (!room.isHost) GameHostControlsWhatYouSeeText(),
                   ],
                 ),
               ],
@@ -216,51 +218,48 @@ class _FinishedScreenState extends State<FinishedScreen> {
     );
   }
 
-  Widget _controls() {
+  Widget _controls(BuildContext context) {
     final _db = DatabaseService.instance;
-    final double padding = 4;
-    final double edgePadding = 2;
+    final size = MediaQuery.of(context).size;
 
     return FittedBox(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            Container(width: edgePadding),
-            PlayButton(
-              onPressed: () async {
-                await _db.setAnimation(false, room: _room);
-                _db.setAnimation(true, room: _room);
-              },
-            ),
-            Container(width: padding),
-            StopButton(
-              onPressed: () {
-                _db.setAnimation(false, room: _room);
-              },
-            ),
-            Container(width: padding),
-            PreviousButton(
-              onPressed: () {
-                if (_hostIndex > 1) {
-                  _hostIndex--;
-                  _db.setMonsterIndex(_hostIndex, room: _room);
-                }
-              },
-            ),
-            Container(width: padding),
-            NextButton(
-              onPressed: () {
-                if (_hostIndex < 3) {
-                  _hostIndex++;
-                  _db.setMonsterIndex(_hostIndex, room: _room);
-                }
-              },
-            ),
-            Container(width: edgePadding),
-          ],
+      child: SizedBox(
+        width: min(size.width, 300),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              PlayButton(
+                onPressed: () async {
+                  await _db.setAnimation(false, room: _room);
+                  _db.setAnimation(true, room: _room);
+                },
+              ),
+              StopButton(
+                onPressed: () {
+                  _db.setAnimation(false, room: _room);
+                },
+              ),
+              PreviousButton(
+                onPressed: () {
+                  if (_hostIndex > 1) {
+                    _hostIndex--;
+                    _db.setMonsterIndex(_hostIndex, room: _room);
+                  }
+                },
+              ),
+              NextButton(
+                onPressed: () {
+                  if (_hostIndex < 3) {
+                    _hostIndex++;
+                    _db.setMonsterIndex(_hostIndex, room: _room);
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

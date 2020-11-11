@@ -528,7 +528,7 @@ class _RoundGameButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final double luminance = buttonColor.computeLuminance();
     final Size size = MediaQuery.of(context).size;
-    final double diameter = isMonsterControl ? size.width / 8 : min(((size.height - 70) / 6), 50); //isMonsterControl ? 50 :
+    final double diameter = min(((size.height - 70) / 6), 50);
 
     return _GameButton(
       onPressed: onPressed,
