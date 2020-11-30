@@ -238,6 +238,36 @@ class GreenGameButton extends StatelessWidget {
   }
 }
 
+class SubmitMonsterButton extends StatelessWidget {
+  final GestureTapCallback onPressed;
+
+  SubmitMonsterButton({
+    @required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BigGameButton(
+      onPressed: onPressed,
+      child: Column(
+        children: [
+          SizedBox(height: 4),
+          Text(
+            'SUBMIT',
+            style: GoogleFonts.sniglet(color: monsterTextColor, fontSize: 24),
+          ),
+          Text(
+            'TO MONSTER GALLERY',
+            style: GoogleFonts.sniglet(color: monsterTextColor, fontSize: 16),
+          ),
+        ],
+      ),
+      color: onPressed != null ? green : disabled,
+      textColor: onPressed != null ? monsterTextColor : disabledText,
+    );
+  }
+}
+
 class BlueGameButton extends StatelessWidget {
   final GestureTapCallback onPressed;
   final String label;
@@ -551,14 +581,17 @@ class BigGameButton extends StatelessWidget {
   final Color color;
   final Color textColor;
   final GestureTapCallback onPressed;
+  final Widget child;
 
   const BigGameButton({
     Key key,
-    @required this.label,
+    this.label,
     @required this.color,
     this.textColor = monsterTextColor,
     @required this.onPressed,
-  }) : super(key: key);
+    this.child,
+  })  : assert(label != null || child != null),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -570,16 +603,12 @@ class BigGameButton extends StatelessWidget {
       height: 60,
       width: buttonWidth,
       borderRadius: BorderRadius.circular(12.0),
-      child: Text(
-        label,
-        style: GoogleFonts.sniglet(
-            color: textColor,
-            fontSize: 28), /*TextStyle(
-          fontFamily: 'Gaegu',
-          color: textColor,
-          fontSize: 24,
-        ),*/
-      ),
+      child: child != null
+          ? child
+          : Text(
+              label,
+              style: GoogleFonts.sniglet(color: textColor, fontSize: 28),
+            ),
     );
   }
 }

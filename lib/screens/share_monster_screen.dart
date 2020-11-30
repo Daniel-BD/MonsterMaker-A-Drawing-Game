@@ -1,3 +1,4 @@
+import 'package:exquisitecorpse/widgets/text_components.dart';
 import 'package:flutter/material.dart';
 
 import 'package:exquisitecorpse/widgets/colors.dart';
@@ -18,6 +19,8 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
   final _db = DatabaseService.instance;
   MonsterDrawing drawing;
   bool fetching = false;
+  //int _hostIndex = 1;
+  final nameController = TextEditingController(text: 'Give the monster a name...');
 
   @override
   Widget build(BuildContext context) {
@@ -46,14 +49,39 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
                       ),
                     ],
                   ),
-                  Column(
-                    children: [
-                      MonsterFrame(
-                        drawing: room.monsterDrawing,
-                        //frameHeight: 200, //TODO: rätt storlek
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            PreviousButton(
+                              onPressed: () {
+                                if (room.monsterIndex > 1) {
+                                  _db.setMonsterIndex(room.monsterIndex - 1, room: room);
+                                }
+                              },
+                            ),
+                            MonsterNumberText(number: room.monsterIndex),
+                            NextButton(
+                              onPressed: () {
+                                if (room.monsterIndex < 3) {
+                                  _db.setMonsterIndex(room.monsterIndex + 1, room: room);
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                        MonsterFrame(
+                          drawing: room.monsterDrawing,
+                          isSubmittableMonster: true,
+                          nameController: nameController,
+                        ),
+                      ],
+                    ),
                   ),
+                  SubmitMonsterButton(onPressed: () {}),
                 ],
               );
             }),

@@ -120,9 +120,10 @@ class _FinishedScreenState extends State<FinishedScreen> {
                             );
                           },
                         ),
-                        ShareButton(onPressed: () {
-                          Navigator.of(context).pushNamed('/shareMonsterScreen');
-                        }),
+                        if (room.isHost)
+                          ShareButton(onPressed: () {
+                            Navigator.of(context).pushNamed('/shareMonsterScreen');
+                          }),
                       ],
                     ),
                     Row(
