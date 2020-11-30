@@ -12,19 +12,19 @@ class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
-        return MaterialPageRoute(builder: (_) => StartScreen());
+        return MaterialPageRoute(builder: (_) => StartScreen(), fullscreenDialog: true);
       case '/playModesScreen':
-        return MaterialPageRoute(builder: (_) => PlayModesScreen());
+        return MaterialPageRoute(builder: (_) => PlayModesScreen(), fullscreenDialog: true);
       case '/waitingRoom':
-        return MaterialPageRoute(builder: (_) => WaitingRoomScreen());
+        return MaterialPageRoute(builder: (_) => WaitingRoomScreen(), fullscreenDialog: true);
       case '/getReadyScreen':
-        return MaterialPageRoute(builder: (_) => GetReadyScreen());
+        return MaterialPageRoute(builder: (_) => GetReadyScreen(), fullscreenDialog: true);
       case '/drawingScreen':
-        return MaterialPageRoute(builder: (_) => DrawingScreen());
+        return MaterialPageRoute(builder: (_) => DrawingScreen(), fullscreenDialog: true);
       case '/finishedScreen':
-        return MaterialPageRoute(builder: (_) => FinishedScreen());
+        return MaterialPageRoute(builder: (_) => FinishedScreen(), fullscreenDialog: true);
       case '/shareMonsterScreen':
-        return MaterialPageRoute(builder: (_) => ShareMonsterScreen());
+        return MaterialPageRoute(builder: (_) => ShareMonsterScreen(), fullscreenDialog: true);
 
       default:
         return _errorRoute();
