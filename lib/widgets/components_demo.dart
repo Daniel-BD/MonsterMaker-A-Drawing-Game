@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'colors.dart';
+import '../constants.dart';
 import 'game_text_field.dart';
 //import 'modal_message.dart';
 //import 'brush_size_slider.dart';

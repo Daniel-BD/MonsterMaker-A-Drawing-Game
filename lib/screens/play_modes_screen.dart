@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../db.dart';
 import '../game_state.dart';
-import '../widgets/colors.dart';
+import '../constants.dart';
 import '../widgets/buttons.dart';
 import '../widgets/game_text_field.dart';
 

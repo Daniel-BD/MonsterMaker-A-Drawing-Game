@@ -1,14 +1,15 @@
 import 'package:exquisitecorpse/widgets/text_components.dart';
 import 'package:flutter/material.dart';
 
-import 'package:exquisitecorpse/widgets/colors.dart';
-import 'package:exquisitecorpse/widgets/MonsterFrameWidgets.dart';
+import 'package:exquisitecorpse/constants.dart';
+import 'package:exquisitecorpse/widgets/framed_monster.dart';
 import 'package:exquisitecorpse/widgets/buttons.dart';
 import 'package:provider/provider.dart';
 
 import '../db.dart';
 import '../game_state.dart';
 import '../models.dart';
+import '../widgets/modal_message.dart';
 
 class ShareMonsterScreen extends StatefulWidget {
   @override
@@ -17,10 +18,34 @@ class ShareMonsterScreen extends StatefulWidget {
 
 class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
   final _db = DatabaseService.instance;
-  MonsterDrawing drawing;
-  bool fetching = false;
-  //int _hostIndex = 1;
-  final nameController = TextEditingController(text: 'Give the monster a name...');
+  final List<TextEditingController> _nameControllers = [
+    TextEditingController(),
+    TextEditingController(),
+    TextEditingController(),
+  ];
+
+  VoidCallback onControllerChanged;
+
+  @override
+  void initState() {
+    onControllerChanged = () => setState(() {});
+
+    super.initState();
+
+    _nameControllers.forEach((controller) {
+      controller.addListener(onControllerChanged);
+    });
+  }
+
+  @override
+  void dispose() {
+    onControllerChanged = () {};
+    _nameControllers.forEach((controller) {
+      controller.removeListener(onControllerChanged);
+    });
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,8 +76,26 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
                   ),
                   Expanded(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
+                        FramedMonster(
+                          drawing: room.monsterDrawing,
+                          isSubmittableMonster: true,
+                          nameController: _nameControllers[room.monsterIndex - 1],
+                          giveMonsterNamePressed: () {
+                            showDialog(
+                              barrierDismissible: false,
+                              context: context,
+                              builder: (_) => EnterMonsterNameGameModal(
+                                nameController: _nameControllers[room.monsterIndex - 1],
+                                onPressedDone: () {
+                                  Navigator.of(context).pop();
+                                  //setState(() {});
+                                },
+                              ),
+                            );
+                          },
+                        ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
@@ -73,15 +116,18 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
                             ),
                           ],
                         ),
-                        MonsterFrame(
-                          drawing: room.monsterDrawing,
-                          isSubmittableMonster: true,
-                          nameController: nameController,
-                        ),
                       ],
                     ),
                   ),
-                  SubmitMonsterButton(onPressed: () {}),
+                  SubmitMonsterButton(onPressed: () {
+                    /// If the monster doesn't yet have a name
+                    if (_nameControllers[room.monsterIndex - 1].text.isEmpty) {
+                      showDialog(
+                        context: context,
+                        builder: (_) => GiveMonsterNameFirstGameModal(),
+                      );
+                    }
+                  }),
                 ],
               );
             }),

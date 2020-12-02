@@ -5,7 +5,7 @@ const Color playButtonColor = Color(0xFF52F5A5);
 const Color galleryYellow = Color(0xFFFFE600);
 const Color focused = Color.fromRGBO(150, 84, 161, 1);
 const Color paper = Color.fromRGBO(255, 247, 234, 1);
-const Color monsterTextColor = Color.fromRGBO(70, 77, 119, 1);
+const Color monsterTextColor = Color(0xFF2D324D);
 const Color textColorBlack = Color.fromRGBO(42, 38, 51, 1);
 const Color warning = Color.fromRGBO(252, 78, 55, 1);
 const Color onWarning = Colors.white;
@@ -17,6 +17,8 @@ const Color disabled = Color.fromRGBO(233, 233, 233, 1);
 const Color disabledText = Color.fromRGBO(98, 98, 98, 1);
 const Color darkIcon = Color.fromRGBO(42, 38, 51, 1);
 const Color brightIcon = Colors.white;
+const Color blueText = Color(0xFF0000FF);
+const Color backButtonColor = Color(0xFF464D77);
 
 const List<Color> brushColors = [
   Colors.black,
@@ -38,3 +40,5 @@ const List<Color> brushColors = [
   const Color(0xFFff7daf),
   const Color(0xFFff0000),
 ];
+
+const monsterNameMaxCharacterLength = 30;

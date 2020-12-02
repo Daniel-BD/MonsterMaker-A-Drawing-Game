@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 
 import 'db.dart';
 import 'game_state.dart';
-import 'widgets/colors.dart';
+import 'constants.dart';
 import 'drawing_storage.dart';
 import 'painters.dart';
 

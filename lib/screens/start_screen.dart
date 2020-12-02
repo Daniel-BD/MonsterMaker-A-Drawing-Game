@@ -7,8 +7,8 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/widgets/buttons.dart';
 import 'package:exquisitecorpse/widgets/text_components.dart';
-import 'package:exquisitecorpse/widgets/colors.dart';
-import 'package:exquisitecorpse/widgets/MonsterFrameWidgets.dart';
+import 'package:exquisitecorpse/constants.dart';
+import 'package:exquisitecorpse/widgets/framed_monster.dart';
 import '../models.dart';
 
 class StartScreen extends StatefulWidget {
@@ -127,7 +127,7 @@ class _MonsterCarouselState extends State<MonsterCarousel> {
           FittedBox(
             child: Padding(
               padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-              child: MonsterFrame(
+              child: FramedMonster(
                 monsterName: monster,
                 drawing: drawing,
               ),

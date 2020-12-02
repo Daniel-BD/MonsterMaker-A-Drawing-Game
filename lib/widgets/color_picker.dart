@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter_icons/flutter_icons.dart';
 
-import 'colors.dart';
+import '../constants.dart';
 
 class GameColorPicker extends StatelessWidget {
   final void Function(Color) onTap;

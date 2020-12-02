@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:exquisitecorpse/widgets/colors.dart';
+import 'package:exquisitecorpse/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 

@@ -5,26 +5,28 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models.dart';
 import '../painters.dart';
-import 'colors.dart';
+import '../constants.dart';
 
 double monsterFrameWidth(BuildContext context, bool isSubmittableMonster) {
   return isSubmittableMonster ? min(400.0, MediaQuery.of(context).size.width * 0.75) : min(200.0, MediaQuery.of(context).size.width * 0.7);
 }
 
-class MonsterFrame extends StatelessWidget {
+class FramedMonster extends StatelessWidget {
   final MonsterDrawing drawing;
   final borderWidth = 5.0;
   final String monsterName;
   final bool isSubmittableMonster;
   final TextEditingController nameController;
+  final VoidCallback giveMonsterNamePressed;
 
-  const MonsterFrame({
+  const FramedMonster({
     Key key,
     this.monsterName = 'Monster Name',
     @required this.drawing,
     this.isSubmittableMonster = false,
     this.nameController,
-  })  : assert(isSubmittableMonster && nameController != null || !isSubmittableMonster),
+    this.giveMonsterNamePressed,
+  })  : assert(isSubmittableMonster && nameController != null && giveMonsterNamePressed != null || !isSubmittableMonster),
         super(key: key);
 
   @override
@@ -77,21 +79,22 @@ class MonsterFrame extends StatelessWidget {
                       child: isSubmittableMonster
                           ? CupertinoButton(
                               padding: EdgeInsets.all(0),
-                              onPressed: () {},
+                              onPressed: giveMonsterNamePressed,
                               child: Text(
-                                'Give it a name!',
-                                style: GoogleFonts.forum(
+                                nameController.text.isNotEmpty ? nameController.text : 'Press here to give it a name!',
+                                style: GoogleFonts.averiaSerifLibre(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 40,
-                                  color: monsterTextColor,
+                                  color: nameController.text.isNotEmpty ? monsterTextColor : blueText,
                                 ),
                               ),
                             )
                           : Text(
                               monsterName,
-                              style: GoogleFonts.forum(
-                                fontWeight: FontWeight.w500,
+                              style: GoogleFonts.averiaSerifLibre(
+                                fontWeight: FontWeight.w700,
                                 fontSize: 40,
+                                color: monsterTextColor,
                               ),
                             ),
                     ),

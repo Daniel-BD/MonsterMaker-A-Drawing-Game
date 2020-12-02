@@ -8,7 +8,7 @@ import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/widgets/buttons.dart';
 import 'package:exquisitecorpse/widgets/text_components.dart';
-import 'package:exquisitecorpse/widgets/colors.dart';
+import 'package:exquisitecorpse/constants.dart';
 
 class MonsterViewer extends StatefulWidget {
   @override

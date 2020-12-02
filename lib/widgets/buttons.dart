@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:flutter_icons/flutter_icons.dart';
 
-import 'colors.dart';
+import '../constants.dart';
 
 /// CANVAS CONTROL BUTTONS
 
@@ -173,7 +173,7 @@ class NextButton extends StatelessWidget {
 
 /// ANIMATE ORDER BUTTON
 
-class AnimateOrderButton extends StatelessWidget {
+/*class AnimateOrderButton extends StatelessWidget {
   final GestureTapCallback onPressed;
   final bool animatingOneByOne;
   final style = TextStyle(
@@ -214,7 +214,7 @@ class AnimateOrderButton extends StatelessWidget {
       ),
     );
   }
-}
+} */
 
 /// BIG GAME BUTTONS
 
@@ -368,7 +368,7 @@ class BackGameButton extends StatelessWidget {
       onPressed: onPressed,
       height: 50,
       width: 110,
-      color: monsterTextColor,
+      color: backButtonColor,
       borderRadius: BorderRadius.horizontal(
         right: Radius.circular(16),
       ),
@@ -397,14 +397,18 @@ class BackGameButton extends StatelessWidget {
 
 class ModalBackGameButton extends StatelessWidget {
   final GestureTapCallback onPressed;
+  final String buttonLabel;
 
-  ModalBackGameButton({@required this.onPressed});
+  ModalBackGameButton({
+    @required this.onPressed,
+    this.buttonLabel = 'BACK',
+  });
 
   @override
   Widget build(BuildContext context) {
     return _ModalGameButton(
       onPressed: onPressed,
-      label: "BACK",
+      label: buttonLabel,
       color: blue,
       textColor: monsterTextColor,
     );
@@ -483,8 +487,7 @@ class _ModalGameButton extends StatelessWidget {
       color: color,
       child: Text(
         label,
-        style: TextStyle(
-          fontFamily: 'Gaegu',
+        style: GoogleFonts.sniglet(
           color: textColor,
           fontSize: 20,
         ),

@@ -4,13 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'colors.dart';
+import '../constants.dart';
 
 class GameTextField extends StatefulWidget {
   final TextEditingController controller;
   final ValueChanged<String> onSubmitted;
+  final double fontSize;
+  final hintText;
 
-  const GameTextField({Key key, this.controller, this.onSubmitted}) : super(key: key);
+  /// If true, behaves as if the text field is used for entering room codes, meaning only caps and 4 characters max length
+  final isRoomCode;
+
+  const GameTextField({
+    Key key,
+    this.controller,
+    this.onSubmitted,
+    this.fontSize,
+    this.hintText = 'Enter Room Code',
+    this.isRoomCode = true,
+  }) : super(key: key);
 
   @override
   _GameTextFieldState createState() => _GameTextFieldState();
@@ -19,32 +31,10 @@ class GameTextField extends StatefulWidget {
 class _GameTextFieldState extends State<GameTextField> {
   final focus = FocusNode();
 
-  final style = GoogleFonts.sniglet(
-    color: monsterTextColor,
-    fontSize: 40,
-    fontWeight: FontWeight.w600,
-  );
+  TextStyle _style;
+  TextStyle _hintStyle;
 
-  /*TextStyle(
-    fontFamily: 'Gaegu',
-    color: monsterTextColor,
-    fontSize: 40,
-    fontWeight: FontWeight.w700,
-  );*/
-
-  final hintStyle = GoogleFonts.sniglet(
-    color: monsterTextColor,
-    fontSize: 22,
-    //fontWeight: FontWeight.w700,
-  );
-
-  /*TextStyle(
-    fontFamily: 'Gaegu',
-    color: monsterTextColor,
-    fontSize: 22,
-  );*/
-
-  final unFocusedBorder = OutlineInputBorder(
+  final _unFocusedBorder = OutlineInputBorder(
     borderRadius: const BorderRadius.all(
       const Radius.circular(8),
     ),
@@ -54,7 +44,7 @@ class _GameTextFieldState extends State<GameTextField> {
     ),
   );
 
-  final focusedBorder = OutlineInputBorder(
+  final _focusedBorder = OutlineInputBorder(
     borderRadius: const BorderRadius.all(
       const Radius.circular(20),
     ),
@@ -65,9 +55,25 @@ class _GameTextFieldState extends State<GameTextField> {
   );
 
   @override
+  void initState() {
+    super.initState();
+
+    _style = GoogleFonts.sniglet(
+      color: monsterTextColor,
+      fontSize: widget.fontSize != null ? widget.fontSize : 40,
+      fontWeight: FontWeight.w600,
+    );
+
+    _hintStyle = GoogleFonts.sniglet(
+      color: monsterTextColor,
+      fontSize: widget.fontSize != null ? widget.fontSize : 22,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      height: 60,
+      //height: widget.isRoomCode ? 60 : 80, //TODO: Testa hur det blir när man matar in ROOM CODE
       width: min(300.0, MediaQuery.of(context).size.width * 0.8),
       duration: Duration(milliseconds: 150),
       decoration: BoxDecoration(
@@ -80,29 +86,29 @@ class _GameTextFieldState extends State<GameTextField> {
         autocorrect: false,
         focusNode: focus,
         controller: widget.controller,
-        textAlign: TextAlign.center,
-        textAlignVertical: TextAlignVertical(y: 1.0),
+        textAlign: widget.isRoomCode ? TextAlign.center : TextAlign.start,
+        textAlignVertical: widget.isRoomCode ? TextAlignVertical(y: 1.0) : null, //TODO: Testa hur det blir när man matar in ROOM CODE
         cursorColor: focused,
-        style: widget.controller.text.isEmpty ? hintStyle : style,
-        textCapitalization: TextCapitalization.characters,
+        style: widget.controller.text.isEmpty ? _hintStyle : _style,
+        textCapitalization: widget.isRoomCode ? TextCapitalization.characters : TextCapitalization.sentences,
         onTap: () => setState(() {}),
         inputFormatters: [
-          LengthLimitingTextInputFormatter(4),
+          LengthLimitingTextInputFormatter(widget.isRoomCode ? 4 : monsterNameMaxCharacterLength),
         ],
         onSubmitted: widget.onSubmitted,
         onChanged: (str) {
-          //controller.text = str.toUpperCase();
+          /// Jag vet inte varför jag gjort såhär... vet inte riktigt vad det gör
           if (widget.controller.text.isNotEmpty) {
-            Future.delayed(Duration(milliseconds: 100)).then((value) => setState(() {}));
+            Future.delayed(Duration(milliseconds: 100)).then((_) => setState(() {}));
           } else {
             setState(() {});
           }
         },
         decoration: InputDecoration(
-          hintStyle: widget.controller.text.isEmpty ? hintStyle : style,
-          hintText: 'Enter Room Code',
-          enabledBorder: unFocusedBorder,
-          focusedBorder: focusedBorder,
+          hintStyle: widget.controller.text.isEmpty ? _hintStyle : _style,
+          hintText: widget.hintText,
+          enabledBorder: _unFocusedBorder,
+          focusedBorder: _focusedBorder,
         ),
       ),
     );
