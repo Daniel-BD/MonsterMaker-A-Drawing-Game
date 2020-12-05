@@ -60,20 +60,19 @@ class _GameTextFieldState extends State<GameTextField> {
 
     _style = GoogleFonts.sniglet(
       color: monsterTextColor,
-      fontSize: widget.fontSize != null ? widget.fontSize : 40,
+      fontSize: widget.fontSize != null ? widget.fontSize : 24,
       fontWeight: FontWeight.w600,
     );
 
     _hintStyle = GoogleFonts.sniglet(
       color: monsterTextColor,
-      fontSize: widget.fontSize != null ? widget.fontSize : 22,
+      fontSize: widget.fontSize != null ? widget.fontSize : 24,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      //height: widget.isRoomCode ? 60 : 80, //TODO: Testa hur det blir när man matar in ROOM CODE
       width: min(300.0, MediaQuery.of(context).size.width * 0.8),
       duration: Duration(milliseconds: 150),
       decoration: BoxDecoration(
@@ -87,7 +86,7 @@ class _GameTextFieldState extends State<GameTextField> {
         focusNode: focus,
         controller: widget.controller,
         textAlign: widget.isRoomCode ? TextAlign.center : TextAlign.start,
-        textAlignVertical: widget.isRoomCode ? TextAlignVertical(y: 1.0) : null, //TODO: Testa hur det blir när man matar in ROOM CODE
+        textAlignVertical: widget.isRoomCode ? TextAlignVertical(y: 0.5) : null,
         cursorColor: focused,
         style: widget.controller.text.isEmpty ? _hintStyle : _style,
         textCapitalization: widget.isRoomCode ? TextCapitalization.characters : TextCapitalization.sentences,

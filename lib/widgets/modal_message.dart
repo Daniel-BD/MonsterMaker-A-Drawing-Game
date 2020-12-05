@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -120,13 +122,169 @@ class GiveMonsterNameFirstGameModal extends StatelessWidget {
   }
 }
 
+class AgreeToSubmitMonsterGameModal extends StatefulWidget {
+  final bool isHost;
+  final int monsterIndex;
+  final VoidCallback onContinuePressed;
+
+  const AgreeToSubmitMonsterGameModal({
+    Key key,
+    @required this.isHost,
+    @required this.monsterIndex,
+    @required this.onContinuePressed,
+  }) : super(key: key);
+
+  @override
+  _AgreeToSubmitMonsterGameModalState createState() => _AgreeToSubmitMonsterGameModalState();
+}
+
+class _AgreeToSubmitMonsterGameModalState extends State<AgreeToSubmitMonsterGameModal> {
+  bool userAgrees;
+
+  @override
+  Widget build(BuildContext context) {
+    return _GameModal(
+      borderColor: green,
+      leftButton: Container(),
+      hideButton: true,
+      label: 'Do you agree to share the drawing?',
+      labelFontSize: 20,
+      child: Column(
+        children: [
+          SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              !widget.isHost
+                  ? 'All 3 players need to agree to submit.'
+                  : 'The game host wants to submit monster #${widget.monsterIndex} to the Monster Gallery. All 3 players need to agree to submit.',
+              textAlign: !widget.isHost ? TextAlign.center : null,
+            ),
+          ),
+          SizedBox(height: 30),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: LicenceCheckbox(
+              isAgreementBox: true,
+              userAgrees: userAgrees,
+              onTap: () => setState(() {
+                userAgrees = true;
+              }),
+            ),
+          ),
+          SizedBox(height: 30),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: LicenceCheckbox(
+              isAgreementBox: false,
+              userAgrees: userAgrees,
+              onTap: () => setState(() {
+                userAgrees = false;
+              }),
+            ),
+          ),
+          SizedBox(height: 30),
+          ModalBackGameButton(
+            onPressed: userAgrees == null
+                ? null
+                : () {
+                    widget.onContinuePressed();
+                    Navigator.of(context).maybePop();
+                  },
+            buttonLabel: 'CONTINUE',
+          ),
+          SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}
+
+bool shouldBeChecked(bool isAgreementBox, bool userAgrees) {
+  if (userAgrees == null) {
+    return false;
+  }
+  return (isAgreementBox && userAgrees) || (!isAgreementBox && !userAgrees);
+}
+
+class LicenceCheckbox extends StatelessWidget {
+  final bool isAgreementBox;
+  final bool userAgrees;
+  final VoidCallback onTap;
+
+  const LicenceCheckbox({
+    Key key,
+    @required this.isAgreementBox,
+    @required this.userAgrees,
+    @required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              child: AnimatedPadding(
+                duration: Duration(milliseconds: shouldBeChecked(isAgreementBox, userAgrees) ? 150 : 0),
+                padding: EdgeInsets.all(shouldBeChecked(isAgreementBox, userAgrees) ? 4.0 : 36.0),
+                child: Container(
+                  color: Colors.black,
+                ),
+              ),
+              height: 36.0,
+              width: 36.0,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.black,
+                  width: 4,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: isAgreementBox
+              ? Wrap(
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        text: 'I accept that the image may be shared by MonsterMaker according to the',
+                        style: DefaultTextStyle.of(context).style,
+                        children: [
+                          TextSpan(
+                            text: ' license terms (press to read)',
+                            style: TextStyle(color: CupertinoColors.activeBlue),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                debugPrint('SHOW LICENCE TERMS');
+                                //TODO: Öppna licenceavtalet
+                              },
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                )
+              : Text('I don’t agree to share the drawing'),
+        ),
+      ],
+    );
+  }
+}
+
 /// INTERNAL CLASSES
 class _GameModal extends StatelessWidget {
   final Color borderColor;
   final Widget leftButton;
   final String label;
+  final double labelFontSize;
   final Widget child;
   final bool onlyTextAndOKButton;
+  final bool hideButton;
 
   /// Used for any cleanup that you may want to happen when the modal closes
   final onBackPressed;
@@ -139,6 +297,8 @@ class _GameModal extends StatelessWidget {
     this.child,
     this.onBackPressed,
     this.onlyTextAndOKButton = false,
+    this.hideButton = false,
+    this.labelFontSize = 24,
   }) : super(key: key);
 
   @override
@@ -148,7 +308,7 @@ class _GameModal extends StatelessWidget {
       textAlign: TextAlign.center,
       style: GoogleFonts.sniglet(
         color: monsterTextColor,
-        fontSize: 24,
+        fontSize: labelFontSize,
       ),
     );
 
@@ -160,8 +320,7 @@ class _GameModal extends StatelessWidget {
           ),
         ),
         child: Container(
-          //height: child == null ? 200 : null, //TODO: Testa om modals får konstig storlek
-          width: /* child == null ? 300 : */ min(MediaQuery.of(context).size.width * 0.9, 400),
+          width: min(MediaQuery.of(context).size.width * 0.9, 400),
           decoration: BoxDecoration(
             color: textFieldBackground,
             borderRadius: BorderRadius.all(Radius.circular(20)),
@@ -191,24 +350,25 @@ class _GameModal extends StatelessWidget {
                       child: labelWidget,
                     ),
                     if (child != null) child,
-                    if (child == null) SizedBox(height: 60), //TODO: Testa om modals får konstig storlek
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          leftButton,
-                          ModalBackGameButton(
-                            onPressed: () {
-                              if (onBackPressed != null) {
-                                onBackPressed();
-                              }
-                              Navigator.of(context).pop();
-                            },
-                          )
-                        ],
+                    if (child == null) SizedBox(height: 60),
+                    if (!hideButton)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: <Widget>[
+                            leftButton,
+                            ModalBackGameButton(
+                              onPressed: () {
+                                if (onBackPressed != null) {
+                                  onBackPressed();
+                                }
+                                Navigator.of(context).pop();
+                              },
+                            )
+                          ],
+                        ),
                       ),
-                    ),
                   ],
                 ),
         ),

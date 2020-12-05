@@ -126,6 +126,15 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
                         context: context,
                         builder: (_) => GiveMonsterNameFirstGameModal(),
                       );
+                    } else {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => AgreeToSubmitMonsterGameModal(
+                          isHost: room.isHost,
+                          monsterIndex: room.monsterIndex,
+                        ),
+                      );
                     }
                   }),
                 ],

@@ -409,8 +409,8 @@ class ModalBackGameButton extends StatelessWidget {
     return _ModalGameButton(
       onPressed: onPressed,
       label: buttonLabel,
-      color: blue,
-      textColor: monsterTextColor,
+      color: onPressed != null ? blue : disabled,
+      textColor: onPressed != null ? monsterTextColor : disabledText,
     );
   }
 }
@@ -433,8 +433,9 @@ class ModalClearGameButton extends StatelessWidget {
 
 class ModalDoneGameButton extends StatelessWidget {
   final GestureTapCallback onPressed;
+  final String buttonLabel;
 
-  ModalDoneGameButton({@required this.onPressed});
+  ModalDoneGameButton({@required this.onPressed, this.buttonLabel});
 
   @override
   Widget build(BuildContext context) {
@@ -482,6 +483,7 @@ class _ModalGameButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return _GameButton(
       onPressed: onPressed,
+      borderRadius: BorderRadius.circular(12.0), //TODO: Testa om detta ser ok ut på alla modals
       height: 50,
       width: 120,
       color: color,
