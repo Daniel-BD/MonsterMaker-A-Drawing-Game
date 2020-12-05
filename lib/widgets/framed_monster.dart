@@ -85,7 +85,7 @@ class FramedMonster extends StatelessWidget {
                                 style: GoogleFonts.averiaSerifLibre(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 40,
-                                  color: nameController.text.isNotEmpty ? monsterTextColor : blueText,
+                                  color: nameController.text.isNotEmpty ? monsterTextColor : null,
                                 ),
                               ),
                             )

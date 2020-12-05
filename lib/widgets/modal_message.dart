@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:exquisitecorpse/models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -125,7 +126,7 @@ class GiveMonsterNameFirstGameModal extends StatelessWidget {
 class AgreeToSubmitMonsterGameModal extends StatefulWidget {
   final bool isHost;
   final int monsterIndex;
-  final VoidCallback onContinuePressed;
+  final Function(bool) onContinuePressed;
 
   const AgreeToSubmitMonsterGameModal({
     Key key,
@@ -188,7 +189,7 @@ class _AgreeToSubmitMonsterGameModalState extends State<AgreeToSubmitMonsterGame
             onPressed: userAgrees == null
                 ? null
                 : () {
-                    widget.onContinuePressed();
+                    widget.onContinuePressed(userAgrees);
                     Navigator.of(context).maybePop();
                   },
             buttonLabel: 'CONTINUE',

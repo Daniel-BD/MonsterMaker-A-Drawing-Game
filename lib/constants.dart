@@ -17,7 +17,6 @@ const Color disabled = Color.fromRGBO(233, 233, 233, 1);
 const Color disabledText = Color.fromRGBO(98, 98, 98, 1);
 const Color darkIcon = Color.fromRGBO(42, 38, 51, 1);
 const Color brightIcon = Colors.white;
-const Color blueText = Color(0xFF0000FF);
 const Color backButtonColor = Color(0xFF464D77);
 
 const List<Color> brushColors = [

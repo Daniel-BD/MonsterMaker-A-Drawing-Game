@@ -23,7 +23,6 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
     TextEditingController(),
     TextEditingController(),
   ];
-
   VoidCallback onControllerChanged;
 
   @override
@@ -90,7 +89,6 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
                                 nameController: _nameControllers[room.monsterIndex - 1],
                                 onPressedDone: () {
                                   Navigator.of(context).pop();
-                                  //setState(() {});
                                 },
                               ),
                             );
@@ -133,6 +131,10 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
                         builder: (_) => AgreeToSubmitMonsterGameModal(
                           isHost: room.isHost,
                           monsterIndex: room.monsterIndex,
+                          onContinuePressed: (userAgrees) {
+                            // TODO: on continue pressed
+                            debugPrint('user agrees: $userAgrees');
+                          },
                         ),
                       );
                     }
