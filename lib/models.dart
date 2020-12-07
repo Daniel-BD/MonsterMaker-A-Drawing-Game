@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:tuple/tuple.dart';
 import 'dart:convert';
 
+import 'package:exquisitecorpse/db.dart';
 import 'drawing_storage.dart';
 
 class MonsterDrawing {
@@ -24,7 +26,8 @@ class GameRoom {
     @required this.topDrawings,
     @required this.midDrawings,
     @required this.bottomDrawings,
-    this.monsterDrawing,
+    @required this.monsterSharingAgreements,
+    this.monsterDrawings,
   })  : assert(roomCode != null),
         assert(activePlayers != null),
         assert(isHost != null),
@@ -35,7 +38,9 @@ class GameRoom {
         assert(monsterIndex == 1 || monsterIndex == 2 || monsterIndex == 3),
         assert(topDrawings != null),
         assert(midDrawings != null),
-        assert(bottomDrawings != null);
+        assert(bottomDrawings != null),
+        assert(monsterSharingAgreements.length == 3),
+        assert(monsterDrawings != null && monsterDrawings.length == 3 || monsterDrawings == null);
 
   /// The room code of the room
   final String roomCode;
@@ -66,8 +71,24 @@ class GameRoom {
   final Map<int, String> midDrawings;
   final Map<int, String> bottomDrawings;
 
-  /// A [MonsterDrawing] representation of the drawing on the current [monsterIndex].
-  final MonsterDrawing monsterDrawing;
+  /// List of maps of what users have agreed (or not) to share what monster drawings to the monster gallery.
+  /// The map at index 0 is monster 1, index 1 is monster 2, etc.
+  /// The map for each monster looks like this (example): {Player1 : true, Player 2 : false}, note that Player 3 isn't in the map, since
+  /// player 3 hasn't responded yet.
+  final List<Map<String, dynamic>> monsterSharingAgreements;
+
+  /// A list of [MonsterDrawing] representation of alla drawings, index 0 is monster 1 etc, index 1 is monster 2 etc.
+  final List<MonsterDrawing> monsterDrawings;
+
+  /// A [MonsterDrawing] representation of the current monster according to [monsterIndex].
+  MonsterDrawing currentMonsterDrawing() {
+    if (monsterDrawings == null || monsterDrawings.length < monsterIndex - 1) {
+      assert(false, 'monsterDrawings is null when it should not be!');
+      return null;
+    }
+
+    return monsterDrawings[monsterIndex - 1];
+  }
 
   bool allTopDrawingsDone() => topDrawings.length == 3;
   bool allMidDrawingsDone() => midDrawings.length == 3;
@@ -105,26 +126,18 @@ class GameRoom {
     }
   }
 
-  /*MonsterDrawing getMonsterDrawing(int monsterIndex) {
-    debugPrint('hello: return monsterDrawring');
-    return monsterDrawing;
-
-    /*debugPrint('MonsterIndex: $monsterIndex');
-    assert(monsterIndex <= 3 && monsterIndex >= 1, 'monsterIndex is not in range');
-
-    final topIndex = monsterIndex;
-    int midIndex = (monsterIndex + 1) % 4;
-    int bottomIndex = (monsterIndex + 2) % 4;
-
-    midIndex = midIndex == 0 ? 1 : midIndex;
-    bottomIndex = bottomIndex == 0 ? 1 : bottomIndex;
-
-    return MonsterDrawing(
-      DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]), false),
-      DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]), false),
-      DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]), false),
-    );*/
-  }*/
+  /// Returns null if there's no prompt to show, otherwise returns an int with the index (int) and name (String) of the monster
+  /// that the users needs to agree or not agree to share.
+  Tuple2<int, String> showAgreeToShareMonsterPrompt() {
+    for (int i = 1; i < 4; i++) {
+      final monster = monsterSharingAgreements[i - 1];
+      if (monster == null || monster.isEmpty || monster.containsKey('Player$playerIndex')) {
+      } else if (monster.containsKey(monsterName)) {
+        return Tuple2(i, monster[monsterName]);
+      }
+    }
+    return null;
+  }
 
   @override
   String toString() {

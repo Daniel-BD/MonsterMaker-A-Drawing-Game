@@ -164,7 +164,7 @@ class MonsterNumberText extends StatelessWidget {
       textAlign: TextAlign.center,
       style: TextStyle(
         color: monsterTextColor,
-        fontSize: 30,
+        fontSize: 26,
       ),
     );
   }

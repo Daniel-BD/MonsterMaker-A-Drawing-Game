@@ -22,6 +22,8 @@ const String _bottom = 'bottom';
 const String _startAnimation = 'startAnimation';
 const String _monsterIndex = 'monsterIndex';
 const String _animateAllAtOnce = 'animateAllAtOnce';
+const String _agreeToShare = 'agreeToShare';
+const String monsterName = 'MonsterName';
 
 class DatabaseService {
   FirebaseAuth _auth;
@@ -145,6 +147,7 @@ class DatabaseService {
     });
   }
 
+  //TODO: Refaktorera, så drawings hämtas på samma sätt på alla ställen, dvs det som är if (gameData[_top] != null) osv...
   Stream<GameRoom> roomToReviewFromCode({@required String roomCode}) {
     assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
 
@@ -186,14 +189,15 @@ class DatabaseService {
         topDrawings: topDrawings,
         midDrawings: midDrawings,
         bottomDrawings: bottomDrawings,
+        monsterSharingAgreements: [{}, {}, {}], //TODO: gör detta rätt efter refaktorering
       );
       return gameRoom;
     });
   }
 
-  /// TODO: ta bort
+  /// TODO: refaktorera, här finns mycket samma kod som i streamGameRoom
   Future<MonsterDrawing> getMonsterFromRoomCode(String roomCode, int monsterIndex) async {
-    debugPrint('running getFromRoomCode');
+    debugPrint('running getFromRoomCode - used for monster carousel on start screen');
 
     assert(monsterIndex >= 1 && monsterIndex <= 3, 'MonsterIndex out of range');
     await _init();
@@ -246,6 +250,7 @@ class DatabaseService {
     return MonsterDrawing(top, mid, bottom);
   }
 
+  /// The main method of fetching game rooms in the app
   Stream<GameRoom> streamGameRoom({@required String roomCode}) {
     _assertAuthenticated();
     assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
@@ -261,6 +266,8 @@ class DatabaseService {
       Map<int, String> topDrawings = {};
       Map<int, String> midDrawings = {};
       Map<int, String> bottomDrawings = {};
+
+      final List<Map<String, dynamic>> monsterSharingAgreements = List(3);
 
       room.docs.forEach((doc) {
         if (doc.id == _userUID()) {
@@ -283,6 +290,20 @@ class DatabaseService {
           if (gameData[_bottom] != null) {
             bottomDrawings = Map<String, String>.from(gameData[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
           }
+
+          /// Getting the status of what players have or have not agreed to share what monsters to the monster gallery.
+          if (gameData[_agreeToShare] != null) {
+            try {
+              for (int i = 1; i < 4; i++) {
+                if (gameData[_agreeToShare]['Monster$i'] != null) {
+                  monsterSharingAgreements[i - 1] = Map<String, dynamic>.from(gameData[_agreeToShare]['Monster$i'])
+                      .map((key, value) => MapEntry<String, dynamic>(key, value));
+                }
+              }
+            } catch (e) {
+              debugPrint('streamGameRoom: ' + e.toString());
+            }
+          }
         }
       });
 
@@ -295,26 +316,28 @@ class DatabaseService {
         return null;
       }
 
-      MonsterDrawing monsterDrawing;
+      List<MonsterDrawing> monsterDrawings = List(3);
 
-      int topIndex = monsterIndex;
-      int midIndex = monsterIndex == 1
-          ? 2
-          : monsterIndex == 2
-              ? 3
-              : 1;
-      int bottomIndex = monsterIndex == 1
-          ? 3
-          : monsterIndex == 2
-              ? 1
-              : 2;
+      for (int i = 1; i < 4; i++) {
+        int topIndex = i;
+        int midIndex = i == 1
+            ? 2
+            : i == 2
+                ? 3
+                : 1;
+        int bottomIndex = i == 1
+            ? 3
+            : i == 2
+                ? 1
+                : 2;
 
-      if (topDrawings[topIndex] != null && midDrawings[midIndex] != null && bottomDrawings[bottomIndex] != null) {
-        DrawingStorage top = DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]));
-        DrawingStorage mid = DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]));
-        DrawingStorage bottom = DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]));
+        if (topDrawings[topIndex] != null && midDrawings[midIndex] != null && bottomDrawings[bottomIndex] != null) {
+          DrawingStorage top = DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]));
+          DrawingStorage mid = DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]));
+          DrawingStorage bottom = DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]));
 
-        monsterDrawing = MonsterDrawing(top, mid, bottom);
+          monsterDrawings[i - 1] = MonsterDrawing(top, mid, bottom);
+        }
       }
 
       var gameRoom = GameRoom(
@@ -329,7 +352,8 @@ class DatabaseService {
         topDrawings: topDrawings,
         midDrawings: midDrawings,
         bottomDrawings: bottomDrawings,
-        monsterDrawing: monsterDrawing,
+        monsterDrawings: monsterDrawings,
+        monsterSharingAgreements: monsterSharingAgreements,
       );
       return gameRoom;
     });
@@ -452,7 +476,7 @@ class DatabaseService {
   }
 
   Future<bool> setMonsterIndex(int value, {@required GameRoom room}) async {
-    assert(value == 1 || value == 2 || value == 3, 'Monster Index is invalid numer');
+    assert(value == 1 || value == 2 || value == 3, 'Monster Index is invalid number');
     bool result = false;
 
     if (!room.isHost) {
@@ -466,6 +490,34 @@ class DatabaseService {
         .collection(room.roomCode)
         .doc(_gameData)
         .set({_monsterIndex: value}, SetOptions(merge: true)).catchError((Object error) {
+      print('ERROR setting monster index, $error');
+    }).whenComplete(() {
+      result = true;
+    });
+
+    return result;
+  }
+
+  /// Run to indicate if the player agrees (or not) to share the monster drawing of monsterIndex
+  Future<bool> agreeToShareMonster(
+      {@required int monsterIndex, @required bool userAgrees, @required GameRoom room, String monsterName}) async {
+    assert(monsterIndex == 1 || monsterIndex == 2 || monsterIndex == 3, 'Monster Index is invalid number');
+    assert(room.isHost && monsterName != null || !room.isHost && monsterName == null, 'agreeToShareMonster got incorrect arguments');
+    bool result = false;
+
+    Map<String, Map<String, dynamic>> dataToUpload = {};
+
+    dataToUpload['Monster$monsterIndex'] = {'Player${room.playerIndex}': userAgrees};
+    if (room.isHost && monsterName != null) {
+      dataToUpload['Monster$monsterIndex'][monsterName] = monsterName;
+    }
+
+    await _db
+        .collection(_home)
+        .doc(_roomsDoc)
+        .collection(room.roomCode)
+        .doc(_gameData)
+        .set({_agreeToShare: dataToUpload}, SetOptions(merge: true)).catchError((Object error) {
       print('ERROR setting monster index, $error');
     }).whenComplete(() {
       result = true;

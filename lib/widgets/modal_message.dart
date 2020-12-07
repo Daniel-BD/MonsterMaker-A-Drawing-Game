@@ -123,12 +123,12 @@ class GiveMonsterNameFirstGameModal extends StatelessWidget {
   }
 }
 
-class AgreeToSubmitMonsterGameModal extends StatefulWidget {
+class GameHostAgreeToSubmitMonsterGameModal extends StatefulWidget {
   final bool isHost;
   final int monsterIndex;
   final Function(bool) onContinuePressed;
 
-  const AgreeToSubmitMonsterGameModal({
+  const GameHostAgreeToSubmitMonsterGameModal({
     Key key,
     @required this.isHost,
     @required this.monsterIndex,
@@ -136,10 +136,10 @@ class AgreeToSubmitMonsterGameModal extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _AgreeToSubmitMonsterGameModalState createState() => _AgreeToSubmitMonsterGameModalState();
+  _GameHostAgreeToSubmitMonsterGameModalState createState() => _GameHostAgreeToSubmitMonsterGameModalState();
 }
 
-class _AgreeToSubmitMonsterGameModalState extends State<AgreeToSubmitMonsterGameModal> {
+class _GameHostAgreeToSubmitMonsterGameModalState extends State<GameHostAgreeToSubmitMonsterGameModal> {
   bool userAgrees;
 
   @override
@@ -156,10 +156,10 @@ class _AgreeToSubmitMonsterGameModalState extends State<AgreeToSubmitMonsterGame
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              !widget.isHost
-                  ? 'All 3 players need to agree to submit.'
-                  : 'The game host wants to submit monster #${widget.monsterIndex} to the Monster Gallery. All 3 players need to agree to submit.',
-              textAlign: !widget.isHost ? TextAlign.center : null,
+              widget.isHost
+                  ? 'All players need to agree to submit.'
+                  : 'The game host wants to submit monster #${widget.monsterIndex} to the Monster Gallery. All players need to agree to submit.',
+              textAlign: widget.isHost ? TextAlign.center : null,
             ),
           ),
           SizedBox(height: 30),

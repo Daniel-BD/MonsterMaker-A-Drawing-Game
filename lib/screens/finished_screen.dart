@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:exquisitecorpse/widgets/framed_monster.dart';
 import 'package:exquisitecorpse/widgets/modal_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +13,7 @@ import 'package:exquisitecorpse/db.dart';
 import 'package:exquisitecorpse/widgets/buttons.dart';
 import 'package:exquisitecorpse/widgets/text_components.dart';
 import 'package:exquisitecorpse/constants.dart';
+import 'package:tuple/tuple.dart';
 
 class FinishedScreen extends StatefulWidget {
   @override
@@ -19,6 +21,8 @@ class FinishedScreen extends StatefulWidget {
 }
 
 class _FinishedScreenState extends State<FinishedScreen> {
+  bool showingAgreePrompt = false;
+
   final _db = DatabaseService.instance;
   GameRoom _room;
 
@@ -75,6 +79,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
           stream: _db.streamGameRoom(roomCode: gameState.currentRoomCode),
           builder: (context, snapshot) {
             if (snapshot.data == null) {
+              debugPrint('FinishedScreen snapshot is null ');
               return Center(child: CircularProgressIndicator());
             }
 
@@ -97,6 +102,15 @@ class _FinishedScreenState extends State<FinishedScreen> {
             if (room.monsterIndex != _index) {
               _index = room.monsterIndex;
               _readyNextMonster();
+            }
+
+            final Tuple2<int, String> monsterSharePromptData = room.showAgreeToShareMonsterPrompt();
+            if (monsterSharePromptData != null && showingAgreePrompt == false) {
+              return AgreeToShareMonsterScreen(
+                monsterDrawing: room.monsterDrawings[monsterSharePromptData.item1 - 1],
+                monsterIndexAndName: monsterSharePromptData,
+                room: room,
+              );
             }
 
             return Stack(
@@ -157,6 +171,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
   Widget _monster(Size size) {
     final leftPosition = (monsterSize.width - _outputWidth - 20) / 2;
 
+    assert(_room.currentMonsterDrawing() != null, 'current MonsterDrawing is null, this will crash the app...');
+
     return SizedBox(
       height: monsterSize.height,
       width: monsterSize.width - 20,
@@ -167,8 +183,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
             top: 0.0,
             left: leftPosition,
             child: AnimatedDrawing.paths(
-              _room.monsterDrawing.top.getScaledPaths(outputHeight: _outputHeight),
-              paints: _room.monsterDrawing.top.getScaledPaints(outputHeight: _outputHeight),
+              _room.currentMonsterDrawing().top.getScaledPaths(outputHeight: _outputHeight),
+              paints: _room.currentMonsterDrawing().top.getScaledPaints(outputHeight: _outputHeight),
               run: _runTopAnimation,
               animationOrder: _pathOrder,
               scaleToViewport: false,
@@ -185,8 +201,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
             top: _outputHeight * (5 / 6),
             left: leftPosition,
             child: AnimatedDrawing.paths(
-              _room.monsterDrawing.middle.getScaledPaths(outputHeight: _outputHeight),
-              paints: _room.monsterDrawing.middle.getScaledPaints(outputHeight: _outputHeight),
+              _room.currentMonsterDrawing().middle.getScaledPaths(outputHeight: _outputHeight),
+              paints: _room.currentMonsterDrawing().middle.getScaledPaints(outputHeight: _outputHeight),
               run: _runMidAnimation,
               animationOrder: _pathOrder,
               scaleToViewport: false,
@@ -203,8 +219,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
             top: 2 * _outputHeight * (5 / 6),
             left: leftPosition,
             child: AnimatedDrawing.paths(
-              _room.monsterDrawing.bottom.getScaledPaths(outputHeight: _outputHeight),
-              paints: _room.monsterDrawing.bottom.getScaledPaints(outputHeight: _outputHeight),
+              _room.currentMonsterDrawing().bottom.getScaledPaths(outputHeight: _outputHeight),
+              paints: _room.currentMonsterDrawing().bottom.getScaledPaints(outputHeight: _outputHeight),
               run: _runBottomAnimation,
               animationOrder: _pathOrder,
               scaleToViewport: false,
@@ -290,5 +306,110 @@ class _FinishedScreenState extends State<FinishedScreen> {
         _startAnimations();
       });
     });
+  }
+}
+
+class AgreeToShareMonsterScreen extends StatefulWidget {
+  final MonsterDrawing monsterDrawing;
+  final Tuple2<int, String> monsterIndexAndName;
+  final GameRoom room;
+
+  const AgreeToShareMonsterScreen({
+    Key key,
+    @required this.monsterDrawing,
+    @required this.monsterIndexAndName,
+    @required this.room,
+  }) : super(key: key);
+
+  @override
+  _AgreeToShareMonsterScreenState createState() => _AgreeToShareMonsterScreenState();
+}
+
+class _AgreeToShareMonsterScreenState extends State<AgreeToShareMonsterScreen> {
+  bool userAgrees;
+  final _db = DatabaseService.instance;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 10),
+                FittedBox(
+                  child: Text(
+                    'Do you agree to share the drawing?',
+                    style: TextStyle(
+                      color: monsterTextColor,
+                      fontSize: 30,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'The game host wants to submit this drawing to Monster Gallery. All players need to agree to submit.',
+                  style: TextStyle(
+                    color: monsterTextColor,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Expanded(
+                  child: FittedBox(
+                    child: FramedMonster(
+                      drawing: widget.monsterDrawing,
+                      monsterName: widget.monsterIndexAndName.item2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 280,
+            child: Column(
+              children: [
+                SizedBox(height: 20),
+                LicenceCheckbox(
+                  isAgreementBox: true,
+                  userAgrees: userAgrees,
+                  onTap: () => setState(() {
+                    userAgrees = true;
+                  }),
+                ),
+                SizedBox(height: 30),
+                LicenceCheckbox(
+                  isAgreementBox: false,
+                  userAgrees: userAgrees,
+                  onTap: () => setState(() {
+                    userAgrees = false;
+                  }),
+                ),
+                SizedBox(height: 30),
+                ModalBackGameButton(
+                  onPressed: userAgrees == null
+                      ? null
+                      : () {
+                          _db.agreeToShareMonster(
+                            monsterIndex: widget.monsterIndexAndName.item1,
+                            userAgrees: userAgrees,
+                            room: widget.room,
+                          );
+                        },
+                  buttonLabel: 'CONTINUE',
+                ),
+                SizedBox(height: 4),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
