@@ -105,6 +105,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
             }
 
             final Tuple2<int, String> monsterSharePromptData = room.showAgreeToShareMonsterPrompt();
+            debugPrint('monsterShareData: ${monsterSharePromptData.toString()}');
             if (monsterSharePromptData != null && showingAgreePrompt == false) {
               return AgreeToShareMonsterScreen(
                 monsterDrawing: room.monsterDrawings[monsterSharePromptData.item1 - 1],
@@ -314,23 +315,30 @@ class AgreeToShareMonsterScreen extends StatefulWidget {
   final Tuple2<int, String> monsterIndexAndName;
   final GameRoom room;
 
-  const AgreeToShareMonsterScreen({
+  AgreeToShareMonsterScreen({
     Key key,
     @required this.monsterDrawing,
     @required this.monsterIndexAndName,
     @required this.room,
-  }) : super(key: key);
+  })  : assert(monsterIndexAndName.item1 > 0 && monsterIndexAndName.item1 < 4, 'invalid monster index in AgreeToShareMonsterScreen'),
+        super(key: key);
 
   @override
   _AgreeToShareMonsterScreenState createState() => _AgreeToShareMonsterScreenState();
 }
 
 class _AgreeToShareMonsterScreenState extends State<AgreeToShareMonsterScreen> {
-  bool userAgrees;
+  int monsterIndex;
+
+  /// A list of bools for if the user agrees to share the monster of the respective index (index 0 is monster 1 etc)
+  final List<bool> userAgreesList = [null, null, null];
+
   final _db = DatabaseService.instance;
 
   @override
   Widget build(BuildContext context) {
+    monsterIndex = widget.monsterIndexAndName.item1;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -378,27 +386,27 @@ class _AgreeToShareMonsterScreenState extends State<AgreeToShareMonsterScreen> {
                 SizedBox(height: 20),
                 LicenceCheckbox(
                   isAgreementBox: true,
-                  userAgrees: userAgrees,
+                  userAgrees: userAgreesList[monsterIndex - 1],
                   onTap: () => setState(() {
-                    userAgrees = true;
+                    userAgreesList[monsterIndex - 1] = true;
                   }),
                 ),
                 SizedBox(height: 30),
                 LicenceCheckbox(
                   isAgreementBox: false,
-                  userAgrees: userAgrees,
+                  userAgrees: userAgreesList[monsterIndex - 1],
                   onTap: () => setState(() {
-                    userAgrees = false;
+                    userAgreesList[monsterIndex - 1] = false;
                   }),
                 ),
                 SizedBox(height: 30),
                 ModalBackGameButton(
-                  onPressed: userAgrees == null
+                  onPressed: userAgreesList[monsterIndex - 1] == null
                       ? null
                       : () {
                           _db.agreeToShareMonster(
                             monsterIndex: widget.monsterIndexAndName.item1,
-                            userAgrees: userAgrees,
+                            userAgrees: userAgreesList[monsterIndex - 1],
                             room: widget.room,
                           );
                         },

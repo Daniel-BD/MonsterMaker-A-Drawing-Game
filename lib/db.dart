@@ -23,7 +23,7 @@ const String _startAnimation = 'startAnimation';
 const String _monsterIndex = 'monsterIndex';
 const String _animateAllAtOnce = 'animateAllAtOnce';
 const String _agreeToShare = 'agreeToShare';
-const String monsterName = 'MonsterName';
+const String monsterNameKeyString = 'MonsterName';
 
 class DatabaseService {
   FirebaseAuth _auth;
@@ -499,8 +499,12 @@ class DatabaseService {
   }
 
   /// Run to indicate if the player agrees (or not) to share the monster drawing of monsterIndex
-  Future<bool> agreeToShareMonster(
-      {@required int monsterIndex, @required bool userAgrees, @required GameRoom room, String monsterName}) async {
+  Future<bool> agreeToShareMonster({
+    @required int monsterIndex,
+    @required bool userAgrees,
+    @required GameRoom room,
+    String monsterName,
+  }) async {
     assert(monsterIndex == 1 || monsterIndex == 2 || monsterIndex == 3, 'Monster Index is invalid number');
     assert(room.isHost && monsterName != null || !room.isHost && monsterName == null, 'agreeToShareMonster got incorrect arguments');
     bool result = false;
@@ -508,8 +512,8 @@ class DatabaseService {
     Map<String, Map<String, dynamic>> dataToUpload = {};
 
     dataToUpload['Monster$monsterIndex'] = {'Player${room.playerIndex}': userAgrees};
-    if (room.isHost && monsterName != null) {
-      dataToUpload['Monster$monsterIndex'][monsterName] = monsterName;
+    if (room.isHost && monsterNameKeyString != null) {
+      dataToUpload['Monster$monsterIndex'][monsterNameKeyString] = monsterName;
     }
 
     await _db

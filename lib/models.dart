@@ -132,8 +132,8 @@ class GameRoom {
     for (int i = 1; i < 4; i++) {
       final monster = monsterSharingAgreements[i - 1];
       if (monster == null || monster.isEmpty || monster.containsKey('Player$playerIndex')) {
-      } else if (monster.containsKey(monsterName)) {
-        return Tuple2(i, monster[monsterName]);
+      } else if (monster.containsKey(monsterNameKeyString)) {
+        return Tuple2(i, monster[monsterNameKeyString]);
       }
     }
     return null;

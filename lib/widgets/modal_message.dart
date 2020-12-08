@@ -333,7 +333,12 @@ class _GameModal extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SizedBox(height: 20),
-                    labelWidget,
+                    FittedBox(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12), //TODO: Test all modal messages!
+                        child: labelWidget,
+                      ),
+                    ),
                     SizedBox(height: 40),
                     ModalBackGameButton(
                       onPressed: Navigator.of(context).pop,
@@ -347,8 +352,10 @@ class _GameModal extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Padding(
-                      padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
-                      child: labelWidget,
+                      padding: const EdgeInsets.only(top: 20, left: 12, right: 12), //TODO: Test all modal messages!
+                      child: FittedBox(
+                        child: labelWidget,
+                      ),
                     ),
                     if (child != null) child,
                     if (child == null) SizedBox(height: 60),
