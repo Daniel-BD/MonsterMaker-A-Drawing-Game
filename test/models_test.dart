@@ -6,18 +6,19 @@ import 'package:exquisitecorpse/models.dart';
 void main() {
   group('GameRoom', () {
     GameRoom gameRoom = GameRoom(
-        roomCode: 'ABCD',
-        activePlayers: 3,
-        startedGame: true,
-        isHost: true,
-        playerIndex: 1,
-        startAnimation: false,
-        animateAllAtOnce: false,
-        monsterIndex: 1,
-        topDrawings: {},
-        midDrawings: {},
-        bottomDrawings: {},
-        monsterSharingAgreements: [{}, {}, {}]);
+      roomCode: 'ABCD',
+      activePlayers: 3,
+      startedGame: true,
+      isHost: true,
+      playerIndex: 1,
+      startAnimation: false,
+      animateAllAtOnce: false,
+      monsterIndex: 1,
+      topDrawings: {},
+      midDrawings: {},
+      bottomDrawings: {},
+      monsterSharingAgreements: [{}, {}, {}],
+    );
 
     test('allTopDrawingsDone() should return false', () {
       expect(gameRoom.allTopDrawingsDone(), false);

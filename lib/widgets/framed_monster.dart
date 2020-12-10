@@ -8,7 +8,8 @@ import '../painters.dart';
 import '../constants.dart';
 
 double monsterFrameWidth(BuildContext context, bool isSubmittableMonster) {
-  return isSubmittableMonster ? min(400.0, MediaQuery.of(context).size.width * 0.75) : min(200.0, MediaQuery.of(context).size.width * 0.7);
+  return min(400.0, MediaQuery.of(context).size.width * 0.75);
+  //isSubmittableMonster ? min(400.0, MediaQuery.of(context).size.width * 0.75) : min(200.0, MediaQuery.of(context).size.width * 0.7);
 }
 
 class FramedMonster extends StatelessWidget {
@@ -21,7 +22,7 @@ class FramedMonster extends StatelessWidget {
 
   const FramedMonster({
     Key key,
-    this.monsterName = 'Monster Name',
+    this.monsterName,
     @required this.drawing,
     this.isSubmittableMonster = false,
     this.nameController,
@@ -90,7 +91,7 @@ class FramedMonster extends StatelessWidget {
                               ),
                             )
                           : Text(
-                              monsterName,
+                              monsterName ?? 'Monster Name',
                               style: GoogleFonts.averiaSerifLibre(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 40,
@@ -131,16 +132,13 @@ class MonsterDrawingWidget extends StatelessWidget {
 
     return Stack(
       children: <Widget>[
-        Container(
-          foregroundDecoration: BoxDecoration(color: Colors.blue),
-          child: CustomPaint(
-            painter: MyPainter(
-              drawing.top.getScaledPaths(
-                outputHeight: monsterPartHeight,
-              ),
-              drawing.top.getScaledPaints(
-                outputHeight: monsterPartHeight,
-              ),
+        CustomPaint(
+          painter: MyPainter(
+            drawing.top.getScaledPaths(
+              outputHeight: monsterPartHeight,
+            ),
+            drawing.top.getScaledPaints(
+              outputHeight: monsterPartHeight,
             ),
           ),
         ),

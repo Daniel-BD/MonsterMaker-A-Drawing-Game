@@ -1,3 +1,4 @@
+import 'package:exquisitecorpse/game_state.dart';
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 import 'dart:convert';
@@ -39,7 +40,7 @@ class GameRoom {
         assert(topDrawings != null),
         assert(midDrawings != null),
         assert(bottomDrawings != null),
-        assert(monsterSharingAgreements.length == 3),
+        assert(monsterSharingAgreements.length == GameState.numberOfPlayersGameMode),
         assert(monsterDrawings != null && monsterDrawings.length == 3 || monsterDrawings == null);
 
   /// The room code of the room
@@ -136,6 +137,57 @@ class GameRoom {
         return Tuple2(i, monster[monsterNameKeyString]);
       }
     }
+    return null;
+  }
+
+  ///How many players have not yet responded to if they agree or not to share the monster to the monster gallery.
+  int nrOfPlayersNotAnsweredToShareMonster(int monsterIndex) {
+    assert(monsterIndex > 0 && monsterIndex < GameState.numberOfPlayersGameMode + 1,
+        'waitingForUsersToAgreeToShareMonster in GameRoom: monsterIndex invalid');
+
+    int numberOfPlayersWeAreWaitingFor = GameState.numberOfPlayersGameMode;
+
+    for (int i = 1; i < GameState.numberOfPlayersGameMode + 1; i++) {
+      if (monsterSharingAgreements[monsterIndex - 1] != null && monsterSharingAgreements[monsterIndex - 1].containsKey("Player$i")) {
+        numberOfPlayersWeAreWaitingFor--;
+      }
+    }
+
+    return numberOfPlayersWeAreWaitingFor;
+  }
+
+  /// Returns true if all players have agreed to share the drawing to the monster gallery, false if not.
+  bool isSubmittedToMonsterGallery(int monsterIndex) {
+    assert(monsterIndex > 0 && monsterIndex < GameState.numberOfPlayersGameMode + 1,
+        'isSubmittedToMonsterGallery in GameRoom: monsterIndex invalid');
+
+    bool result = true;
+
+    for (int i = 1; i < GameState.numberOfPlayersGameMode + 1; i++) {
+      if (monsterSharingAgreements[monsterIndex - 1] != null && monsterSharingAgreements[monsterIndex - 1].containsKey("Player$i")) {
+        if (monsterSharingAgreements[monsterIndex - 1]["Player$i"] == false) {
+          /// One or more players have responded that they don't want to share it.
+          result = false;
+        }
+      } else {
+        /// Not all players have responded yet
+        result = false;
+      }
+    }
+
+    return result;
+  }
+
+  /// If the monster with [monsterIndex] is submitted to the monster gallery, this function returns the name of that monster.
+  /// If the monster isn't submitted, this returns null.
+  String nameOfSubmittedMonster(int monsterIndex) {
+    assert(monsterIndex > 0 && monsterIndex < GameState.numberOfPlayersGameMode + 1,
+        'isSubmittedToMonsterGallery in GameRoom: monsterIndex invalid');
+
+    if (isSubmittedToMonsterGallery(monsterIndex) && monsterSharingAgreements[monsterIndex - 1].containsKey('MonsterName')) {
+      return monsterSharingAgreements[monsterIndex - 1]['MonsterName'];
+    }
+
     return null;
   }
 

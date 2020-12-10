@@ -66,114 +66,197 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
               double frameHeight = frameWidth * 1.5 + 7.5 * 5 + 28;
               double screenHeight = MediaQuery.of(context).size.height;
 
-              if (screenHeight - 190 < frameHeight) {
-                frameHeight = screenHeight - 190;
+              if (screenHeight - 210 < frameHeight) {
+                frameHeight = screenHeight - 210;
               }
+
+              /// How many players have not answered (yes or no) on agreeing to share the current monster
+              final int nrPlayersNotAnswered = room.nrOfPlayersNotAnsweredToShareMonster(room.monsterIndex);
 
               return Column(
                 children: [
-                  Row(
-                    children: [
-                      BackGameButton(
-                        onPressed: () {
-                          Navigator.of(context).maybePop();
-                        },
-                      ),
-                    ],
-                  ),
                   Expanded(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        SizedBox(
-                          child: FittedBox(
-                            child: FramedMonster(
-                              drawing: room.currentMonsterDrawing(),
-                              isSubmittableMonster: true,
-                              nameController: _nameControllers[room.monsterIndex - 1],
-                              giveMonsterNamePressed: () {
-                                showDialog(
-                                  barrierDismissible: false,
-                                  context: context,
-                                  builder: (_) => EnterMonsterNameGameModal(
-                                    nameController: _nameControllers[room.monsterIndex - 1],
-                                    onPressedDone: () {
-                                      _nameControllers[room.monsterIndex - 1].text = _nameControllers[room.monsterIndex - 1].text.trim();
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                );
+                        Row(
+                          children: [
+                            BackGameButton(
+                              onPressed: () {
+                                Navigator.of(context).maybePop();
                               },
                             ),
-                          ),
-                          height: frameHeight,
+                          ],
                         ),
-                        SizedBox(
-                          width: 400, //TODO: Testa på olika skärmstorlekar
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              SizedBox(width: 8),
-                              PreviousButton(
-                                onPressed: () {
-                                  if (room.monsterIndex > 1) {
-                                    _db.setMonsterIndex(room.monsterIndex - 1, room: room);
-                                  }
-                                },
+                              SizedBox(
+                                child: FittedBox(
+                                  child: FramedMonster(
+                                    drawing: room.currentMonsterDrawing(),
+                                    isSubmittableMonster: !room.isSubmittedToMonsterGallery(room.monsterIndex),
+                                    monsterName: room.nameOfSubmittedMonster(room.monsterIndex),
+                                    nameController: _nameControllers[room.monsterIndex - 1],
+                                    giveMonsterNamePressed: () {
+                                      showDialog(
+                                        barrierDismissible: false,
+                                        context: context,
+                                        builder: (_) => EnterMonsterNameGameModal(
+                                          nameController: _nameControllers[room.monsterIndex - 1],
+                                          onPressedDone: () {
+                                            _nameControllers[room.monsterIndex - 1].text =
+                                                _nameControllers[room.monsterIndex - 1].text.trim();
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                height: frameHeight,
                               ),
-                              Expanded(
-                                child: MonsterNumberText(number: room.monsterIndex),
+                              SizedBox(
+                                width: 400,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    SizedBox(width: 8),
+                                    PreviousButton(
+                                      onPressed: () {
+                                        if (room.monsterIndex > 1) {
+                                          _db.setMonsterIndex(room.monsterIndex - 1, room: room);
+                                        }
+                                      },
+                                    ),
+                                    Expanded(
+                                      child: MonsterNumberText(number: room.monsterIndex),
+                                    ),
+                                    NextButton(
+                                      onPressed: () {
+                                        if (room.monsterIndex < 3) {
+                                          _db.setMonsterIndex(room.monsterIndex + 1, room: room);
+                                        }
+                                      },
+                                    ),
+                                    SizedBox(width: 8),
+                                  ],
+                                ),
                               ),
-                              NextButton(
-                                onPressed: () {
-                                  if (room.monsterIndex < 3) {
-                                    _db.setMonsterIndex(room.monsterIndex + 1, room: room);
-                                  }
-                                },
-                              ),
-                              SizedBox(width: 8),
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  SubmitMonsterButton(onPressed: () {
-                    /// If the monster doesn't yet have a name
-                    if (_nameControllers[room.monsterIndex - 1].text.isEmpty) {
-                      showDialog(
-                        context: context,
-                        builder: (_) => GiveMonsterNameFirstGameModal(),
-                      );
-                    } else {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (_) => GameHostAgreeToSubmitMonsterGameModal(
-                          isHost: room.isHost,
-                          monsterIndex: room.monsterIndex,
-                          onContinuePressed: (userAgrees) {
-                            if (room.isHost && !userAgrees) {
-                              /// If the host (which is the person that initiates a sharing of a monster) doesn't agree to share it,
-                              /// then there's no point in having other players respond if they want to share it or not.
-                              return;
-                            }
-                            _db.agreeToShareMonster(
-                              monsterIndex: room.monsterIndex,
-                              userAgrees: userAgrees,
-                              room: room,
-                              monsterName: _nameControllers[room.monsterIndex - 1].text.trim(),
-                            );
-                          },
-                        ),
-                      );
-                    }
-                  }),
-                  SizedBox(height: 4),
+                  SizedBox(
+                    height: 100,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        nrPlayersNotAnswered == GameState.numberOfPlayersGameMode
+                            ? SubmitButton(nameControllers: _nameControllers, room: room, db: _db)
+                            : nrPlayersNotAnswered < GameState.numberOfPlayersGameMode && nrPlayersNotAnswered > 0
+                                ? Expanded(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        SizedBox(
+                                          height: 24,
+                                          width: 24,
+                                          child: CircularProgressIndicator(
+                                            backgroundColor: monsterTextColor,
+                                            valueColor: AlwaysStoppedAnimation<Color>(playButtonColor),
+                                          ),
+                                        ),
+                                        Text(
+                                          'Waiting for response from $nrPlayersNotAnswered ' +
+                                              (nrPlayersNotAnswered == 1 ? 'player' : 'players'),
+                                        ),
+                                        SizedBox(width: 24),
+                                      ],
+                                    ),
+                                  )
+                                : room.isSubmittedToMonsterGallery(room.monsterIndex)
+                                    ? Expanded(
+                                        child: Text(
+                                          'Submitted for review!\nThe world’s leading monster experts will evaluate if it should hang in the Monster Gallery.\nCheck back in a few days and it might just be there!',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      )
+                                    : Column(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            'Not all players agreed to share the monster.\nPress SUBMIT below to ask again.',
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          SubmitButton(
+                                            nameControllers: _nameControllers,
+                                            room: room,
+                                            db: _db,
+                                          ), //TODO: Att fråga igen måste hanteras på rätt sätt
+                                        ],
+                                      ),
+                        SizedBox(height: 4),
+                      ],
+                    ),
+                  ),
                 ],
               );
             }),
       ),
     );
+  }
+}
+
+/// The submit button at the bottom of the screen, if the monster can be submitted to monster gallery.
+class SubmitButton extends StatelessWidget {
+  const SubmitButton({
+    Key key,
+    @required List<TextEditingController> nameControllers,
+    @required this.room,
+    @required DatabaseService db,
+  })  : _nameControllers = nameControllers,
+        _db = db,
+        super(key: key);
+
+  final List<TextEditingController> _nameControllers;
+  final GameRoom room;
+  final DatabaseService _db;
+
+  @override
+  Widget build(BuildContext context) {
+    return SubmitMonsterButton(onPressed: () {
+      /// If the monster doesn't yet have a name
+      if (_nameControllers[room.monsterIndex - 1].text.isEmpty) {
+        showDialog(
+          context: context,
+          builder: (_) => GiveMonsterNameFirstGameModal(),
+        );
+      } else {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => GameHostAgreeToSubmitMonsterGameModal(
+            isHost: room.isHost,
+            monsterIndex: room.monsterIndex,
+            onContinuePressed: (userAgrees) {
+              if (room.isHost && !userAgrees) {
+                /// If the host (which is the person that initiates a sharing of a monster) doesn't agree to share it,
+                /// then there's no point in having other players respond if they want to share it or not.
+                return;
+              }
+              _db.agreeToShareMonster(
+                monsterIndex: room.monsterIndex,
+                userAgrees: userAgrees,
+                room: room,
+                monsterName: _nameControllers[room.monsterIndex - 1].text.trim(),
+              );
+            },
+          ),
+        );
+      }
+    });
   }
 }

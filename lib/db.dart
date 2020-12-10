@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:random_string/random_string.dart';
 
 import 'package:exquisitecorpse/models.dart';
+import 'package:exquisitecorpse/game_state.dart';
 
 const String _home = 'home';
 const String _roomsDoc = 'rooms';
@@ -509,9 +510,43 @@ class DatabaseService {
     assert(room.isHost && monsterName != null || !room.isHost && monsterName == null, 'agreeToShareMonster got incorrect arguments');
     bool result = false;
 
-    Map<String, Map<String, dynamic>> dataToUpload = {};
+    if (room.isHost && room.nrOfPlayersNotAnsweredToShareMonster(monsterIndex) == 0 && !room.isSubmittedToMonsterGallery(monsterIndex)) {
+      /// This means that all players have responded, but some do not agree to share - and the host wants to ask again.
+      /// If we are here, we should delete the response of players who did not agree, to make it so we can ask them again.
 
-    dataToUpload['Monster$monsterIndex'] = {'Player${room.playerIndex}': userAgrees};
+      final List<int> indexOfPlayersWhoDenied = [];
+      final monsterSharingMap = room.monsterSharingAgreements[monsterIndex - 1];
+
+      ///Find which players did not want to share the monster
+      for (int i = 1; i < GameState.numberOfPlayersGameMode + 1; i++) {
+        if (monsterSharingMap != null && monsterSharingMap.containsKey('Player$i')) {
+          if (monsterSharingMap['Player$i'] == false) {
+            indexOfPlayersWhoDenied.add(i);
+
+            final Map<String, Map<String, dynamic>> playerVotesToInvalidate = {
+              'Monster$monsterIndex': {'Player$i': null}
+            };
+            debugPrint('player: $i');
+            /*playerVotesToInvalidate.addAll({
+              'Monster$monsterIndex': {'Player$i': 'invalid'}
+            });*/
+
+            await _db
+                .collection(_home)
+                .doc(_roomsDoc)
+                .collection(room.roomCode)
+                .doc(_gameData)
+                .set({_agreeToShare: playerVotesToInvalidate}, SetOptions(merge: true)).catchError((Object error) {
+              print('ERROR setting monster index, $error');
+            });
+          }
+        }
+      }
+    }
+
+    final Map<String, Map<String, dynamic>> dataToUpload = {
+      'Monster$monsterIndex': {'Player${room.playerIndex}': userAgrees}
+    };
     if (room.isHost && monsterNameKeyString != null) {
       dataToUpload['Monster$monsterIndex'][monsterNameKeyString] = monsterName;
     }

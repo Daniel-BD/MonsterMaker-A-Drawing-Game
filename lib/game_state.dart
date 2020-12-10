@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 
 class GameState extends ChangeNotifier {
+  /// How many players the current game mode is for (right now the only option is 3, but may change in the future)
+  static int numberOfPlayersGameMode = 3;
+
   String _currentRoomCode;
   get currentRoomCode => _currentRoomCode;
   set currentRoomCode(String value) {

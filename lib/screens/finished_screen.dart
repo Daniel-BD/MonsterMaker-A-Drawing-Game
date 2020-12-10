@@ -106,6 +106,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
 
             final Tuple2<int, String> monsterSharePromptData = room.showAgreeToShareMonsterPrompt();
             debugPrint('monsterShareData: ${monsterSharePromptData.toString()}');
+            debugPrint('roomCode: ${room.roomCode}');
             if (monsterSharePromptData != null && showingAgreePrompt == false) {
               return AgreeToShareMonsterScreen(
                 monsterDrawing: room.monsterDrawings[monsterSharePromptData.item1 - 1],
