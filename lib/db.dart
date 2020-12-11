@@ -514,22 +514,16 @@ class DatabaseService {
       /// This means that all players have responded, but some do not agree to share - and the host wants to ask again.
       /// If we are here, we should delete the response of players who did not agree, to make it so we can ask them again.
 
-      final List<int> indexOfPlayersWhoDenied = [];
       final monsterSharingMap = room.monsterSharingAgreements[monsterIndex - 1];
 
       ///Find which players did not want to share the monster
       for (int i = 1; i < GameState.numberOfPlayersGameMode + 1; i++) {
         if (monsterSharingMap != null && monsterSharingMap.containsKey('Player$i')) {
           if (monsterSharingMap['Player$i'] == false) {
-            indexOfPlayersWhoDenied.add(i);
-
             final Map<String, Map<String, dynamic>> playerVotesToInvalidate = {
               'Monster$monsterIndex': {'Player$i': null}
             };
             debugPrint('player: $i');
-            /*playerVotesToInvalidate.addAll({
-              'Monster$monsterIndex': {'Player$i': 'invalid'}
-            });*/
 
             await _db
                 .collection(_home)
@@ -537,7 +531,7 @@ class DatabaseService {
                 .collection(room.roomCode)
                 .doc(_gameData)
                 .set({_agreeToShare: playerVotesToInvalidate}, SetOptions(merge: true)).catchError((Object error) {
-              print('ERROR setting monster index, $error');
+              print('agreeToShareMonster invalidating user disagreement error: $error');
             });
           }
         }
@@ -557,7 +551,7 @@ class DatabaseService {
         .collection(room.roomCode)
         .doc(_gameData)
         .set({_agreeToShare: dataToUpload}, SetOptions(merge: true)).catchError((Object error) {
-      print('ERROR setting monster index, $error');
+      print('agreeToShareMonster setting user agreement error: $error');
     }).whenComplete(() {
       result = true;
     });

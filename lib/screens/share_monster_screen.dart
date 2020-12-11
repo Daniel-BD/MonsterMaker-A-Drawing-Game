@@ -52,7 +52,9 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
 
     return Scaffold(
       backgroundColor: paper,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
+        maintainBottomViewPadding: true,
         child: StreamBuilder<GameRoom>(
             stream: _db.streamGameRoom(roomCode: gameState.currentRoomCode),
             builder: (context, snapshot) {
@@ -102,13 +104,18 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
                                       showDialog(
                                         barrierDismissible: false,
                                         context: context,
-                                        builder: (_) => EnterMonsterNameGameModal(
-                                          nameController: _nameControllers[room.monsterIndex - 1],
-                                          onPressedDone: () {
-                                            _nameControllers[room.monsterIndex - 1].text =
-                                                _nameControllers[room.monsterIndex - 1].text.trim();
-                                            Navigator.of(context).pop();
-                                          },
+                                        builder: (context) => AnimatedContainer(
+                                          curve: Curves.easeInOut,
+                                          margin: MediaQuery.of(context).viewInsets,
+                                          duration: const Duration(milliseconds: 200),
+                                          child: EnterMonsterNameGameModal(
+                                            nameController: _nameControllers[room.monsterIndex - 1],
+                                            onPressedDone: () {
+                                              _nameControllers[room.monsterIndex - 1].text =
+                                                  _nameControllers[room.monsterIndex - 1].text.trim();
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
                                         ),
                                       );
                                     },
@@ -188,7 +195,7 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
                                         mainAxisAlignment: MainAxisAlignment.end,
                                         children: [
                                           Text(
-                                            'Not all players agreed to share the monster.\nPress SUBMIT below to ask again.',
+                                            'Not all players agreed to share the monster.\nPress SUBMIT to ask again.',
                                             textAlign: TextAlign.center,
                                           ),
                                           SubmitButton(
@@ -228,6 +235,9 @@ class SubmitButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SubmitMonsterButton(onPressed: () {
+      //TODO: Hantera om host har submittat, någon säger nej, och host submittar igen. Vad händer om host trycker "do not agree"?
+      //TODO: jag borde inte visa samma popup när host frågar igen! Då borde man få "players who didn't agree will be asked again" typ
+
       /// If the monster doesn't yet have a name
       if (_nameControllers[room.monsterIndex - 1].text.isEmpty) {
         showDialog(
@@ -247,6 +257,10 @@ class SubmitButton extends StatelessWidget {
                 /// then there's no point in having other players respond if they want to share it or not.
                 return;
               }
+
+              /// TODO: hantera om detta failar, tex pga dåligt internet - visa felmeddelande?
+              /// gör en metod av snackbar som visas när man skriver in fel rumskod,
+              /// så man kan mata in context, felmeddelnade och hur länge den ska visas, så kan man enkelt ha det överallt
               _db.agreeToShareMonster(
                 monsterIndex: room.monsterIndex,
                 userAgrees: userAgrees,

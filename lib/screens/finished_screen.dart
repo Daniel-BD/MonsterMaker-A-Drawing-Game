@@ -148,6 +148,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
                     if (!_clearCanvas && monsterSize != null) _monster(monsterSize),
                     if (room.isHost) _controls(context, room),
                     if (!room.isHost) GameHostControlsWhatYouSeeText(),
+                    SizedBox(height: 4),
                   ],
                 ),
               ],
@@ -403,6 +404,9 @@ class _AgreeToShareMonsterScreenState extends State<AgreeToShareMonsterScreen> {
                   onPressed: userAgreesList[monsterIndex - 1] == null
                       ? null
                       : () {
+                          /// TODO: hantera om detta failar, tex pga dåligt internet - visa felmeddelande?
+                          /// gör en metod av snackbar som visas när man skriver in fel rumskod,
+                          /// så man kan mata in context, felmeddelnade och hur länge den ska visas, så kan man enkelt ha det överallt
                           _db.agreeToShareMonster(
                             monsterIndex: widget.monsterIndexAndName.item1,
                             userAgrees: userAgreesList[monsterIndex - 1],
