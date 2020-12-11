@@ -202,7 +202,7 @@ class _ShareMonsterScreenState extends State<ShareMonsterScreen> {
                                             nameControllers: _nameControllers,
                                             room: room,
                                             db: _db,
-                                          ), //TODO: Att fråga igen måste hanteras på rätt sätt
+                                          ),
                                         ],
                                       ),
                         SizedBox(height: 4),
@@ -235,14 +235,26 @@ class SubmitButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SubmitMonsterButton(onPressed: () {
-      //TODO: Hantera om host har submittat, någon säger nej, och host submittar igen. Vad händer om host trycker "do not agree"?
-      //TODO: jag borde inte visa samma popup när host frågar igen! Då borde man få "players who didn't agree will be asked again" typ
-
       /// If the monster doesn't yet have a name
       if (_nameControllers[room.monsterIndex - 1].text.isEmpty) {
         showDialog(
           context: context,
           builder: (_) => GiveMonsterNameFirstGameModal(),
+        );
+      } else if (room.nrOfPlayersNotAnsweredToShareMonster(room.monsterIndex) == 0 &&
+          !room.isSubmittedToMonsterGallery(room.monsterIndex)) {
+        /// This means that we are re-asking the players who denied the last request.
+
+        _db.agreeToShareMonster(
+          monsterIndex: room.monsterIndex,
+          userAgrees: true,
+          room: room,
+          monsterName: _nameControllers[room.monsterIndex - 1].text.trim(),
+        );
+
+        showDialog(
+          context: context,
+          builder: (_) => AskingSomePlayersToAgreeAgain(),
         );
       } else {
         showDialog(

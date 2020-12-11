@@ -123,6 +123,18 @@ class GiveMonsterNameFirstGameModal extends StatelessWidget {
   }
 }
 
+class AskingSomePlayersToAgreeAgain extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return _GameModal(
+      borderColor: green,
+      leftButton: Container(),
+      label: 'Players who did not agree to share\nthe monster have been asked again',
+      onlyTextAndOKButton: true,
+    );
+  }
+}
+
 class GameHostAgreeToSubmitMonsterGameModal extends StatefulWidget {
   final bool isHost;
   final int monsterIndex;
@@ -335,7 +347,7 @@ class _GameModal extends StatelessWidget {
                     SizedBox(height: 20),
                     FittedBox(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12), //TODO: Test all modal messages!
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: labelWidget,
                       ),
                     ),
@@ -352,7 +364,7 @@ class _GameModal extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Padding(
-                      padding: const EdgeInsets.only(top: 20, left: 12, right: 12), //TODO: Test all modal messages!
+                      padding: const EdgeInsets.only(top: 20, left: 12, right: 12),
                       child: FittedBox(
                         child: labelWidget,
                       ),

@@ -64,7 +64,7 @@ class _StartScreenState extends State<StartScreen> {
                             label: 'MONSTER GALLERY',
                             color: galleryYellow,
                             onPressed: () {
-                              //TODO
+                              //TODO monster gallery
                             },
                           ),
                         ],

@@ -483,7 +483,7 @@ class _ModalGameButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return _GameButton(
       onPressed: onPressed,
-      borderRadius: BorderRadius.circular(12.0), //TODO: Testa om detta ser ok ut på alla modals
+      borderRadius: BorderRadius.circular(12.0),
       height: 50,
       width: 120,
       color: color,
