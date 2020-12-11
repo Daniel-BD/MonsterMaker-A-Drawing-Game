@@ -78,7 +78,7 @@ class GameRoom {
   /// player 3 hasn't responded yet.
   final List<Map<String, dynamic>> monsterSharingAgreements;
 
-  /// A list of [MonsterDrawing] representation of alla drawings, index 0 is monster 1 etc, index 1 is monster 2 etc.
+  /// A list of [MonsterDrawing] representation of alla drawings, index 0 is monster 1, index 1 is monster 2 etc.
   final List<MonsterDrawing> monsterDrawings;
 
   /// A [MonsterDrawing] representation of the current monster according to [monsterIndex].

@@ -102,7 +102,7 @@ class _MonsterCarouselState extends State<MonsterCarousel> {
   @override
   void initState() {
     super.initState();
-    _db.getMonsterFromRoomCode('AFYU', 3).then((value) {
+    _db.getMonsterFromRoomCode('IZLU', 3).then((value) {
       drawing = value;
       setState(() {});
     });

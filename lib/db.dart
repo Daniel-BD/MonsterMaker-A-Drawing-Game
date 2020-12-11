@@ -196,7 +196,6 @@ class DatabaseService {
     });
   }
 
-  /// TODO: refaktorera, här finns mycket samma kod som i streamGameRoom
   Future<MonsterDrawing> getMonsterFromRoomCode(String roomCode, int monsterIndex) async {
     debugPrint('running getFromRoomCode - used for monster carousel on start screen');
 
@@ -208,20 +207,13 @@ class DatabaseService {
       return null;
     }
 
-    int topIndex = monsterIndex;
-    int midIndex = monsterIndex == 1
-        ? 2
-        : monsterIndex == 2
-            ? 3
-            : 1;
-    int bottomIndex = monsterIndex == 1
-        ? 3
-        : monsterIndex == 2
-            ? 1
-            : 2;
-
     _assertAuthenticated();
-    assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
+
+    final GameRoom room = await streamGameRoom(roomCode: roomCode, isSpectator: true).first;
+
+    return room.monsterDrawings[monsterIndex - 1];
+
+    /*assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
 
     Map<int, String> topDrawings = {};
     Map<int, String> midDrawings = {};
@@ -248,18 +240,18 @@ class DatabaseService {
     DrawingStorage mid = DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]));
     DrawingStorage bottom = DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]));
 
-    return MonsterDrawing(top, mid, bottom);
+    return MonsterDrawing(top, mid, bottom);*/
   }
 
   /// The main method of fetching game rooms in the app
-  Stream<GameRoom> streamGameRoom({@required String roomCode}) {
+  Stream<GameRoom> streamGameRoom({@required String roomCode, isSpectator = false}) {
     _assertAuthenticated();
     assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
 
     return _db.collection(_home).doc(_roomsDoc).collection(roomCode).snapshots().map((room) {
       bool startedGame;
       bool isHost;
-      int player;
+      int playerIndex;
       bool startAnimation;
       int monsterIndex;
       bool animateAllAtOnce;
@@ -273,7 +265,7 @@ class DatabaseService {
       room.docs.forEach((doc) {
         if (doc.id == _userUID()) {
           isHost = doc.get(_isHost);
-          player = doc.get(_player);
+          playerIndex = doc.get(_player);
         } else if (doc.id == _gameData) {
           var gameData = doc.data();
 
@@ -313,8 +305,13 @@ class DatabaseService {
       assert(bottomDrawings != null, 'bottomDrawings null');
       assert(startedGame != null, 'startedGame is null');
 
-      if (isHost == null || player == null) {
+      if ((isHost == null || playerIndex == null) && !isSpectator) {
+        /// The client trying to access the room shouldn't get access!
         return null;
+      } else if ((isHost == null || playerIndex == null) && isSpectator) {
+        /// Todo: this may not be the best way, giving spectator host capabilities, depending on how i use it
+        isHost = true;
+        playerIndex = 1;
       }
 
       List<MonsterDrawing> monsterDrawings = List(3);
@@ -346,7 +343,7 @@ class DatabaseService {
         activePlayers: room.docs.length - 1,
         startedGame: startedGame,
         isHost: isHost,
-        playerIndex: player,
+        playerIndex: playerIndex,
         startAnimation: startAnimation ?? false,
         monsterIndex: monsterIndex ?? 1,
         animateAllAtOnce: animateAllAtOnce ?? false,
