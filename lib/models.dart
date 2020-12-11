@@ -132,7 +132,11 @@ class GameRoom {
   Tuple2<int, String> showAgreeToShareMonsterPrompt() {
     for (int i = 1; i < 4; i++) {
       final monster = monsterSharingAgreements[i - 1];
-      if (monster == null || monster.isEmpty || monster.containsKey('Player$playerIndex')) {
+      if (monster == null ||
+          monster.isEmpty ||
+          (monster.containsKey('Player$playerIndex') &&
+              (monster['Player$playerIndex'] == true || monster['Player$playerIndex'] == false))) {
+        /// If there is no response from the player at all, or the response has been invalidated (set to null by host)
       } else if (monster.containsKey(monsterNameKeyString)) {
         return Tuple2(i, monster[monsterNameKeyString]);
       }
@@ -148,8 +152,12 @@ class GameRoom {
     int numberOfPlayersWeAreWaitingFor = GameState.numberOfPlayersGameMode;
 
     for (int i = 1; i < GameState.numberOfPlayersGameMode + 1; i++) {
-      if (monsterSharingAgreements[monsterIndex - 1] != null && monsterSharingAgreements[monsterIndex - 1].containsKey("Player$i")) {
-        numberOfPlayersWeAreWaitingFor--;
+      final monsterData = monsterSharingAgreements[monsterIndex - 1];
+
+      if (monsterData != null && monsterData.containsKey('Player$i')) {
+        if (monsterData['Player$i'] != null) {
+          numberOfPlayersWeAreWaitingFor--;
+        }
       }
     }
 
@@ -165,7 +173,7 @@ class GameRoom {
 
     for (int i = 1; i < GameState.numberOfPlayersGameMode + 1; i++) {
       if (monsterSharingAgreements[monsterIndex - 1] != null && monsterSharingAgreements[monsterIndex - 1].containsKey("Player$i")) {
-        if (monsterSharingAgreements[monsterIndex - 1]["Player$i"] == false) {
+        if (monsterSharingAgreements[monsterIndex - 1]["Player$i"] != true) {
           /// One or more players have responded that they don't want to share it.
           result = false;
         }

@@ -21,15 +21,14 @@ class FinishedScreen extends StatefulWidget {
 }
 
 class _FinishedScreenState extends State<FinishedScreen> {
-  bool showingAgreePrompt = false;
-
   final _db = DatabaseService.instance;
   GameRoom _room;
 
   bool _clearCanvas = true;
 
-  int _hostIndex = 1;
-  int _index = 1;
+  /// The index of the monster in the last GameRoom received,
+  /// used to know if the monster index has changed by comparing this to the newest GameRoom.monsterIndex
+  int _lastMonsterIndex = 1;
 
   bool _runTopAnimation = false;
   bool _runMidAnimation = false;
@@ -99,19 +98,18 @@ class _FinishedScreenState extends State<FinishedScreen> {
 
             _clearCanvas = !room.startAnimation;
 
-            if (room.monsterIndex != _index) {
-              _index = room.monsterIndex;
+            if (room.monsterIndex != _lastMonsterIndex) {
+              _lastMonsterIndex = room.monsterIndex;
               _readyNextMonster();
             }
 
             final Tuple2<int, String> monsterSharePromptData = room.showAgreeToShareMonsterPrompt();
-            debugPrint('monsterShareData: ${monsterSharePromptData.toString()}');
-            debugPrint('roomCode: ${room.roomCode}');
-            if (monsterSharePromptData != null && showingAgreePrompt == false) {
+            if (monsterSharePromptData != null) {
               return AgreeToShareMonsterScreen(
                 monsterDrawing: room.monsterDrawings[monsterSharePromptData.item1 - 1],
                 monsterIndexAndName: monsterSharePromptData,
                 room: room,
+                onDone: _startAnimations,
               );
             }
 
@@ -144,11 +142,11 @@ class _FinishedScreenState extends State<FinishedScreen> {
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[MonsterNumberText(number: _index)],
+                      children: <Widget>[MonsterNumberText(number: _lastMonsterIndex)],
                     ),
                     if (_clearCanvas || monsterSize == null) _calculateWidget(),
                     if (!_clearCanvas && monsterSize != null) _monster(monsterSize),
-                    if (room.isHost) _controls(context),
+                    if (room.isHost) _controls(context, room),
                     if (!room.isHost) GameHostControlsWhatYouSeeText(),
                   ],
                 ),
@@ -237,7 +235,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
     );
   }
 
-  Widget _controls(BuildContext context) {
+  Widget _controls(BuildContext context, GameRoom room) {
     final _db = DatabaseService.instance;
     final size = MediaQuery.of(context).size;
 
@@ -263,17 +261,15 @@ class _FinishedScreenState extends State<FinishedScreen> {
               ),
               PreviousButton(
                 onPressed: () {
-                  if (_hostIndex > 1) {
-                    _hostIndex--;
-                    _db.setMonsterIndex(_hostIndex, room: _room);
+                  if (room.monsterIndex > 1) {
+                    _db.setMonsterIndex(room.monsterIndex - 1, room: _room);
                   }
                 },
               ),
               NextButton(
                 onPressed: () {
-                  if (_hostIndex < 3) {
-                    _hostIndex++;
-                    _db.setMonsterIndex(_hostIndex, room: _room);
+                  if (room.monsterIndex < 3) {
+                    _db.setMonsterIndex(room.monsterIndex + 1, room: _room);
                   }
                 },
               ),
@@ -315,12 +311,14 @@ class AgreeToShareMonsterScreen extends StatefulWidget {
   final MonsterDrawing monsterDrawing;
   final Tuple2<int, String> monsterIndexAndName;
   final GameRoom room;
+  final VoidCallback onDone;
 
   AgreeToShareMonsterScreen({
     Key key,
     @required this.monsterDrawing,
     @required this.monsterIndexAndName,
     @required this.room,
+    this.onDone,
   })  : assert(monsterIndexAndName.item1 > 0 && monsterIndexAndName.item1 < 4, 'invalid monster index in AgreeToShareMonsterScreen'),
         super(key: key);
 
@@ -410,6 +408,7 @@ class _AgreeToShareMonsterScreenState extends State<AgreeToShareMonsterScreen> {
                             userAgrees: userAgreesList[monsterIndex - 1],
                             room: widget.room,
                           );
+                          widget.onDone();
                         },
                   buttonLabel: 'CONTINUE',
                 ),
