@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:exquisitecorpse/drawing_storage.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -85,9 +86,9 @@ class DatabaseService {
   }
 
   Future<List<String>> gameRoomsToReview() async {
-    var rooms = await _db.collection(_home).doc('Yf4VulohxCPurlc2uILn').get();
+    var rooms = await _db.collection(_home).doc('aA1G9SB63DDqP1jRcQTp').get();
 
-    var newRooms = await _db.collection(_home).doc('aA1G9SB63DDqP1jRcQTp').get();
+    var newRooms = await _db.collection(_home).doc('06EewQDixww2YxEYEkKV').get();
 
     List<String> roomCodes = rooms.data()['roomCodes'].cast<String>();
 
@@ -95,57 +96,98 @@ class DatabaseService {
 
     newRoomCodes.removeWhere((element) => roomCodes.contains(element));
 
-    print(newRoomCodes);
+    //print(newRoomCodes);
 
     return newRoomCodes;
   }
 
   void deleteIncompleteRooms() async {
     await _init();
-    var rooms = await _db.collection(_home).doc('Eeg5IoszWif88lwfiAIi').get();
+    var rooms = await _db.collection(_home).doc('rtrzupJyLACTTIZ0Lyc6').get();
+
+    final now = DateTime.now();
 
     List<dynamic> roomCodes = rooms.data()['roomCodes'];
 
+    //int nrOfRoomsToDelete = 0;
+
     roomCodes.forEach((roomCode) async {
-      print('RoomCode: $roomCode');
+      //print('RoomCode: $roomCode');
 
       var roomData = await _db.collection(_home).doc(_roomsDoc).collection(roomCode).get();
 
-      //bool shouldDelete = false;
+      bool doNotDelete = false;
+
+      /// Look through all documents in the game room to see if it has a "created at" timestamp, and if it is less than 24 hours old
+      /// we do not delete it, no matter what.
+      roomData.docs.forEach((document) {
+        if (document.id == 'gameData') {
+          final data = document.data();
+
+          if (data['createdAt'] != null) {
+            /// This room is new enough that is has a "created at" timestamp, older versions of the app didn't have it.
+            final Timestamp roomTimeStamp = data['createdAt'];
+            final createdAt = roomTimeStamp.toDate();
+            final difference = createdAt.difference(now);
+
+            if (difference.inHours.abs() > 24) {
+              /// This room is more than 24 hours old, it should be safe to delete if it's incomplete
+            } else {
+              /// This room is less than 24 hours old, do not delete even if it is incomplete
+              doNotDelete = true;
+            }
+          } else {
+            //debugPrint('Has no CreatedAt! : $roomCode');
+          }
+        }
+      });
+
+      bool roomIsIncomplete = false;
 
       if (roomData.size > 3) {
         roomData.docs.forEach((document) {
           if (document.id == 'gameData') {
             var gameData = document.data();
             if (gameData != null) {
-              print("Bottom: ${gameData['bottom'].runtimeType}");
+              //print("Bottom: ${gameData['bottom'].runtimeType}");
 
               Map<int, String> bottom = {};
               if (gameData['bottom'] != null) {
-                print('bottom is not null for room: $roomCode');
+                //print('bottom is not null for room: $roomCode');
                 bottom = Map<String, String>.from(gameData[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
               } else {
-                print('bottom is NULL for room: $roomCode');
+                //print('bottom is NULL for room: $roomCode');
               }
 
               if (bottom == null || bottom.length < 3) {
-                print("DELETE room: $roomCode");
-                //shouldDelete = true;
+                //print("bottom incomplete $roomCode");
+                roomIsIncomplete = true;
 
-                roomData.docs.forEach((documentToDelete) {
+                /*roomData.docs.forEach((documentToDelete) {
                   documentToDelete.reference.delete();
-                });
+                });*/
               }
             }
           }
         });
-      } else {
-        print("room to delete: $roomCode");
+      } else if (!doNotDelete) {
+        //print("not enough documents $roomCode");
+        //print("room to delete: $roomCode");
+        roomIsIncomplete = true;
+        /*roomData.docs.forEach((documentToDelete) {
+          documentToDelete.reference.delete();
+        });*/
+      }
+
+      if (!doNotDelete && roomIsIncomplete) {
+        debugPrint('room to delete: $roomCode');
         roomData.docs.forEach((documentToDelete) {
           documentToDelete.reference.delete();
         });
       }
     });
+
+    //Future.delayed(Duration(seconds: 7)).then((value) => debugPrint('antal rum att ta bort: $nrOfRoomsToDelete'));
   }
 
   //TODO: Refaktorera, så drawings hämtas på samma sätt på alla ställen, dvs det som är if (gameData[_top] != null) osv...

@@ -131,6 +131,7 @@ class _MonsterViewerState extends State<MonsterViewer> {
     }
 
     if (!_room.allBottomDrawingsDone()) {
+      nextOrPreviousGameRoom(next: true);
       return Center(
         child: LastWaitingScreen(),
       );

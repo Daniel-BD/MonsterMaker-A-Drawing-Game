@@ -6,13 +6,13 @@ import 'package:flutter/services.dart';
 
 import 'package:exquisitecorpse/route_generator.dart';
 import 'package:exquisitecorpse/game_state.dart';
-import 'package:exquisitecorpse/ReviewWebApp/WebHome.dart';
+import 'package:exquisitecorpse/ReviewWebApp/MonsterGalleryReviewer.dart';
 import 'test_app.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIOverlays([]);
-  //runApp(WebApp());
+  //runApp(MonsterGalleryReviewer());
   runApp(MyApp());
   //runApp(TestApp());
 }

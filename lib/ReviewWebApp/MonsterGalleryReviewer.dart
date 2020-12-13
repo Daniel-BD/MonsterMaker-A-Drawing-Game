@@ -5,27 +5,27 @@ import 'package:exquisitecorpse/db.dart';
 
 import 'package:exquisitecorpse/ReviewWebApp/MonsterViewer.dart';
 
-class WebApp extends StatelessWidget {
+class MonsterGalleryReviewer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'MonsterMaker Reviewer',
       debugShowCheckedModeBanner: false,
-      home: WebHome(),
+      home: ReviewerHome(),
     );
   }
 }
 
-class WebHome extends StatefulWidget {
+class ReviewerHome extends StatefulWidget {
   @override
-  _WebHomeState createState() => _WebHomeState();
+  _ReviewerHomeState createState() => _ReviewerHomeState();
 }
 
-class _WebHomeState extends State<WebHome> {
+class _ReviewerHomeState extends State<ReviewerHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: MonsterList(),
+      body: Center(child: MonsterList()),
     );
   }
 }
@@ -37,13 +37,16 @@ class MonsterList extends StatefulWidget {
 
 class _MonsterListState extends State<MonsterList> {
   bool _loadingInit = false;
+  final _buttonColor = Colors.blue[200];
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (_loadingInit) CircularProgressIndicator(),
         FlatButton(
+          color: _buttonColor,
           onPressed: () async {
             setState(() {
               _loadingInit = true;
@@ -58,12 +61,14 @@ class _MonsterListState extends State<MonsterList> {
           child: Text('Init DB'),
         ),
         FlatButton(
+          color: _buttonColor,
           onPressed: () {
             DatabaseService.instance.deleteIncompleteRooms();
           },
           child: Text('Delete Incomplete Rooms'),
         ),
         FlatButton(
+          color: _buttonColor,
           onPressed: () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => MonsterViewer()));
           },
