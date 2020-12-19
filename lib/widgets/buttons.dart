@@ -297,7 +297,7 @@ class ShareButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _BottomCornerGameButton(
+    return _TopCornerGameButton(
       onPressed: onPressed,
       color: galleryYellow,
       textColor: monsterTextColor,
@@ -315,7 +315,7 @@ class QuitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _BottomCornerGameButton(
+    return _TopCornerGameButton(
       onPressed: onPressed,
       color: warning,
       textColor: onWarning,
@@ -498,7 +498,7 @@ class _ModalGameButton extends StatelessWidget {
   }
 }
 
-class _BottomCornerGameButton extends StatelessWidget {
+class _TopCornerGameButton extends StatelessWidget {
   final String label;
   final Color color;
   final Color textColor;
@@ -509,7 +509,7 @@ class _BottomCornerGameButton extends StatelessWidget {
   /// if false it's shaped to be placed at the right edge of the screen.
   final bool leftAligned;
 
-  _BottomCornerGameButton({
+  _TopCornerGameButton({
     @required this.onPressed,
     @required this.label,
     @required this.color,
@@ -563,7 +563,8 @@ class _RoundGameButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final double luminance = buttonColor.computeLuminance();
     final Size size = MediaQuery.of(context).size;
-    final double diameter = min(((size.height - 70) / 6), 50);
+    final double diameter = 50; //min(((size.height - 70) / 6), 50);
+    // TODO: Testa storlek på iPad, iPhone 11
 
     return _GameButton(
       onPressed: onPressed,

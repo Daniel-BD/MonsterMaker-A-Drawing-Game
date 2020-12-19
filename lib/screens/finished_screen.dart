@@ -37,11 +37,9 @@ class _FinishedScreenState extends State<FinishedScreen> {
   var _duration = Duration(seconds: 2);
   PathOrder _pathOrder = PathOrders.original;
 
-  final monsterKey = GlobalKey();
-  Size monsterSize;
-
-  double _outputWidth;
-  double _outputHeight;
+  double _monsterHeight;
+  double _monsterWidth;
+  double _monsterPartHeight;
 
   @override
   void initState() {
@@ -52,23 +50,35 @@ class _FinishedScreenState extends State<FinishedScreen> {
     ]);
   }
 
-  void _calculate() {
-    if (monsterKey.currentContext != null) {
-      RenderBox renderBox = monsterKey.currentContext.findRenderObject();
-      monsterSize = renderBox.size;
-
-      _outputWidth = monsterSize.width - 20;
-      _outputHeight = _outputWidth * (9 / 16);
-
-      if (_outputHeight * (16 / 6) > monsterSize.height) {
-        _outputHeight = monsterSize.height * (6 / 16);
-        _outputWidth = _outputHeight * (16 / 9);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final unsafeArea = MediaQuery.of(context).viewPadding;
+
+    _monsterHeight = MediaQuery.of(context).size.height - 50.0 - 50.0 - 30.0 - 10.0 - unsafeArea.bottom - unsafeArea.top;
+
+    _monsterWidth = _monsterHeight * (2 / 3);
+    _monsterPartHeight = _monsterWidth * (9 / 16);
+
+    /*
+    debugPrint('before: monsterPart width $_monsterPartWidth');
+    debugPrint('before: monsterPart height $_monsterPartHeight');
+    */
+
+    if (_monsterWidth > MediaQuery.of(context).size.width) {
+      _monsterWidth = MediaQuery.of(context).size.width;
+      _monsterPartHeight = _monsterWidth * (9 / 16);
+    }
+
+    /*
+   debugPrint(
+        'viewPadding: ${MediaQuery.of(context).viewPadding}, padding: ${MediaQuery.of(context).padding}, viewInsets: ${MediaQuery.of(context).viewInsets}');
+
+    debugPrint('screen size: ${MediaQuery.of(context).size.toString()}');
+    debugPrint('monster height: $_monsterHeight');
+    debugPrint('monsterPart width $_monsterPartWidth');
+    debugPrint('monsterPart height $_monsterPartHeight');
+    */
+
     final GameState gameState = Provider.of<GameState>(context);
 
     return Scaffold(
@@ -144,8 +154,12 @@ class _FinishedScreenState extends State<FinishedScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[MonsterNumberText(number: _lastMonsterIndex)],
                     ),
-                    if (_clearCanvas || monsterSize == null) _calculateWidget(),
-                    if (!_clearCanvas && monsterSize != null) _monster(monsterSize),
+                    //if (_clearCanvas || monsterSize == null) _calculateWidget(),
+                    SizedBox(
+                      height: _monsterHeight,
+                      child: _clearCanvas ? Container() : _monster(context), //Monster(monsterHeight: _monsterHeight, room: _room),
+                    ),
+                    //if (!_clearCanvas /*&& monsterSize != null*/) _monster(context),
                     if (room.isHost) _controls(context, room),
                     if (!room.isHost) GameHostControlsWhatYouSeeText(),
                     SizedBox(height: 4),
@@ -159,24 +173,14 @@ class _FinishedScreenState extends State<FinishedScreen> {
     );
   }
 
-  Widget _calculateWidget() {
-    _calculate();
-
-    return Expanded(
-      child: Container(
-        key: monsterKey,
-      ),
-    );
-  }
-
-  Widget _monster(Size size) {
-    final leftPosition = (monsterSize.width - _outputWidth - 20) / 2;
+  Widget _monster(BuildContext context) {
+    final leftPosition = 0.0; //(MediaQuery.of(context).size.width - _monsterPartWidth - 20) / 2;
 
     assert(_room.currentMonsterDrawing() != null, 'current MonsterDrawing is null, this will crash the app...');
 
     return SizedBox(
-      height: monsterSize.height,
-      width: monsterSize.width - 20,
+      height: _monsterHeight,
+      width: _monsterWidth,
       child: Stack(
         alignment: AlignmentDirectional.center,
         children: <Widget>[
@@ -184,8 +188,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
             top: 0.0,
             left: leftPosition,
             child: AnimatedDrawing.paths(
-              _room.currentMonsterDrawing().top.getScaledPaths(outputHeight: _outputHeight),
-              paints: _room.currentMonsterDrawing().top.getScaledPaints(outputHeight: _outputHeight),
+              _room.currentMonsterDrawing().top.getScaledPaths(outputHeight: _monsterPartHeight),
+              paints: _room.currentMonsterDrawing().top.getScaledPaints(outputHeight: _monsterPartHeight),
               run: _runTopAnimation,
               animationOrder: _pathOrder,
               scaleToViewport: false,
@@ -199,11 +203,11 @@ class _FinishedScreenState extends State<FinishedScreen> {
             ),
           ),
           Positioned(
-            top: _outputHeight * (5 / 6),
+            top: _monsterPartHeight * (5 / 6),
             left: leftPosition,
             child: AnimatedDrawing.paths(
-              _room.currentMonsterDrawing().middle.getScaledPaths(outputHeight: _outputHeight),
-              paints: _room.currentMonsterDrawing().middle.getScaledPaints(outputHeight: _outputHeight),
+              _room.currentMonsterDrawing().middle.getScaledPaths(outputHeight: _monsterPartHeight),
+              paints: _room.currentMonsterDrawing().middle.getScaledPaints(outputHeight: _monsterPartHeight),
               run: _runMidAnimation,
               animationOrder: _pathOrder,
               scaleToViewport: false,
@@ -217,11 +221,11 @@ class _FinishedScreenState extends State<FinishedScreen> {
             ),
           ),
           Positioned(
-            top: 2 * _outputHeight * (5 / 6),
+            top: 2 * _monsterPartHeight * (5 / 6),
             left: leftPosition,
             child: AnimatedDrawing.paths(
-              _room.currentMonsterDrawing().bottom.getScaledPaths(outputHeight: _outputHeight),
-              paints: _room.currentMonsterDrawing().bottom.getScaledPaints(outputHeight: _outputHeight),
+              _room.currentMonsterDrawing().bottom.getScaledPaths(outputHeight: _monsterPartHeight),
+              paints: _room.currentMonsterDrawing().bottom.getScaledPaints(outputHeight: _monsterPartHeight),
               run: _runBottomAnimation,
               animationOrder: _pathOrder,
               scaleToViewport: false,
@@ -425,3 +429,126 @@ class _AgreeToShareMonsterScreenState extends State<AgreeToShareMonsterScreen> {
     );
   }
 }
+
+/*
+class Monster extends StatefulWidget {
+  final double monsterHeight;
+  final GameRoom room;
+
+  const Monster({
+    Key key,
+    this.monsterHeight,
+    this.room,
+  }) : super(key: key);
+
+  @override
+  _MonsterState createState() => _MonsterState();
+}
+
+class _MonsterState extends State<Monster> {
+  @override
+  void initState() {
+    super.initState();
+    assert(widget.room.currentMonsterDrawing() != null, 'current MonsterDrawing is null, this will crash the app...');
+  }
+
+  bool _runTopAnimation = false;
+  bool _runMidAnimation = false;
+  bool _runBottomAnimation = false;
+  var _duration = Duration(seconds: 2);
+  PathOrder _pathOrder = PathOrders.original;
+  final leftPosition = 0.0;
+  double _monsterWidth;
+  double _monsterPartHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    _monsterWidth = widget.monsterHeight * (2 / 3);
+    _monsterPartHeight = _monsterWidth * (9 / 16);
+
+    /*
+    debugPrint('before: monsterPart width $_monsterPartWidth');
+    debugPrint('before: monsterPart height $_monsterPartHeight');
+    */
+
+    if (_monsterWidth > MediaQuery.of(context).size.width) {
+      _monsterWidth = MediaQuery.of(context).size.width;
+      _monsterPartHeight = _monsterWidth * (9 / 16);
+    }
+
+    /*
+   debugPrint(
+        'viewPadding: ${MediaQuery.of(context).viewPadding}, padding: ${MediaQuery.of(context).padding}, viewInsets: ${MediaQuery.of(context).viewInsets}');
+
+    debugPrint('screen size: ${MediaQuery.of(context).size.toString()}');
+    debugPrint('monster height: $_monsterHeight');
+    debugPrint('monsterPart width $_monsterPartWidth');
+    debugPrint('monsterPart height $_monsterPartHeight');
+    */
+
+    return Container(
+      color: Colors.blue,
+      child: SizedBox(
+        height: widget.monsterHeight,
+        width: _monsterWidth,
+        child: Stack(
+          alignment: AlignmentDirectional.center,
+          children: <Widget>[
+            Positioned(
+              top: 0.0,
+              left: leftPosition,
+              child: AnimatedDrawing.paths(
+                widget.room.currentMonsterDrawing().top.getScaledPaths(outputHeight: _monsterPartHeight),
+                paints: widget.room.currentMonsterDrawing().top.getScaledPaints(outputHeight: _monsterPartHeight),
+                run: _runTopAnimation,
+                animationOrder: _pathOrder,
+                scaleToViewport: false,
+                duration: _duration,
+                onFinish: () => setState(() {
+                  _runTopAnimation = false;
+                  if (!widget.room.animateAllAtOnce) {
+                    _runMidAnimation = true;
+                  }
+                }),
+              ),
+            ),
+            Positioned(
+              top: _monsterPartHeight * (5 / 6),
+              left: leftPosition,
+              child: AnimatedDrawing.paths(
+                widget.room.currentMonsterDrawing().middle.getScaledPaths(outputHeight: _monsterPartHeight),
+                paints: widget.room.currentMonsterDrawing().middle.getScaledPaints(outputHeight: _monsterPartHeight),
+                run: _runMidAnimation,
+                animationOrder: _pathOrder,
+                scaleToViewport: false,
+                duration: _duration,
+                onFinish: () => setState(() {
+                  _runMidAnimation = false;
+                  if (!widget.room.animateAllAtOnce) {
+                    _runBottomAnimation = true;
+                  }
+                }),
+              ),
+            ),
+            Positioned(
+              top: 2 * _monsterPartHeight * (5 / 6),
+              left: leftPosition,
+              child: AnimatedDrawing.paths(
+                widget.room.currentMonsterDrawing().bottom.getScaledPaths(outputHeight: _monsterPartHeight),
+                paints: widget.room.currentMonsterDrawing().bottom.getScaledPaints(outputHeight: _monsterPartHeight),
+                run: _runBottomAnimation,
+                animationOrder: _pathOrder,
+                scaleToViewport: false,
+                duration: _duration,
+                onFinish: () => setState(() {
+                  _runBottomAnimation = false;
+                }),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+*/
