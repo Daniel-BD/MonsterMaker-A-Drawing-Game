@@ -154,12 +154,10 @@ class _FinishedScreenState extends State<FinishedScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[MonsterNumberText(number: _lastMonsterIndex)],
                     ),
-                    //if (_clearCanvas || monsterSize == null) _calculateWidget(),
                     SizedBox(
                       height: _monsterHeight,
-                      child: _clearCanvas ? Container() : _monster(context), //Monster(monsterHeight: _monsterHeight, room: _room),
+                      child: _clearCanvas ? Container() : _monster(context),
                     ),
-                    //if (!_clearCanvas /*&& monsterSize != null*/) _monster(context),
                     if (room.isHost) _controls(context, room),
                     if (!room.isHost) GameHostControlsWhatYouSeeText(),
                     SizedBox(height: 4),
