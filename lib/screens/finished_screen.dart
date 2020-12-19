@@ -55,6 +55,9 @@ class _FinishedScreenState extends State<FinishedScreen> {
     final unsafeArea = MediaQuery.of(context).viewPadding;
 
     _monsterHeight = MediaQuery.of(context).size.height - 50.0 - 50.0 - 30.0 - 10.0 - unsafeArea.bottom - unsafeArea.top;
+    if (!_room.isHost) {
+      _monsterHeight = _monsterHeight + 34;
+    }
 
     _monsterWidth = _monsterHeight * (2 / 3);
     _monsterPartHeight = _monsterWidth * (9 / 16);
