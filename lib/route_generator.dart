@@ -16,7 +16,8 @@ class RouteGenerator {
       case '/playModesScreen':
         return MaterialPageRoute(builder: (_) => PlayModesScreen(), fullscreenDialog: true);
       case '/waitingRoom':
-        return MaterialPageRoute(builder: (_) => WaitingRoomScreen(), fullscreenDialog: true);
+        return MaterialPageRoute(
+            builder: (_) => WaitingRoomScreen(), fullscreenDialog: true); //debug: FinishedScreen(), fullscreenDialog: true);
       case '/getReadyScreen':
         return MaterialPageRoute(builder: (_) => GetReadyScreen(), fullscreenDialog: true);
       case '/drawingScreen':

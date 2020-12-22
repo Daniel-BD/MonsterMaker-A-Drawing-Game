@@ -25,6 +25,7 @@ const String _startAnimation = 'startAnimation';
 const String _monsterIndex = 'monsterIndex';
 const String _animateAllAtOnce = 'animateAllAtOnce';
 const String _agreeToShare = 'agreeToShare';
+const String _createdAt = 'createdAt';
 const String monsterNameKeyString = 'MonsterName';
 
 class DatabaseService {
@@ -51,6 +52,10 @@ class DatabaseService {
     });
 
     return;
+  }
+
+  void printStatus() {
+    debugPrint('UserID: ${_userUID()}');
   }
 
   /// Asserts that the current session is authenticated - which is needed to access the Firestore database.
@@ -86,9 +91,9 @@ class DatabaseService {
   }
 
   Future<List<String>> gameRoomsToReview() async {
-    var rooms = await _db.collection(_home).doc('aA1G9SB63DDqP1jRcQTp').get();
+    var rooms = await _db.collection(_home).doc('DqVS53knxqvnSl9dvcxq').get();
 
-    var newRooms = await _db.collection(_home).doc('06EewQDixww2YxEYEkKV').get();
+    var newRooms = await _db.collection(_home).doc('DqVS53knxqvnSl9dvcxq').get();
 
     List<String> roomCodes = rooms.data()['roomCodes'].cast<String>();
 
@@ -98,12 +103,106 @@ class DatabaseService {
 
     //print(newRoomCodes);
 
-    return newRoomCodes;
+    return roomCodes; //newRoomCodes;
+  }
+
+  /// Monsters submitted for review to Monster Gallery
+  Future<List<MonsterToReview>> roomsToReview() async {
+    final result = List<MonsterToReview>();
+
+    final List<String> allRoomCodes = await gameRoomsToReview();
+
+    for (var roomCode in allRoomCodes) {
+      final GameRoom room = await streamGameRoom(roomCode: roomCode, isSpectator: true).first;
+      debugPrint("room: ${room.roomCode}, agreement: ${room.monsterSharingAgreements.toString()}");
+
+      final sharedMonsters = room.monsterSharingAgreements;
+
+      /// For each monster, where 0 is monster 1, 1 is monster 2 etc.
+      for (int i = 0; i < sharedMonsters.length; i++) {
+        if (sharedMonsters[i] != null) {
+          ///This is a monster that could be shared, check further
+
+          final playersAgreement = List<bool>();
+
+          /// For each player
+          for (int j = 1; j < 4; j++) {
+            playersAgreement.add(sharedMonsters[i]['Player$j']);
+          }
+
+          debugPrint('playersAgreement: $playersAgreement');
+
+          /// If no elements are not true (all elements are true)
+          if (!playersAgreement.any((agreement) => agreement != true)) {
+            /// Every player agrees to share the current monster to Monster Gallery, include in returned list.
+            debugPrint('Adding $roomCode, monsterIndex: ${i + 1}');
+            result.add(MonsterToReview(roomCode, i + 1));
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /// Returns true if successful.
+  Future<bool> acceptOrDenyMonsterSubmission({@required MonsterToReview monster, @required bool isAccepted}) async {
+    debugPrint('Monster: $monster is accepted: $isAccepted');
+    final room = await streamGameRoom(roomCode: monster.roomCode, isSpectator: true).first;
+
+    /// Upload a copy of the monster to the monster gallery database if submission is accepted
+    if (isAccepted) {
+      bool uploadToMonsterGallerySuccessful = false;
+
+      await _db.collection('monsterGallery').doc().set({
+        'acceptedAt': DateTime.now(),
+        'monsterIndex': monster.monsterIndex,
+        'monsterName': room.nameOfSubmittedMonster(monster.monsterIndex),
+        'roomCode': monster.roomCode,
+        'bottom': jsonEncode(room.monsterDrawings[monster.monsterIndex - 1].bottom.toJson()),
+        'middle': jsonEncode(room.monsterDrawings[monster.monsterIndex - 1].middle.toJson()),
+        'top': jsonEncode(room.monsterDrawings[monster.monsterIndex - 1].top.toJson()),
+      }, SetOptions(merge: true)).then((_) {
+        uploadToMonsterGallerySuccessful = true;
+      }).catchError((e) {
+        debugPrint(e);
+        uploadToMonsterGallerySuccessful = false;
+      });
+
+      /// If uploading monster to monster gallery fails, return false
+      if (!uploadToMonsterGallerySuccessful) {
+        return false;
+      }
+    }
+
+    bool result = false;
+
+    final Map<String, Map<String, dynamic>> dataToUpload = {
+      'Monster${monster.monsterIndex}': {'Player1': null, 'Player2': null, 'Player3': null}
+    };
+
+    await _db
+        .collection(_home)
+        .doc(_roomsDoc)
+        .collection(monster.roomCode)
+        .doc(_gameData)
+        .set({
+          _agreeToShare: dataToUpload,
+        }, SetOptions(merge: true))
+        .then((_) => result = true)
+        .catchError((e) {
+          debugPrint(e);
+          result = false;
+        });
+
+    return result;
+
+    /// TODO: This behaviour is potentially weird... If the first cloud firestore operation succeeds, but the second one fails that means the mosnter is uploaded the monster gallery, but the votes aren't nullified...
   }
 
   void deleteIncompleteRooms() async {
     await _init();
-    var rooms = await _db.collection(_home).doc('rtrzupJyLACTTIZ0Lyc6').get();
+    var rooms = await _db.collection(_home).doc('vPxL1lonby1XfzJGcDi5').get();
 
     final now = DateTime.now();
 
@@ -124,9 +223,9 @@ class DatabaseService {
         if (document.id == 'gameData') {
           final data = document.data();
 
-          if (data['createdAt'] != null) {
+          if (data[_createdAt] != null) {
             /// This room is new enough that is has a "created at" timestamp, older versions of the app didn't have it.
-            final Timestamp roomTimeStamp = data['createdAt'];
+            final Timestamp roomTimeStamp = data[_createdAt];
             final createdAt = roomTimeStamp.toDate();
             final difference = createdAt.difference(now);
 
@@ -190,54 +289,6 @@ class DatabaseService {
     //Future.delayed(Duration(seconds: 7)).then((value) => debugPrint('antal rum att ta bort: $nrOfRoomsToDelete'));
   }
 
-  //TODO: Refaktorera, så drawings hämtas på samma sätt på alla ställen, dvs det som är if (gameData[_top] != null) osv...
-  Stream<GameRoom> roomToReviewFromCode({@required String roomCode}) {
-    assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
-
-    return _db.collection(_home).doc(_roomsDoc).collection(roomCode).snapshots().map((room) {
-      Map<int, String> topDrawings = {};
-      Map<int, String> midDrawings = {};
-      Map<int, String> bottomDrawings = {};
-
-      room.docs.forEach((doc) {
-        if (doc.id == _userUID()) {
-        } else if (doc.id == _gameData) {
-          var gameData = doc.data();
-
-          if (gameData[_top] != null) {
-            topDrawings = Map<String, String>.from(gameData[_top]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
-          }
-          if (gameData[_mid] != null) {
-            midDrawings = Map<String, String>.from(gameData[_mid]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
-          }
-          if (gameData[_bottom] != null) {
-            bottomDrawings = Map<String, String>.from(gameData[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
-          }
-        }
-      });
-
-      assert(topDrawings != null, 'topDrawing null');
-      assert(midDrawings != null, 'midDrawings null');
-      assert(bottomDrawings != null, 'bottomDrawings null');
-
-      var gameRoom = GameRoom(
-        roomCode: roomCode,
-        activePlayers: room.docs.length - 1,
-        startedGame: true,
-        isHost: true,
-        playerIndex: 1,
-        startAnimation: true,
-        monsterIndex: 1,
-        animateAllAtOnce: false,
-        topDrawings: topDrawings,
-        midDrawings: midDrawings,
-        bottomDrawings: bottomDrawings,
-        monsterSharingAgreements: [{}, {}, {}], //TODO: gör detta rätt efter refaktorering
-      );
-      return gameRoom;
-    });
-  }
-
   Future<MonsterDrawing> getMonsterFromRoomCode(String roomCode, int monsterIndex) async {
     debugPrint('running getFromRoomCode - used for monster carousel on start screen');
 
@@ -254,35 +305,6 @@ class DatabaseService {
     final GameRoom room = await streamGameRoom(roomCode: roomCode, isSpectator: true).first;
 
     return room.monsterDrawings[monsterIndex - 1];
-
-    /*assert(roomCode != null && roomCode.isNotEmpty, 'roomCode is null or empty');
-
-    Map<int, String> topDrawings = {};
-    Map<int, String> midDrawings = {};
-    Map<int, String> bottomDrawings = {};
-
-    final gameDataDoc = await _db.collection(_home).doc(_roomsDoc).collection(roomCode).doc(_gameData).get();
-    final gameData = gameDataDoc.data();
-
-    if (gameData[_top] != null) {
-      topDrawings = Map<String, String>.from(gameData[_top]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
-    }
-    if (gameData[_mid] != null) {
-      midDrawings = Map<String, String>.from(gameData[_mid]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
-    }
-    if (gameData[_bottom] != null) {
-      bottomDrawings = Map<String, String>.from(gameData[_bottom]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
-    }
-
-    assert(topDrawings != null, 'topDrawing null');
-    assert(midDrawings != null, 'midDrawings null');
-    assert(bottomDrawings != null, 'bottomDrawings null');
-
-    DrawingStorage top = DrawingStorage.fromJson(jsonDecode(topDrawings[topIndex]));
-    DrawingStorage mid = DrawingStorage.fromJson(jsonDecode(midDrawings[midIndex]));
-    DrawingStorage bottom = DrawingStorage.fromJson(jsonDecode(bottomDrawings[bottomIndex]));
-
-    return MonsterDrawing(top, mid, bottom);*/
   }
 
   /// The main method of fetching game rooms in the app
@@ -297,6 +319,7 @@ class DatabaseService {
       bool startAnimation;
       int monsterIndex;
       bool animateAllAtOnce;
+      DateTime createdAt;
 
       Map<int, String> topDrawings = {};
       Map<int, String> midDrawings = {};
@@ -305,6 +328,7 @@ class DatabaseService {
       final List<Map<String, dynamic>> monsterSharingAgreements = List(3);
 
       room.docs.forEach((doc) {
+        //TODO: Change from forEach to for (var in list), since forEach is not linear...
         if (doc.id == _userUID()) {
           isHost = doc.get(_isHost);
           playerIndex = doc.get(_player);
@@ -315,6 +339,11 @@ class DatabaseService {
           startAnimation = gameData[_startAnimation];
           monsterIndex = gameData[_monsterIndex];
           animateAllAtOnce = gameData[_animateAllAtOnce];
+
+          final Timestamp roomTimeStamp = gameData[_createdAt];
+          if (roomTimeStamp.runtimeType == Timestamp) {
+            createdAt = roomTimeStamp.toDate();
+          }
 
           if (gameData[_top] != null) {
             topDrawings = Map<String, String>.from(gameData[_top]).map((key, value) => MapEntry<int, String>(int.parse(key), value));
@@ -382,6 +411,7 @@ class DatabaseService {
 
       var gameRoom = GameRoom(
         roomCode: roomCode,
+        createdAt: createdAt,
         activePlayers: room.docs.length - 1,
         startedGame: startedGame,
         isHost: isHost,
@@ -438,7 +468,7 @@ class DatabaseService {
             .doc(_roomsDoc)
             .collection(roomCode)
             .doc(_gameData)
-            .set({_startedGame: false, "createdAt": DateTime.now()}).catchError((Object error) {
+            .set({_startedGame: false, _createdAt: DateTime.now()}).catchError((Object error) {
           roomCode = null;
           assert(false, 'failed to create new room');
         }).whenComplete(() {

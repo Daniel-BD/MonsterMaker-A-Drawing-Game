@@ -1,8 +1,10 @@
 import 'package:exquisitecorpse/drawing_storage.dart';
+import 'package:exquisitecorpse/widgets/modal_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:drawing_animation/drawing_animation.dart';
+import 'package:intl/intl.dart';
 
 import 'package:exquisitecorpse/models.dart';
 import 'package:exquisitecorpse/db.dart';
@@ -11,6 +13,10 @@ import 'package:exquisitecorpse/widgets/text_components.dart';
 import 'package:exquisitecorpse/constants.dart';
 
 class MonsterViewer extends StatefulWidget {
+  final List<MonsterToReview> monstersToReview;
+
+  const MonsterViewer({Key key, this.monstersToReview}) : super(key: key);
+
   @override
   _MonsterViewerState createState() => _MonsterViewerState();
 }
@@ -23,15 +29,8 @@ class _MonsterViewerState extends State<MonsterViewer> {
 
   bool _clearCanvas = true;
 
-  DrawingStorage _top;
-  DrawingStorage _mid;
-  DrawingStorage _bottom;
-
+  /// 1 is monster 1 etc
   int _monsterIndex = 1;
-
-  int _topIndex = 1;
-  int _midIndex = 2;
-  int _bottomIndex = 3;
 
   bool _runTopAnimation = false;
   bool _runMidAnimation = false;
@@ -40,13 +39,15 @@ class _MonsterViewerState extends State<MonsterViewer> {
   var _duration = Duration(seconds: 2);
   PathOrder _pathOrder = PathOrders.topToBottom;
 
-  final monsterKey = GlobalKey();
-  Size monsterSize;
+  double _monsterHeight;
+  double _monsterWidth;
+  double _monsterPartHeight;
 
-  double _outputWidth;
-  double _outputHeight;
+  int _currentGameRoomIndex = 0;
+  int _monsterSubmissionIndex = 0;
 
-  int currentGameRoomIndex = 0;
+  /// If true, we are reviewing monster gallery submission, otherwise we are looking at all monsters in database
+  bool reviewingSubmissions() => widget.monstersToReview?.isNotEmpty == true;
 
   @override
   void initState() {
@@ -55,91 +56,77 @@ class _MonsterViewerState extends State<MonsterViewer> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    getRoomCodesToReview();
+    if (!reviewingSubmissions()) {
+      getRoomCodesToReview();
+    } else {
+      updateSubmissionReview();
+    }
   }
 
   Future<void> getRoomCodesToReview() async {
     _roomCodesToReview = await _db.gameRoomsToReview();
-    _room = await _db.roomToReviewFromCode(roomCode: _roomCodesToReview[currentGameRoomIndex]).first;
+    _room = await _db.streamGameRoom(roomCode: _roomCodesToReview[_currentGameRoomIndex], isSpectator: true).first;
+    setState(() {});
+  }
+
+  /// Run this after updating _monsterSubmissionIndex
+  updateSubmissionReview() async {
+    final monsterToReview = widget.monstersToReview[_monsterSubmissionIndex];
+    _room = await _db.streamGameRoom(roomCode: monsterToReview.roomCode, isSpectator: true).first;
+    _monsterIndex = monsterToReview.monsterIndex;
     setState(() {});
   }
 
   void nextOrPreviousGameRoom({next = true}) async {
-    print("CURRENT ROOM: " + _roomCodesToReview[currentGameRoomIndex]);
+    print("CURRENT ROOM: " + _roomCodesToReview[_currentGameRoomIndex]);
 
     if (next) {
-      if (currentGameRoomIndex >= _roomCodesToReview.length - 1) {
+      if (_currentGameRoomIndex >= _roomCodesToReview.length - 1) {
         return;
       }
-      _room = await _db.roomToReviewFromCode(roomCode: _roomCodesToReview[++currentGameRoomIndex]).first;
+      _room = await _db.streamGameRoom(roomCode: _roomCodesToReview[++_currentGameRoomIndex], isSpectator: true).first;
     } else {
-      if (currentGameRoomIndex <= 0) {
+      if (_currentGameRoomIndex <= 0) {
         return;
       }
-      _room = await _db.roomToReviewFromCode(roomCode: _roomCodesToReview[--currentGameRoomIndex]).first;
+      _room = await _db.streamGameRoom(roomCode: _roomCodesToReview[--_currentGameRoomIndex], isSpectator: true).first;
     }
 
     _monsterIndex = 1;
-    indexHandler(_monsterIndex);
     _startAnimations();
-  }
-
-  void indexHandler(int index) {
-    assert(index == 1 || index == 2 || index == 3, 'Index is not a valid number');
-    if (index == 1) {
-      _topIndex = index;
-      _midIndex = 2;
-      _bottomIndex = 3;
-    } else if (index == 2) {
-      _topIndex = index;
-      _midIndex = 3;
-      _bottomIndex = 1;
-    } else if (index == 3) {
-      _topIndex = index;
-      _midIndex = 1;
-      _bottomIndex = 2;
-    }
-  }
-
-  void _calculate() {
-    if (monsterKey.currentContext != null) {
-      RenderBox renderBox = monsterKey.currentContext.findRenderObject();
-      monsterSize = renderBox.size;
-
-      _outputHeight = 300;
-      _outputWidth = _outputHeight * 0.75;
-      //_outputWidth = 300; //size.width - 20;
-      //_outputHeight = _outputWidth * (2 / 3);
-
-      if (_outputHeight * (5 / 6) * 3 > monsterSize.height) {
-        _outputHeight = monsterSize.height * (6 / 16);
-        _outputWidth = monsterSize.height * (6 / 16) * (3 / 2);
-      }
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    //GameState.canvasHeight = MediaQuery.of(context).size.height / 2;
-    //GameState.canvasWidth = MediaQuery.of(context).size.width / 2;
+    final unsafeArea = MediaQuery.of(context).viewPadding;
 
-    final Size size = Size(300, 300); //MediaQuery.of(context).size;
-    //final Size size = MediaQuery.of(context).size;
+    _monsterHeight = MediaQuery.of(context).size.height - 100 - unsafeArea.bottom - unsafeArea.top;
+
+    _monsterWidth = _monsterHeight * (2 / 3);
+    _monsterPartHeight = _monsterWidth * (9 / 16);
+
+    if (_monsterWidth > MediaQuery.of(context).size.width) {
+      _monsterWidth = MediaQuery.of(context).size.width;
+      _monsterPartHeight = _monsterWidth * (9 / 16);
+    }
 
     if (_room == null) {
+      debugPrint('room is null');
       return CircularProgressIndicator();
     }
 
     if (!_room.allBottomDrawingsDone()) {
+      debugPrint('Room incomplete! ${_room.roomCode}, going to next');
       nextOrPreviousGameRoom(next: true);
-      return Center(
-        child: LastWaitingScreen(),
-      );
+      return CircularProgressIndicator();
     }
 
-    _top = DrawingStorage.fromJson(jsonDecode(_room.topDrawings[_topIndex]));
-    _mid = DrawingStorage.fromJson(jsonDecode(_room.midDrawings[_midIndex]));
-    _bottom = DrawingStorage.fromJson(jsonDecode(_room.bottomDrawings[_bottomIndex]));
+    String createdAtString = '';
+    final roomCreatedAt = _room.createdAt;
+    if (roomCreatedAt != null) {
+      final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm');
+      createdAtString = formatter.format(_room.createdAt);
+    }
 
     return Scaffold(
       backgroundColor: paper,
@@ -150,24 +137,26 @@ class _MonsterViewerState extends State<MonsterViewer> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                _controls(),
+                SizedBox(
+                  height: _monsterHeight,
+                  child: _clearCanvas ? Container() : _monster(context),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[MonsterNumberText(number: _monsterIndex)],
+                  children: <Widget>[Text('Created: $createdAtString, room: ${_room.roomCode},  index: $_monsterIndex')],
                 ),
-                if (_clearCanvas || monsterSize == null) _calculateWidget(),
-                if (!_clearCanvas && monsterSize != null) _monster(size)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      'Name: ${_room.nameOfSubmittedMonster(_monsterIndex)}',
+                      style: TextStyle(fontSize: 20),
+                    )
+                  ],
+                ),
+                if (reviewingSubmissions()) _submissionControls(),
+                if (!reviewingSubmissions()) _allMonstersControls(),
               ],
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Container(),
-                  //ShareButton(onPressed: () {}), //TODO: Implement share functionality
-                ],
-              ),
             ),
           ],
         ),
@@ -175,30 +164,23 @@ class _MonsterViewerState extends State<MonsterViewer> {
     );
   }
 
-  Widget _calculateWidget() {
-    _calculate();
+  Widget _monster(BuildContext context) {
+    final leftPosition = 0.0;
 
-    return Expanded(
-      child: Container(
-        key: monsterKey,
-      ),
-    );
-  }
+    assert(_room.monsterDrawings[_monsterIndex - 1] != null, 'MonsterDrawing is null, this will crash the app...');
 
-  Widget _monster(Size size) {
-    return Padding(
-      padding: EdgeInsets.only(left: (size.width - _outputWidth) / 2),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: monsterSize.width, maxHeight: monsterSize.height),
-        child: Stack(
-          children: <Widget>[
-            AnimatedDrawing.paths(
-              _top.getScaledPaths(
-                outputHeight: _outputHeight,
-              ),
-              paints: _top.getScaledPaints(
-                outputHeight: _outputHeight,
-              ),
+    return SizedBox(
+      height: _monsterHeight,
+      width: _monsterWidth,
+      child: Stack(
+        alignment: AlignmentDirectional.center,
+        children: <Widget>[
+          Positioned(
+            top: 0.0,
+            left: leftPosition,
+            child: AnimatedDrawing.paths(
+              _room.monsterDrawings[_monsterIndex - 1].top.getScaledPaths(outputHeight: _monsterPartHeight),
+              paints: _room.monsterDrawings[_monsterIndex - 1].top.getScaledPaints(outputHeight: _monsterPartHeight),
               run: _runTopAnimation,
               animationOrder: _pathOrder,
               scaleToViewport: false,
@@ -210,44 +192,99 @@ class _MonsterViewerState extends State<MonsterViewer> {
                 }
               }),
             ),
-            Positioned(
-              top: _outputHeight * (5 / 6),
-              child: AnimatedDrawing.paths(
-                _mid.getScaledPaths(
-                  outputHeight: _outputHeight,
-                ),
-                paints: _mid.getScaledPaints(
-                  outputHeight: _outputHeight,
-                ),
-                run: _runMidAnimation,
-                animationOrder: _pathOrder,
-                scaleToViewport: false,
-                duration: _duration,
-                onFinish: () => setState(() {
-                  _runMidAnimation = false;
-                  if (!_room.animateAllAtOnce) {
-                    _runBottomAnimation = true;
-                  }
-                }),
-              ),
+          ),
+          Positioned(
+            top: _monsterPartHeight * (5 / 6),
+            left: leftPosition,
+            child: AnimatedDrawing.paths(
+              _room.monsterDrawings[_monsterIndex - 1].middle.getScaledPaths(outputHeight: _monsterPartHeight),
+              paints: _room.monsterDrawings[_monsterIndex - 1].middle.getScaledPaints(outputHeight: _monsterPartHeight),
+              run: _runMidAnimation,
+              animationOrder: _pathOrder,
+              scaleToViewport: false,
+              duration: _duration,
+              onFinish: () => setState(() {
+                _runMidAnimation = false;
+                if (!_room.animateAllAtOnce) {
+                  _runBottomAnimation = true;
+                }
+              }),
             ),
-            Positioned(
-              top: 2 * _outputHeight * (5 / 6),
-              child: AnimatedDrawing.paths(
-                _bottom.getScaledPaths(
-                  outputHeight: _outputHeight,
-                ),
-                paints: _bottom.getScaledPaints(
-                  outputHeight: _outputHeight,
-                ),
-                run: _runBottomAnimation,
-                animationOrder: _pathOrder,
-                scaleToViewport: false,
-                duration: _duration,
-                onFinish: () => setState(() {
-                  _runBottomAnimation = false;
-                }),
-              ),
+          ),
+          Positioned(
+            top: 2 * _monsterPartHeight * (5 / 6),
+            left: leftPosition,
+            child: AnimatedDrawing.paths(
+              _room.monsterDrawings[_monsterIndex - 1].bottom.getScaledPaths(outputHeight: _monsterPartHeight),
+              paints: _room.monsterDrawings[_monsterIndex - 1].bottom.getScaledPaints(outputHeight: _monsterPartHeight),
+              run: _runBottomAnimation,
+              animationOrder: _pathOrder,
+              scaleToViewport: false,
+              duration: _duration,
+              onFinish: () => setState(() {
+                _runBottomAnimation = false;
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _submissionControls() {
+    const double padding = 4;
+    const double edgePadding = 2;
+
+    return FittedBox(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            Container(width: edgePadding),
+            PlayButton(
+              onPressed: () {
+                _startAnimations();
+              },
+            ),
+            Container(width: padding),
+            PreviousButton(
+              onPressed: () {
+                if (_monsterSubmissionIndex > 0) {
+                  _monsterSubmissionIndex--;
+                  updateSubmissionReview();
+                }
+              },
+            ),
+            Container(width: padding),
+            NextButton(
+              onPressed: () {
+                if (_monsterSubmissionIndex < widget.monstersToReview.length - 1) {
+                  _monsterSubmissionIndex++;
+                  updateSubmissionReview();
+                }
+              },
+            ),
+            SizedBox(width: 20),
+            RaisedButton(
+              color: green,
+              child: Text('Accept'),
+              onPressed: () {
+                _confirmReviewChoice(context, true, () {
+                  _db.acceptOrDenyMonsterSubmission(monster: MonsterToReview(_room.roomCode, _monsterIndex), isAccepted: true);
+                });
+              },
+            ),
+            SizedBox(width: 20),
+            RaisedButton(
+              color: warning,
+              child: Text('Deny'),
+              onPressed: () {
+                _confirmReviewChoice(context, false, () {
+                  _db.acceptOrDenyMonsterSubmission(monster: MonsterToReview(_room.roomCode, _monsterIndex), isAccepted: false);
+                });
+              },
             ),
           ],
         ),
@@ -255,7 +292,51 @@ class _MonsterViewerState extends State<MonsterViewer> {
     );
   }
 
-  Widget _controls() {
+  _confirmReviewChoice(BuildContext context, bool accept, VoidCallback onConfirm) {
+    showDialog(
+      context: context,
+      builder: (_) => Center(
+        child: Material(
+          child: Container(
+            height: 200,
+            width: 300,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  accept ? 'Accept to Monster Gallery?' : 'Deny submission?',
+                  style: TextStyle(fontSize: 20),
+                ),
+                SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    RaisedButton(
+                      onPressed: () {
+                        onConfirm();
+                        Navigator.of(context).maybePop();
+                      },
+                      color: accept ? green : warning,
+                      child: Text(accept ? 'Accept' : 'Deny'),
+                    ),
+                    RaisedButton(
+                      onPressed: () {
+                        Navigator.of(context).maybePop();
+                      },
+                      color: blue,
+                      child: Text('Back'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _allMonstersControls() {
     const double padding = 4;
     const double edgePadding = 2;
 
@@ -277,7 +358,6 @@ class _MonsterViewerState extends State<MonsterViewer> {
               onPressed: () {
                 if (_monsterIndex > 1) {
                   _monsterIndex--;
-                  indexHandler(_monsterIndex);
                   _startAnimations();
                 }
               },
@@ -287,7 +367,6 @@ class _MonsterViewerState extends State<MonsterViewer> {
               onPressed: () {
                 if (_monsterIndex < 3) {
                   _monsterIndex++;
-                  indexHandler(_monsterIndex);
                   _startAnimations();
                 }
               },
@@ -315,11 +394,11 @@ class _MonsterViewerState extends State<MonsterViewer> {
     _clearCanvas = false;
     _runTopAnimation = true;
     if (_room.animateAllAtOnce) {
-      _duration = Duration(milliseconds: 100);
+      _duration = Duration(milliseconds: 800);
       _runMidAnimation = true;
       _runBottomAnimation = true;
     } else {
-      _duration = Duration(milliseconds: 100);
+      _duration = Duration(milliseconds: 800);
       _runMidAnimation = false;
       _runBottomAnimation = false;
     }

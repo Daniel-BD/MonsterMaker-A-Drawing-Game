@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-//import 'package:cloud_functions/cloud_functions.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 import 'package:exquisitecorpse/db.dart';
 
@@ -25,19 +25,21 @@ class _ReviewerHomeState extends State<ReviewerHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(child: MonsterList()),
+      body: Center(child: ButtonList()),
     );
   }
 }
 
-class MonsterList extends StatefulWidget {
+class ButtonList extends StatefulWidget {
   @override
-  _MonsterListState createState() => _MonsterListState();
+  _ButtonListState createState() => _ButtonListState();
 }
 
-class _MonsterListState extends State<MonsterList> {
+class _ButtonListState extends State<ButtonList> {
   bool _loadingInit = false;
   final _buttonColor = Colors.blue[200];
+
+  //FirebaseFunctions functions = FirebaseFunctions.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +75,15 @@ class _MonsterListState extends State<MonsterList> {
             Navigator.push(context, MaterialPageRoute(builder: (context) => MonsterViewer()));
           },
           child: Text('Go to MonsterViewer'),
+        ),
+        FlatButton(
+          color: _buttonColor,
+          onPressed: () async {
+            final result = await DatabaseService.instance.roomsToReview();
+            Navigator.push(context, MaterialPageRoute(builder: (context) => MonsterViewer(monstersToReview: result)));
+            debugPrint('RESULT: $result');
+          },
+          child: Text('Review Monster Gallery Submissions'),
         ),
       ],
     );

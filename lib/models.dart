@@ -6,6 +6,25 @@ import 'dart:convert';
 import 'package:exquisitecorpse/db.dart';
 import 'drawing_storage.dart';
 
+/// A helper class for pointing to a certain monster in the database that should be reviews for inclusion in the Monster Gallery.
+class MonsterToReview {
+  final String roomCode;
+
+  /// Monster index, where 1 is monster 1 etc.
+  final int monsterIndex;
+
+  MonsterToReview(this.roomCode, this.monsterIndex)
+      : assert(roomCode != null && roomCode.length == 4, 'MonsterToReview roomCode incorrect'),
+        assert(monsterIndex != null &&
+            monsterIndex >= 0 &&
+            monsterIndex <= 3); //TODO: If we ever have a mode with more/less than 3 players, this will need to change
+
+  @override
+  String toString() {
+    return 'RoomCode: $roomCode, monsterIndex: $monsterIndex';
+  }
+}
+
 class MonsterDrawing {
   MonsterDrawing(this.top, this.middle, this.bottom);
 
@@ -17,6 +36,7 @@ class MonsterDrawing {
 class GameRoom {
   GameRoom({
     @required this.roomCode,
+    @required this.createdAt,
     @required this.activePlayers,
     @required this.startedGame,
     @required this.isHost,
@@ -45,6 +65,9 @@ class GameRoom {
 
   /// The room code of the room
   final String roomCode;
+
+  /// When the room was created, can be null (for rooms created before creation timestamps were recorded)
+  final DateTime createdAt;
 
   /// How many players are currently in the room
   final int activePlayers;

@@ -12,8 +12,8 @@ import 'test_app.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIOverlays([]);
-  //runApp(MonsterGalleryReviewer());
-  runApp(MyApp());
+  runApp(MonsterGalleryReviewer());
+  //runApp(MyApp());
   //runApp(TestApp());
 }
 

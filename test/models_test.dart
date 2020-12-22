@@ -7,6 +7,7 @@ void main() {
   group('GameRoom', () {
     GameRoom gameRoom = GameRoom(
       roomCode: 'ABCD',
+      createdAt: null,
       activePlayers: 3,
       startedGame: true,
       isHost: true,
